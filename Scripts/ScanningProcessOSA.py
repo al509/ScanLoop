@@ -11,20 +11,63 @@ import numpy as np
 import winsound
 import time
 
+class ScanState:
+    ScanStep=30                     # in stage steps, Step to move stage   
+    SeekContactStep=30              # in stage steps, Step to move stage
+                                    ##  to find the contact
+                                    
+    IsInContact=False               # True - when taper is in contact with
+                                    ## the sample 
+    
+    LevelToDistinctContact=-15      # dBm, used to determine if there is 
+                                    ## contact between the taper and the sample
+                                    ## See function checkIfContact for details
+    
+    def doStep(self, scanstep):
+        pass
 
+class AxisScanState(ScanState):
+    BackStep=50             # in stage steps, Step to move stage 
+                            ## AxisToGetContact to loose the contact
+    
+    AxisToScan='Z'          # 'X',or 'Y', or 'Z'. Axis to scan along
+    AxisToGetContact='X'    # 'X',or 'Y', or 'Z'. The script will be searching 
+                            ## for contactbetween the taper and the 
+                            ##microresonator with moving along AxisToGetContact
+    
+    def doStep(self, scanstep):
+        pass
+    
+    def set_ScanningType(self,ScanningType:int): # set axis depending on choice in MainWindow
+        if ScanningType==0:
+            self.AxisToScan='Z'
+            self.AxisToGetContact='X'
+        elif ScanningType==1:
+            self.AxisToScan='Y'
+            self.AxisToGetContact='X'
+        elif ScanningType==2:
+            self.AxisToScan='Y'
+            self.AxisToGetContact='Z'
+
+class LoopScanState(ScanState):
+    
+    def doStep(self, scanstep):
+        pass
+
+    
 
 class ScanningProcess(QObject):
     is_running=False  ## Variable is "True" during scanning process. Pushing on "scanning" button in main window sets is_running True and start scanning process.  
     ### Another pushing on "scanning" button during the scanning proccess set is_running to "False" and interrupt the scanning process
     
-    AxisToScan='Z' # 'X',or 'Y', or 'Z'. Axis to scan along
-    AxisToGetContact='X' # 'X',or 'Y', or 'Z'. The script will be searching for contactbetween the taper and the microresonator with moving along AxisToGetContact
     
-    LevelToDistinctContact=-15 # dBm, used to determine if there is contact between the taper and the sample. see function checkIfContact for details
+    
+    
+ 
      
-    ScanStep=30 #in stage steps, Step to move stage "AxisToScan" 
-    SeekContactStep=30 #in stage steps, Step to move stage AxisToGetContact to find the contact
-    BackStep=50   #in stage steps, Step to move stage AxisToGetContact to loose the contact
+     
+    
+    
     
     CurrentFileIndex=1 
     StopFileIndex=100
@@ -32,7 +75,7 @@ class ScanningProcess(QObject):
     SqueezeSpanWhileSearchingContact=False ## if true, span is set to small value of "SpanForScanning" each time when contact is being sought.
     SpanForScanning=0.05 #nm, Value of span in searching_contact function. Used if SqueezeSpanWhileSearchingContact==True
     
-    IsInContact=False # True - when taper is in contact with the sample 
+    
     
     NumberOfScans=1 # Number of spectra acquired at each point along the sample
     IsHighRes=False # if true and high resolution of OSA is used, spectra have to be saved on OSA hardDrive
@@ -66,16 +109,7 @@ class ScanningProcess(QObject):
         self.SqueezeSpanWhileSearchingContact=SqueezeSpanWhileSearchingContact
         self.NumberOfScans=numberofscans
 
-    def set_ScanningType(self,ScanningType:int): # set axis depending on choice in MainWindow
-        if ScanningType==0:
-            self.AxisToScan='Z'
-            self.AxisToGetContact='X'
-        elif ScanningType==1:
-            self.AxisToScan='Y'
-            self.AxisToGetContact='X'
-        elif ScanningType==2:
-            self.AxisToScan='Y'
-            self.AxisToGetContact='Z'
+
 
     def set_OSA_to_Searching_Contact_State(self): #set rough resolution and narrowband span 
         print(self.OSA._Span)
