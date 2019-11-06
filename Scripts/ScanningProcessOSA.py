@@ -10,53 +10,48 @@ from PyQt5.QtCore import pyqtSignal, QThread, QState, QStateMachine, QObject
 import numpy as np
 import winsound
 import time
+from abc import ABC, abstractmethod
 
-class ScanGeometry:
- 
+class ScanGeometry(ABC):
+                                   
 
-                                    
-    IsInContact=False               # True - when taper is in contact with
-                                    ## the sample 
+    @abstractmethod
+    def searchContact(self):
+        pass
     
-    LevelToDistinctContact=-15      # dBm, used to determine if there is 
-                                    ## contact between the taper and the sample
-                                    ## See function checkIfContact for details
-                                    
-    is_running=False                # Variable is "True" during scanning proces
+    @abstractmethod
+    def loseContact(self):
+        pass
     
+    @abstractmethod
     def doStep(self, scanstep):
         pass
 
 class AxisScan(ScanGeometry):
-    BackStep=50             # in stage steps, Step to move stage 
-                            ## AxisToGetContact to loose the contact
-                            
-    SeekContactStep=30      # in stage steps, Step to move stage
-                            ##  to find the contact
-                            
-    AxisToScan='Z'          # 'X',or 'Y', or 'Z'. Axis to scan along
-    AxisToGetContact='X'    # 'X',or 'Y', or 'Z'. The script will be searching 
+
+    AxisToScan=''          # 'X',or 'Y', or 'Z'. Axis to scan along
+    
+    AxisToGetContact=''    # 'X',or 'Y', or 'Z'. The script will be searching 
                             ## for contactbetween the taper and the 
                             ##microresonator with moving along AxisToGetContact
+                    
     
+    def searchContact(self):
+        pass
     
-    def set_ScanningType(self,ScanningType:int):    # set axis depending on  
-                                                    ## choice in MainWindow
-        if ScanningType==0:
-            self.AxisToScan='Z'
-            self.AxisToGetContact='X'
-        elif ScanningType==1:
-            self.AxisToScan='Y'
-            self.AxisToGetContact='X'
-        elif ScanningType==2:
-            self.AxisToScan='Y'
-            self.AxisToGetContact='Z'
-            
+    def loseContact(self):
+        pass
     
     def doStep(self, scanstep):
         pass
 
 class LoopScan(ScanGeometry):
+    
+    def searchContact(self):
+        pass
+    
+    def loseContact(self):
+        pass
     
     def doStep(self, scanstep):
         pass
@@ -65,26 +60,41 @@ class LoopScan(ScanGeometry):
 
 class ScanningProcess(QObject):
 
-    ScanStep=30                     # in stage steps, Step to move stage  
+    ##Defining inner variables (which are parameters when fuction calls) 
+    
+    ScanStep=0                      # in stage steps, Step to move stage
+    
+    BackStep=0                      # in stage steps, Step to move stage 
+                                    ## AxisToGetContact to loose the contact
+    
+    SeekContactStep=0               # in stage steps, Step to move stage
+                                    ##  to find the contact
+    
+    LevelToDistinctContact=0        # dBm, used to determine if there is 
+                                    ## contact between the taper and the sample
+                                    ## See function checkIfContact for details
     
     
-    
-    CurrentFileIndex=1 
-    StopFileIndex=100
+    CurrentFileIndex=0 
+    StopFileIndex=0
     
     SqueezeSpanWhileSearchingContact=False  # if true, span is set to small 
                                             ## value of "SpanForScanning" each 
                                             ##time when contact is being sought
                                             
-    SpanForScanning=0.05    # nm, Value of span in searching_contact function. 
+    SpanForScanning=0    # nm, Value of span in searching_contact function. 
                             ## Used if SqueezeSpanWhileSearchingContact==True
     
-    
-    
-    NumberOfScans=1 # Number of spectra acquired at each point along the sample
+      
+    NumberOfScans=0 # Number of spectra acquired at each point along the sample
     
     IsHighRes=False # if true and high resolution of OSA is used, spectra have
                     ## to be saved on OSA hardDrive
+                    
+    IsInContact=False               # True - when taper is in contact with
+                                    ## the sample 
+                                    
+    is_running=False                # Variable is "True" during scanning proces
     
     
     S_updateCurrentFileName=pyqtSignal(str) #signal to initiate update the 
@@ -104,7 +114,8 @@ class ScanningProcess(QObject):
                                                     ## stages and current file 
                                                     ## index to file
                                                     ## "Positions.txt"
-    S_finished=pyqtSignal()  # signal to finish
+    
+    S_finished=pyqtSignal()                         # signal to finish
     
 
     def __init__(self,
@@ -132,6 +143,20 @@ class ScanningProcess(QObject):
 
 
 
+    def set_ScanningType(self,ScanningType:int):    # set axis depending on  
+                                                    ## choice in MainWindow
+        if ScanningType==0:
+            self.AxisToScan='Z'
+            self.AxisToGetContact='X'
+        elif ScanningType==1:
+            self.AxisToScan='Y'
+            self.AxisToGetContact='X'
+        elif ScanningType==2:
+            self.AxisToScan='Y'
+            self.AxisToGetContact='Z'
+    
+    
+    
     def set_OSA_to_Searching_Contact_State(self):   #set rough resolution and 
                                                     ## narrowband span 
         print(self.OSA._Span)
@@ -218,6 +243,7 @@ class ScanningProcess(QObject):
         while self.is_running and self.CurrentFileIndex<self.StopFileIndex+1:
             time0=time.time()
             ## Getting in contact between the taper and the sample
+            # 1:
             self.search_contact() 
             
             if self.SqueezeSpanWhileSearchingContact:   # after contact is 
@@ -246,6 +272,7 @@ class ScanningProcess(QObject):
             self.S_addPosition_and_FilePrefix.emit(str(self.CurrentFileIndex))
 
 
+            
             ## Loosing contact between the taper and the sample
             if not self.is_running: 
                 break
@@ -257,6 +284,7 @@ class ScanningProcess(QObject):
                                                         ## can be set  
                 self.set_OSA_to_Searching_Contact_State()
        
+            # 2:
             self.losing_contact()
                 
 
@@ -268,12 +296,15 @@ class ScanningProcess(QObject):
                     self.set_OSA_to_Measuring_State()
                 break
             
+            # 3:
             self.stages.shiftOnArbitrary(self.AxisToScan,self.ScanStep)
+            
             self.CurrentFileIndex+=1
             self.S_updateCurrentFileName.emit(str(self.CurrentFileIndex))
             print('\n Shifted along the scanning axis\n')
 
-            print('Time elapsed for measuring at single point is ', time.time()-time0,'\n')
+            print('Time elapsed for measuring at single point is ', time.time()
+            -time0,'\n')
             
     # if scanning finishes because all points along scanning axis are measured  
         if self.is_running and self.CurrentFileIndex>self.StopFileIndex:
