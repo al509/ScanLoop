@@ -126,6 +126,8 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_SaveParameters.pressed.connect(self.SaveParametersToFile)
         self.ui.pushButton_LoadParameters.pressed.connect(self.LoadParametersFromFile)
         self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
+        
+        self.X_0,self.Y_0,self.Z_0=[0,0,0]
 
 
     def connectScope(self):
@@ -213,6 +215,8 @@ class MainWindow(ThreadedMainWindow):
         if self.stages.IsConnected>0:
             print('Connected to stages')
             self.add_thread([self.stages])
+            self.X_0,self.Y_0,self.Z_0=self.logger.load_zero_position()
+            self.UpdatePositions()
             self.ui.pushButton_MovePlusX.pressed.connect(lambda :self.SetStageMoving('X',int(self.ui.lineEdit_StepX.text())))
             self.ui.pushButton_MoveMinusX.pressed.connect(lambda :self.SetStageMoving('X',-1*int(self.ui.lineEdit_StepX.text())))
             self.ui.pushButton_MovePlusY.pressed.connect(lambda :self.SetStageMoving('Y',int(self.ui.lineEdit_StepY.text())))
@@ -224,7 +228,7 @@ class MainWindow(ThreadedMainWindow):
             self.stages.stopped.connect(self.UpdatePositions)
             self.ui.groupBox_stand.setEnabled(True)
             self.ui.pushButton_StagesConnect.setEnabled(False)
-            self.UpdatePositions()
+            
             self.EnableScanningProcess()
 
 
@@ -246,21 +250,26 @@ class MainWindow(ThreadedMainWindow):
 
     @pyqtSlotWExceptions("PyQt_PyObject")
     def UpdatePositions(self):
-        self.ui.label_PositionX.setText(str(self.stages.RelativePosition['X']))
-        self.ui.label_PositionY.setText(str(self.stages.RelativePosition['Y']))
-        self.ui.label_PositionZ.setText(str(self.stages.RelativePosition['Z']))
+        X_abs=(self.stages.position['X'])
+        Y_abs=(self.stages.position['Y'])
+        Z_abs=(self.stages.position['Z'])
+        
+        self.ui.label_PositionX.setText(str(X_abs-self.X_0))
+        self.ui.label_PositionY.setText(str(Y_abs-self.Y_0))
+        self.ui.label_PositionZ.setText(str(Z_abs-self.Z_0))
 
-        self.ui.label_AbsPositionX.setText(str(self.stages.get_position(self.stages.Stage_key['X'])))
-        self.ui.label_AbsPositionY.setText(str(self.stages.get_position(self.stages.Stage_key['Y'])))
-        self.ui.label_AbsPositionZ.setText(str(self.stages.get_position(self.stages.Stage_key['Z'])))
+        self.ui.label_AbsPositionX.setText(str(X_abs))
+        self.ui.label_AbsPositionY.setText(str(Y_abs))
+        self.ui.label_AbsPositionZ.setText(str(Z_abs))
+        
         
         
     def ZeroingPosition(self):
-        self.stages.RelativePosition['X']=0
-        self.stages.RelativePosition['Y']=0
-        self.stages.RelativePosition['Z']=0
+        self.X_0=(self.stages.position['X'])
+        self.Y_0=(self.stages.position['Y'])
+        self.Z_0=(self.stages.position['Z'])
+        self.logger.save_zero_position(self.X_0,self.Y_0,self.Z_0)
         self.UpdatePositions()
-
     
     def on_pushButton_scope_single_measurement_pressed(self):
         self.scope.acquire()
@@ -340,7 +349,8 @@ class MainWindow(ThreadedMainWindow):
                                                  numberofscans=int(self.ui.lineEdit_numberOfScans.text()))
             self.add_thread([self.scanningProcess])
             self.scanningProcess.S_updateCurrentFileName.connect(lambda S: self.ui.lineEdit_CurrentFile.setText(S))
-            self.scanningProcess.S_saveSpectrum.connect(lambda Data,FilePrefix: self.logger.SaveData(Data,'Spec_Ch'+str(self.OSA.channel_num)+'_'+FilePrefix+'.txt'))
+            self.scanningProcess.S_saveSpectrum.connect(lambda Data,FilePrefix: self.logger.save_data(Data,'Sp_'+FilePrefix, self.stages.positin['X'],
+                                                                                                      self.stages.position['Y'],self.stages.posiiton['Z']))
             self.scanningProcess.S_saveSpectrumToOSA.connect(lambda FilePrefix: self.OSA.SaveToFile('D:'+'Spec_Ch'+str(self.OSA.channel_num)+'_'+FilePrefix, TraceNumber=1, Type="txt"))
             self.scanningProcess.S_addPosition_and_FilePrefix.connect(self.addPositionToPositionList)
             self.scanningProcess.S_finished.connect(self.ui.pushButton_Scanning.toggle)
@@ -385,17 +395,26 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_pushButton_save_data(self):
+        if self.stages is not None:
+            X=self.stages.position['X']-self.X_0
+            Y=self.stages.position['Y']-self.Y_0
+            Z=self.stages.position['Z']-self.Z_0
+        else:
+            X,Y,Z=[0,0,0]
+        
         Ydata=self.painter.Ydata
         Data=self.painter.Xdata
         for YDataColumn in Ydata:
             if YDataColumn is not None:
                 Data=np.column_stack((Data, YDataColumn))
-        FileName=self.ui.EditLine_saveSpectrumName.text()+'.txt'
-        self.logger.SaveData(Data,FileName)
-        self.logger.savePosition_single(self.stages.RelativePosition['X'],self.stages.RelativePosition['Y'],self.stages.RelativePosition['Z'],FileName)
-        if self.OSA.IsHighRes:
-            self.OSA.SaveToFile('D:'+self.ui.EditLine_saveSpectrumName.text(),TraceNumber=1, Type="txt")
-
+        if self.painter.TypeOfData=='FromOSA':
+            FilePrefix='Sp_'+self.ui.EditLine_saveSpectrumName.text()
+            if self.OSA.IsHighRes:
+                self.OSA.SaveToFile('D:'+self.ui.EditLine_saveSpectrumName.text(),TraceNumber=1, Type="txt")
+        elif self.painter.TypeOfData=='FromScope':
+            FilePrefix='TD_'+self.ui.EditLine_saveSpectrumName.text()
+        self.logger.save_data(Data,FilePrefix,X,Y,Z)
+        
 
     def on_pushButton_getRange(self):
         Range=(self.painter.ax.get_xlim())
@@ -443,9 +462,6 @@ class MainWindow(ThreadedMainWindow):
             self.painter.TypeOfData='FromScope'
 
 
-    def addPositionToPositionList(self,FilePrefix):
-        self.logger.savePosition(self.stages.RelativePosition['X'],self.stages.RelativePosition['Y'],self.stages.RelativePosition['Z'],'Spec_Ch'+str(self.OSA.channel_num)+'_'+FilePrefix+'.txt')
-
 
     def on_Push_Button_ProcessSpectra(self):
         from Scripts.ProcessAndPlotSpectra import ProcessSpectra
@@ -468,12 +484,6 @@ class MainWindow(ThreadedMainWindow):
         Dict['saveSpectrumName']=(self.ui.EditLine_saveSpectrumName.text())
         Dict['StartWavelength']=float(self.ui.EditLine_StartWavelength.text())
         Dict['StopWavelength']=float(self.ui.EditLine_StopWavelength.text())
-        Dict['RelativePositionX']=int(self.ui.label_PositionX.text())
-        Dict['RelativePositionY']=int(self.ui.label_PositionY.text())
-        Dict['RelativePositionZ']=int(self.ui.label_PositionZ.text())
-        Dict['AbsolutePositionX']=self.stages.get_position(self.stages.Stage_key['X'])
-        Dict['AbsolutePositionY']=self.stages.get_position(self.stages.Stage_key['Y'])
-        Dict['AbsolutePositionZ']=self.stages.get_position(self.stages.Stage_key['Z'])
         Dict['StepX']=int(self.ui.lineEdit_StepX.text())
         Dict['StepY']=int(self.ui.lineEdit_StepY.text())
         Dict['StepZ']=int(self.ui.lineEdit_StepZ.text())
@@ -508,12 +518,6 @@ class MainWindow(ThreadedMainWindow):
             self.OSA.SetWavelengthResolution('Low')
       
         self.OSA.change_range(float(Dict['StartWavelength']), float(Dict['StopWavelength']))
-        self.stages.RelativePosition['X']=Dict['RelativePositionX']+(self.stages.get_position(self.stages.Stage_key['X'])-int(Dict['AbsolutePositionX']))
-        self.stages.RelativePosition['Y']=Dict['RelativePositionY']+(self.stages.get_position(self.stages.Stage_key['Y'])-int(Dict['AbsolutePositionY']))
-        self.stages.RelativePosition['Z']=Dict['RelativePositionZ']+(self.stages.get_position(self.stages.Stage_key['Z'])-int(Dict['AbsolutePositionZ']))
-        self.ui.label_PositionX.setText(str(self.stages.RelativePosition['X']))
-        self.ui.label_PositionY.setText(str(self.stages.RelativePosition['Y']))
-        self.ui.label_PositionZ.setText(str(self.stages.RelativePosition['Z']))
         self.ui.lineEdit_StepX.setText(str(Dict['StepX']))
         self.ui.lineEdit_StepY.setText(str(Dict['StepY']))
         self.ui.lineEdit_StepZ.setText(str(Dict['StepZ']))

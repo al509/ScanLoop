@@ -34,7 +34,7 @@ class Stages(QObject):
     stopped = pyqtSignal()
 #    StepSize={'X':10,'Y':10,'Z':10}
     Stage_key={'X':None,'Y':None,'Z':None}
-    RelativePosition={'X':0,'Y':0,'Z':0}
+    Position={'X':0,'Y':0,'Z':0}
 
     def __init__(self):
         super().__init__()
@@ -119,7 +119,9 @@ class Stages(QObject):
         print("\nOpen device " + repr(open_name_2))
         self.Stage_key['Y'] = self.lib.open_device(open_name_2)
 #        print("Device id_2: " + repr(Stage_Y))
-
+        self.position['X']=self.get_position(self.Stage_key['X'])
+        self.position['Y']=self.get_position(self.Stage_key['Y'])
+        self.position['Z']=self.get_position(self.Stage_key['Z'])
 
     def get_info(self, device_id):
         print("\nGet device info")
@@ -168,7 +170,7 @@ class Stages(QObject):
         device_id=self.Stage_key[key]
         result = self.lib.command_movr(device_id, distance, 0)
         if (result>-1):
-            self.RelativePosition[key]+=distance
+            self.position[key]=self.get_position(device_id)
         lib.command_wait_for_stop(device_id, 11)
         self.stopped.emit()
 

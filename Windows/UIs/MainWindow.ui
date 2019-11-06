@@ -60,8 +60,205 @@
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
+        <item row="1" column="1">
+         <widget class="QGroupBox" name="groupBox_9">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>450</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>Range, nm</string>
+          </property>
+          <widget class="QLineEdit" name="EditLine_StartWavelength">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>20</y>
+             <width>131</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="maxLength">
+            <number>12</number>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="EditLine_StopWavelength">
+           <property name="geometry">
+            <rect>
+             <x>150</x>
+             <y>20</y>
+             <width>131</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="maxLength">
+            <number>12</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+           </property>
+          </widget>
+          <widget class="QPushButton" name="pushButton_getRange">
+           <property name="geometry">
+            <rect>
+             <x>290</x>
+             <y>20</y>
+             <width>91</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Get range</string>
+           </property>
+          </widget>
+          <widget class="QCheckBox" name="CheckBox_FreezeSpectrum">
+           <property name="geometry">
+            <rect>
+             <x>390</x>
+             <y>20</y>
+             <width>56</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Freeze</string>
+           </property>
+          </widget>
+         </widget>
+        </item>
+        <item row="0" column="1" colspan="2">
+         <widget class="QGroupBox" name="groupBox_spectrum">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>2</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>550</width>
+            <height>550</height>
+           </size>
+          </property>
+          <property name="sizeIncrement">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>Graph</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QGroupBox" name="groupBox_11">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>300</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>FFT filter</string>
+          </property>
+          <widget class="QLineEdit" name="EditLine_FilterLowFreqEdge">
+           <property name="geometry">
+            <rect>
+             <x>87</x>
+             <y>23</y>
+             <width>70</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>0.00001</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="EditLine_FilterHighFreqEdge">
+           <property name="geometry">
+            <rect>
+             <x>163</x>
+             <y>23</y>
+             <width>71</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>0.01</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+          <widget class="QCheckBox" name="CheckBox_ApplyFFTFilter">
+           <property name="geometry">
+            <rect>
+             <x>240</x>
+             <y>23</y>
+             <width>50</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Apply</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="EditLine_FilterPointsToCut">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>23</y>
+             <width>71</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>100</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </widget>
+        </item>
         <item row="0" column="0" rowspan="2">
-         <widget class="QToolBox" name="toolBox">
+         <widget class="QToolBox" name="File_work">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -86,7 +283,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>587</height>
+             <height>560</height>
             </rect>
            </property>
            <attribute name="label">
@@ -198,13 +395,13 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-83</y>
              <width>283</width>
              <height>643</height>
             </rect>
            </property>
            <attribute name="label">
-            <string>Control</string>
+            <string>Experiment's flow</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_3">
             <item row="1" column="0">
@@ -898,202 +1095,62 @@
             </item>
            </layout>
           </widget>
-         </widget>
-        </item>
-        <item row="0" column="1" colspan="2">
-         <widget class="QGroupBox" name="groupBox_spectrum">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-            <horstretch>2</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>550</width>
-            <height>550</height>
-           </size>
-          </property>
-          <property name="sizeIncrement">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="baseSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>Graph</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QGroupBox" name="groupBox_9">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>300</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>450</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>Range, nm</string>
-          </property>
-          <widget class="QLineEdit" name="EditLine_StartWavelength">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>20</y>
-             <width>131</width>
-             <height>20</height>
-            </rect>
-           </property>
-           <property name="maxLength">
-            <number>12</number>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="EditLine_StopWavelength">
-           <property name="geometry">
-            <rect>
-             <x>150</x>
-             <y>20</y>
-             <width>131</width>
-             <height>20</height>
-            </rect>
-           </property>
-           <property name="maxLength">
-            <number>12</number>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-           </property>
-          </widget>
-          <widget class="QPushButton" name="pushButton_getRange">
-           <property name="geometry">
-            <rect>
-             <x>290</x>
-             <y>20</y>
-             <width>91</width>
-             <height>21</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Get range</string>
-           </property>
-          </widget>
-          <widget class="QCheckBox" name="CheckBox_FreezeSpectrum">
-           <property name="geometry">
-            <rect>
-             <x>390</x>
-             <y>20</y>
-             <width>56</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Freeze</string>
-           </property>
-          </widget>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QGroupBox" name="groupBox_11">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>300</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>300</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>FFT filter</string>
-          </property>
-          <widget class="QLineEdit" name="EditLine_FilterLowFreqEdge">
-           <property name="geometry">
-            <rect>
-             <x>87</x>
-             <y>23</y>
-             <width>70</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>0.00001</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="EditLine_FilterHighFreqEdge">
-           <property name="geometry">
-            <rect>
-             <x>163</x>
-             <y>23</y>
-             <width>71</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>0.01</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-          <widget class="QCheckBox" name="CheckBox_ApplyFFTFilter">
-           <property name="geometry">
-            <rect>
-             <x>240</x>
-             <y>23</y>
-             <width>50</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Apply</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="EditLine_FilterPointsToCut">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>23</y>
-             <width>71</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>100</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
+          <widget class="QWidget" name="page_3">
+           <attribute name="label">
+            <string>Work with files</string>
+           </attribute>
+           <widget class="QGroupBox" name="groupBox_save_data_2">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>20</y>
+              <width>291</width>
+              <height>143</height>
+             </rect>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="title">
+             <string>Work with files</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_7">
+             <item row="1" column="0">
+              <widget class="QPushButton" name="pushButton_ProcessDataWithAveraging_2">
+               <property name="text">
+                <string>Process  averaging</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QCheckBox" name="checkBox_DoesSpanVary_2">
+               <property name="text">
+                <string>Span varies</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QPushButton" name="pushButton_ProcessData_2">
+               <property name="text">
+                <string>Process files</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QCheckBox" name="checkBox_IsAveragingWhileProcessing_2">
+               <property name="text">
+                <string>Average shape</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
           </widget>
          </widget>
         </item>
