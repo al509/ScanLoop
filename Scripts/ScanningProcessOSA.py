@@ -11,10 +11,9 @@ import numpy as np
 import winsound
 import time
 
-class ScanState:
-    ScanStep=30                     # in stage steps, Step to move stage   
-    SeekContactStep=30              # in stage steps, Step to move stage
-                                    ##  to find the contact
+class ScanGeometry:
+ 
+
                                     
     IsInContact=False               # True - when taper is in contact with
                                     ## the sample 
@@ -22,21 +21,24 @@ class ScanState:
     LevelToDistinctContact=-15      # dBm, used to determine if there is 
                                     ## contact between the taper and the sample
                                     ## See function checkIfContact for details
+                                    
+    is_running=False                # Variable is "True" during scanning proces
     
     def doStep(self, scanstep):
         pass
 
-class AxisScanState(ScanState):
+class AxisScan(ScanGeometry):
     BackStep=50             # in stage steps, Step to move stage 
                             ## AxisToGetContact to loose the contact
-    
+                            
+    SeekContactStep=30      # in stage steps, Step to move stage
+                            ##  to find the contact
+                            
     AxisToScan='Z'          # 'X',or 'Y', or 'Z'. Axis to scan along
     AxisToGetContact='X'    # 'X',or 'Y', or 'Z'. The script will be searching 
                             ## for contactbetween the taper and the 
                             ##microresonator with moving along AxisToGetContact
     
-    def doStep(self, scanstep):
-        pass
     
     def set_ScanningType(self,ScanningType:int):    # set axis depending on  
                                                     ## choice in MainWindow
@@ -49,8 +51,12 @@ class AxisScanState(ScanState):
         elif ScanningType==2:
             self.AxisToScan='Y'
             self.AxisToGetContact='Z'
+            
+    
+    def doStep(self, scanstep):
+        pass
 
-class LoopScanState(ScanState):
+class LoopScan(ScanGeometry):
     
     def doStep(self, scanstep):
         pass
@@ -58,14 +64,8 @@ class LoopScanState(ScanState):
     
 
 class ScanningProcess(QObject):
-    is_running=False    # Variable is "True" during scanning process.
-    
-    
-    
-    
- 
-     
-     
+
+    ScanStep=30                     # in stage steps, Step to move stage  
     
     
     
@@ -82,6 +82,7 @@ class ScanningProcess(QObject):
     
     
     NumberOfScans=1 # Number of spectra acquired at each point along the sample
+    
     IsHighRes=False # if true and high resolution of OSA is used, spectra have
                     ## to be saved on OSA hardDrive
     
@@ -219,7 +220,10 @@ class ScanningProcess(QObject):
             ## Getting in contact between the taper and the sample
             self.search_contact() 
             
-            if self.SqueezeSpanWhileSearchingContact:   ## after contact is found, set the span of OSA back to span of interest
+            if self.SqueezeSpanWhileSearchingContact:   # after contact is 
+                                                        ## found, set the span 
+                                                        ## of OSA back to span 
+                                                        ## of interest
                 self.set_OSA_to_Measuring_State()
                 
             ## Acquring and saving data 
@@ -228,12 +232,17 @@ class ScanningProcess(QObject):
                 wavelengthdata, spectrum=self.OSA.acquire_spectrum()
                 time.sleep(0.05)
                 Data=np.stack((wavelengthdata, spectrum),axis=1)
-                self.S_saveSpectrum.emit(Data,str(self.CurrentFileIndex)+'_'+str(jj)) # save spectrum to file
-                if self.IsHighRes: #if true and high resolution of OSA is used, spectra have to be saved on OSA hardDrive to preserve full resolution
-                    self.S_saveSpectrumToOSA.emit(str(self.CurrentFileIndex)+'_'+str(jj))
+                self.S_saveSpectrum.emit(Data,str(self.CurrentFileIndex)+
+                                         '_'+str(jj))   # save spectrum to file
+                if self.IsHighRes:  # if true and high resolution of OSA is  
+                                    ## used, spectra have to be saved on OSA 
+                                    ## hardDrive to preserve full resolution
+                    self.S_saveSpectrumToOSA.emit(str(self.CurrentFileIndex)+
+                                                  '_'+str(jj))
                 if not self.is_running: break
             
-            #update indexes in MainWindow and save positions into "Positions.txt"
+            #update indeces in MainWindow and save positions into
+            ## "Positions.txt"
             self.S_addPosition_and_FilePrefix.emit(str(self.CurrentFileIndex))
 
 
@@ -241,7 +250,11 @@ class ScanningProcess(QObject):
             if not self.is_running: 
                 break
         
-            if self.SqueezeSpanWhileSearchingContact: ## to speed up the process of losing contact, the very narrow span of OSA can be set  
+            if self.SqueezeSpanWhileSearchingContact:   # to speed up the 
+                                                        ## process of losing 
+                                                        ## contact, the very 
+                                                        ## narrow span of OSA 
+                                                        ## can be set  
                 self.set_OSA_to_Searching_Contact_State()
        
             self.losing_contact()
@@ -249,7 +262,9 @@ class ScanningProcess(QObject):
 
             ##  move sample along scanning axis
             if not self.is_running: 
-                if self.SqueezeSpanWhileSearchingContact:   ##  set the span of OSA back to span of interest
+                if self.SqueezeSpanWhileSearchingContact:   ##  set the span of 
+                                                            ## OSA back to span
+                                                            ## of interest
                     self.set_OSA_to_Measuring_State()
                 break
             
@@ -260,7 +275,7 @@ class ScanningProcess(QObject):
 
             print('Time elapsed for measuring at single point is ', time.time()-time0,'\n')
             
-        # if scanning finishes because all points along scanning axis are measured  
+    # if scanning finishes because all points along scanning axis are measured  
         if self.is_running and self.CurrentFileIndex>self.StopFileIndex:
             self.is_running=False
             if self.SqueezeSpanWhileSearchingContact:
