@@ -16,7 +16,7 @@ if __name__ is "__main__":
 
 from PyQt5.QtCore import pyqtSignal, QThread, QState, QStateMachine, QObject
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QPushButton
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QFileDialog
 from PyQt5 import QtCore
 
 from Common.Consts import Consts
@@ -97,16 +97,20 @@ class MainWindow(ThreadedMainWindow):
         self.setWindowTitle("Scanning spectra")
         self.logger = Logger(parent=None)
         self.add_thread([self.logger])
-        self.ui.pushButton_StagesConnect.pressed.connect(self.ConnectStages)
-        self.ui.pushButton_OSA_connect.pressed.connect(self.ConnectOSA)
+        
+        self.ui.pushButton_StagesConnect.pressed.connect(self.connectStages)
+        self.ui.pushButton_OSA_connect.pressed.connect(self.connectOSA)
+   
+        self.X_0,self.Y_0,self.Z_0=[0,0,0]
+
+
 
         self.ui.pushButton_ProcessData.pressed.connect(self.on_Push_Button_ProcessSpectra)
-        self.ui.pushButton_ProcessDataWithAveraging.pressed.connect(self.on_Push_Button_ProcessSpectraWithAveraging)
         self.ui.pushButton_OSA_Acquire.pressed.connect(self.on_pushButton_acquireSpectrum_pressed)
         self.ui.pushButton_save_data.pressed.connect(self.on_pushButton_save_data)
         self.ui.pushButton_OSA_AcquireAll.pressed.connect(self.on_pushButton_AcquireAllSpectra_pressed)
         self.ui.pushButton_OSA_AcquireRep.clicked[bool].connect(self.on_pushButton_acquireSpectrumRep_pressed)
-        self.ui.pushButton_OSA_AcquireRepAll.clicked[bool].connect(self.on_pushButton_AcquireAllSpectraRep_pressed)
+#        self.ui.pushButton_OSA_AcquireRepAll.clicked[bool].connect(self.on_pushButton_AcquireAllSpectraRep_pressed)
 
 
         self.ui.pushButton_scope_single.pressed.connect(self.on_pushButton_scope_single_measurement_pressed)
@@ -121,14 +125,14 @@ class MainWindow(ThreadedMainWindow):
         self.add_thread([self.painter])
 
         self.ui.EditLine_StartWavelength.textChanged[str].connect(lambda S: self.OSA.change_range(start_wavelength=float(S)) if (isfloat(S) and float(S)>1500 and float(S)<1600) else 0)
-    #        self.ui.EditLine_StartWavelength.textChanged[str].connect(lambda Str:print(Str))
         self.ui.EditLine_StopWavelength.textChanged[str].connect(lambda S: self.OSA.change_range(stop_wavelength=float(S)) if (isfloat(S) and float(S)>1500 and float(S)<1600) else 0)
         self.ui.pushButton_SaveParameters.pressed.connect(self.SaveParametersToFile)
         self.ui.pushButton_LoadParameters.pressed.connect(self.LoadParametersFromFile)
         self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
         
-        self.X_0,self.Y_0,self.Z_0=[0,0,0]
-
+        self.ui.pushButton_process_arb_data.clicked.connect(self.process_arb_data_clicked)
+        self.ui.pushButton_choose_folder_to_process.clicked.connect(self.choose_folder_to_process)
+    
 
     def connectScope(self):
         self.scope=Scope(Consts.Scope.HOST)
@@ -146,7 +150,7 @@ class MainWindow(ThreadedMainWindow):
             widget.setChecked(self.scope.channels_states[i])
             widget.stateChanged.connect(self.update_scope_channel_state)
 #            print("checkBox: %s  - %s" %(widget.objectName(), widget.checkState()))
-        
+        self.painter.TypeOfData='FromScope'
         print('Connected to scope')
         
     def update_scope_channel_state(self):
@@ -157,7 +161,7 @@ class MainWindow(ThreadedMainWindow):
 
 
 
-    def ConnectOSA(self):
+    def connectOSA(self):
         if self.ui.comboBox_Type_of_OSA.currentText()=='Yokogawa':
             HOST = Consts.Interrogator.HOST
             PORT = 10001
@@ -209,8 +213,9 @@ class MainWindow(ThreadedMainWindow):
         print('Connected with OSA')
         self.on_pushButton_acquireSpectrum_pressed()
         self.EnableScanningProcess()
+        self.painter.TypeOfData='FromOSA'
 
-    def ConnectStages(self):
+    def connectStages(self):
         self.stages=Stages()
         if self.stages.IsConnected>0:
             print('Connected to stages')
@@ -313,25 +318,25 @@ class MainWindow(ThreadedMainWindow):
             self.ui.pushButton_OSA_AcquireAll.setEnabled(True)
             self.ui.pushButton_Scanning.setEnabled(True)
 
-
-    @pyqtSlotWExceptions()
-    def on_pushButton_AcquireAllSpectraRep_pressed(self,pressed):
-        if pressed:
-
-            self.painter.ReplotEnded.connect(self.on_pushButton_AcquireAllSpectra_pressed)
-            self.ui.pushButton_OSA_AcquireAll.setEnabled(False)
-            self.ui.pushButton_OSA_Acquire.setEnabled(False)
-            self.ui.pushButton_OSA_AcquireRep.setEnabled(False)
-            self.ui.pushButton_Scanning.setEnabled(False)
-            self.force_OSA_acquireAll.emit()
-
-        else:
-
-            self.painter.ReplotEnded.disconnect(self.on_pushButton_AcquireAllSpectra_pressed)
-            self.ui.pushButton_OSA_AcquireAll.setEnabled(True)
-            self.ui.pushButton_OSA_Acquire.setEnabled(True)
-            self.ui.pushButton_OSA_AcquireRep.setEnabled(True)
-            self.ui.pushButton_Scanning.setEnabled(True)
+#
+#    @pyqtSlotWExceptions()
+#    def on_pushButton_AcquireAllSpectraRep_pressed(self,pressed):
+#        if pressed:
+#
+#            self.painter.ReplotEnded.connect(self.on_pushButton_AcquireAllSpectra_pressed)
+#            self.ui.pushButton_OSA_AcquireAll.setEnabled(False)
+#            self.ui.pushButton_OSA_Acquire.setEnabled(False)
+#            self.ui.pushButton_OSA_AcquireRep.setEnabled(False)
+#            self.ui.pushButton_Scanning.setEnabled(False)
+#            self.force_OSA_acquireAll.emit()
+#
+#        else:
+#
+#            self.painter.ReplotEnded.disconnect(self.on_pushButton_AcquireAllSpectra_pressed)
+#            self.ui.pushButton_OSA_AcquireAll.setEnabled(True)
+#            self.ui.pushButton_OSA_Acquire.setEnabled(True)
+#            self.ui.pushButton_OSA_AcquireRep.setEnabled(True)
+#            self.ui.pushButton_Scanning.setEnabled(True)
 
 
     def on_pushButton_Scanning_pressed(self,pressed:bool):
@@ -352,7 +357,6 @@ class MainWindow(ThreadedMainWindow):
             self.scanningProcess.S_saveSpectrum.connect(lambda Data,FilePrefix: self.logger.save_data(Data,'Sp_'+FilePrefix, self.stages.positin['X'],
                                                                                                       self.stages.position['Y'],self.stages.posiiton['Z']))
             self.scanningProcess.S_saveSpectrumToOSA.connect(lambda FilePrefix: self.OSA.SaveToFile('D:'+'Spec_Ch'+str(self.OSA.channel_num)+'_'+FilePrefix, TraceNumber=1, Type="txt"))
-            self.scanningProcess.S_addPosition_and_FilePrefix.connect(self.addPositionToPositionList)
             self.scanningProcess.S_finished.connect(self.ui.pushButton_Scanning.toggle)
             self.scanningProcess.S_finished.connect(lambda : self.on_pushButton_Scanning_pressed(False))
             self.logger.open_file()
@@ -464,18 +468,11 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_Push_Button_ProcessSpectra(self):
-        from Scripts.ProcessAndPlotSpectra import ProcessSpectra
-        self.ProcessSpectra=ProcessSpectra()
-        Thread=self.add_thread([self.ProcessSpectra])
-        self.ProcessSpectra.run(StepSize=float(self.ui.lineEdit_ScanningStep.text()),HighFreqEdge=0.01,
-                                IsHighRes=self.ui.checkBox_HighRes.isChecked(),DoesSpanVary=self.ui.checkBox_DoesSpanVary.isChecked())
-        Thread.quit()
-
-    def on_Push_Button_ProcessSpectraWithAveraging(self):
         from Scripts.ProcessAndPlotSpectraWithAveraging import ProcessSpectraWithAveraging
         self.ProcessSpectra=ProcessSpectraWithAveraging()
         Thread=self.add_thread([self.ProcessSpectra])
-        self.ProcessSpectra.run(StepSize=float(self.ui.lineEdit_ScanningStep.text()),Averaging=self.ui.checkBox_IsAveragingWhileProcessing.isChecked())
+        self.ProcessSpectra.run(StepSize=float(self.ui.lineEdit_ScanningStep.text()),Averaging=self.ui.checkBox_IsAveragingWhileProcessing.isChecked(),
+                                Shifting=self.ui.checkBox_IsShiftingWhileProcessing.isChecked(),DirName='SavedData')
         Thread.quit()
 
 
@@ -537,6 +534,26 @@ class MainWindow(ThreadedMainWindow):
         self.ui.lineEdit_numberOfScans.setText(str(Dict['NumberOfScans']))
         self.force_OSA_acquire.emit()
         print('Parameters loaded')
+
+    
+    def choose_folder_to_process(self):
+        self.Folder = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
+        self.ui.label_folder_to_process_files.setText(self.Folder)
+    
+    def process_arb_data_clicked(self):
+        from Scripts.ProcessAndPlotSpectraWithAveraging import ProcessSpectraWithAveraging
+        self.ProcessSpectra=ProcessSpectraWithAveraging()
+        Thread=self.add_thread([self.ProcessSpectra])
+        try:
+            StepSize=int(self.Folder[self.Folder.index('Step=')+len('Step='):len(self.Folder)])
+        except ValueError:
+            StepSize=float(self.ui.lineEdit_ScanningStep.text())
+        self.ProcessSpectra.run(StepSize=StepSize,Averaging=self.ui.checkBox_IsAveragingWhileProcessingArbData.isChecked(),
+                                Shifting=self.ui.checkBox_IsShiftingWhileProcessingArbData.isChecked(),DirName=self.Folder)
+        Thread.quit()
+#            fname = QtWidgets.QFileDialog().getOpenFileName()[0]
+
+
 
     def closeEvent(self, event):
 #         here you can terminate your threads and do other stuff

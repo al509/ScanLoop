@@ -30,7 +30,7 @@ class Logger(QObject):
 
 
     def save_data(self, Data,FilePrefix,X,Y,Z):
-        FileName=self.SavedDataFolderName+ '\\'+FilePrefix+'_{}_{}_{}.txt'.format(X,Y,Z)
+        FileName=self.SavedDataFolderName+ '\\'+FilePrefix+'_X={}_Y={}_Z={}'.format(X,Y,Z)+'.txt'
         np.savetxt(FileName, Data)
         print('\nData saved\n')
 

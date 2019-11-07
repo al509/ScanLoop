@@ -163,13 +163,12 @@ class ScanningProcess(QObject):
                 wavelengthdata, spectrum=self.OSA.acquire_spectrum()
                 time.sleep(0.05)
                 Data=np.stack((wavelengthdata, spectrum),axis=1)
-                self.S_saveSpectrum.emit(Data,str(self.CurrentFileIndex)+'_'+str(jj)) # save spectrum to file
+                self.S_saveSpectrum.emit(Data,'p='+str(self.CurrentFileIndex)+'_j='+str(jj)) # save spectrum to file
                 if self.IsHighRes: #if true and high resolution of OSA is used, spectra have to be saved on OSA hardDrive to preserve full resolution
-                    self.S_saveSpectrumToOSA.emit(str(self.CurrentFileIndex)+'_'+str(jj))
+                    self.S_saveSpectrumToOSA.emit('p='+str(self.CurrentFileIndex)+'_j='+str(jj))
                 if not self.is_running: break
             
             #update indexes in MainWindow and save positions into "Positions.txt"
-            self.S_addPosition_and_FilePrefix.emit(str(self.CurrentFileIndex))
 
 
             ## Loosing contact between the taper and the sample
