@@ -12,11 +12,12 @@ import winsound
 import time
 from abc import ABC, abstractmethod
 
+    
 class ScanGeometry(ABC):
                                    
 
     @abstractmethod
-    def searchContact(self):
+    def searchContact(self, stages:QObject, scanStep:int):
         pass
     
     @abstractmethod
@@ -24,45 +25,71 @@ class ScanGeometry(ABC):
         pass
     
     @abstractmethod
-    def doStep(self, scanstep):
+    def doStep(self, scanStep: int):
         pass
 
-class AxisScan(ScanGeometry):
-
-    AxisToScan=''          # 'X',or 'Y', or 'Z'. Axis to scan along
+class ScanAxis(ScanGeometry):
     
-    AxisToGetContact=''    # 'X',or 'Y', or 'Z'. The script will be searching 
-                            ## for contactbetween the taper and the 
-                            ##microresonator with moving along AxisToGetContact
+    
+    axisToScan=''          # 'X',or 'Y', or 'Z'. Axis to scan along
+    
+    axisToGetContact=''    # 'X',or 'Y', or 'Z'. The script will be searching 
+                           ## for contact between the taper and the 
+                           ##microresonator with moving along AxisToGetContact
+    
+    def __init__(self, axisToScan: str, axisToGetContact: str):
+        self.axisToScan = axisToScan
+        self.axisToGetContact = axisToGetContact                            
+                            
                     
     
-    def searchContact(self):
+    def searchContactStep(self):
         pass
+    
+    def loseContactStep(self):
+        pass
+
+    def directionStep(self, scanStep: int):
+        pass
+
+class ScanLoop(ScanGeometry):
+    
+    def searchContact(self):
+        wavelengthdata, spectrum=self.OSA.acquire_spectrum()
+        time.sleep(0.05)
+        self.IsInContact=self.checkIfContact(spectrum)  #check if there is 
+                                                    #contact already
+        while not self.IsInContact:
+            self.stages.shiftOnArbitrary(self.AxisToGetContact,
+                                         self.SeekContactStep)
+            print('Moved to Sample')
+            wavelengthdata, spectrum=self.OSA.acquire_spectrum()
+            time.sleep(0.05)
+            self.IsInContact=self.checkIfContact(spectrum)
+            if not self.is_running :    # if scanning process is interrupted,
+                                        ## stop searching contact
+                if self.SqueezeSpanWhileSearchingContact:
+                    self.set_OSA_to_Measuring_State()
+                    self.OSA.acquire_spectrum()
+                    return 0
+                print('\nContact found\n')
+                winsound.Beep(1000, 500)
     
     def loseContact(self):
         pass
     
-    def doStep(self, scanstep):
+    def doStep(self, scanStep: int):
         pass
 
-class LoopScan(ScanGeometry):
-    
-    def searchContact(self):
-        pass
-    
-    def loseContact(self):
-        pass
-    
-    def doStep(self, scanstep):
-        pass
 
-    
+
+
 
 class ScanningProcess(QObject):
-
+    
     ##Defining inner variables (which are parameters when fuction calls) 
     
-    ScanStep=0                      # in stage steps, Step to move stage
+    scanStep=0                      # in stage steps, Step to move stage
     
     BackStep=0                      # in stage steps, Step to move stage 
                                     ## AxisToGetContact to loose the contact
@@ -96,6 +123,8 @@ class ScanningProcess(QObject):
                                     
     is_running=False                # Variable is "True" during scanning proces
     
+    ScanType = None
+    
     
     S_updateCurrentFileName=pyqtSignal(str) #signal to initiate update the 
                                             ## index of the current file in
@@ -118,10 +147,24 @@ class ScanningProcess(QObject):
     S_finished=pyqtSignal()                         # signal to finish
     
 
+    
+    def set_ScanningType_new(self,scanningType:int):#   set axis depending on  
+                                                        ## choice in MainWindow
+        if scanningType==0:
+            return ScanAxis('Z', 'X')
+        elif scanningType==1:
+            return ScanAxis('Z', 'X')
+        elif scanningType==2:
+            return ScanAxis('Y', 'Z')
+        elif scanningType==3:
+            return ScanLoop
+    
+    
+    
     def __init__(self,
                  OSA:QObject,
                  Stages:QObject,
-                 scanstep:int,seekcontactstep:int,backstep:int,
+                 scanStep:int,seekcontactstep:int,backstep:int,
                  seekcontactvalue:float,ScanningType:int,
                  SqueezeSpanWhileSearchingContact:bool,
                  CurrentFileIndex:int,StopFileIndex:int,numberofscans:int):
@@ -130,9 +173,10 @@ class ScanningProcess(QObject):
         self.FullSpan=self.OSA._Span
 
         self.stages=Stages  # add all three stages
-        self.set_ScanningType(ScanningType) 
+        self.set_ScanningType(ScanningType)
+        self.ScanType = set_ScanningType_new(ScanningType)
 
-        self.ScanStep=scanstep
+        self.scanStep=scanStep
         self.SeekContactStep=seekcontactstep
         self.BackStep=-1*backstep
         self.LevelToDistinctContact=seekcontactvalue
@@ -154,8 +198,8 @@ class ScanningProcess(QObject):
         elif ScanningType==2:
             self.AxisToScan='Y'
             self.AxisToGetContact='Z'
-    
-    
+            
+
     
     def set_OSA_to_Searching_Contact_State(self):   #set rough resolution and 
                                                     ## narrowband span 
@@ -230,7 +274,7 @@ class ScanningProcess(QObject):
     """
     Main function
     """
-    def run(self):
+    def run(self):        
         time.sleep(0.05)
         self.is_running=True 
        
@@ -297,7 +341,7 @@ class ScanningProcess(QObject):
                 break
             
             # 3:
-            self.stages.shiftOnArbitrary(self.AxisToScan,self.ScanStep)
+            self.stages.shiftOnArbitrary(self.AxisToScan,self.scanStep)
             
             self.CurrentFileIndex+=1
             self.S_updateCurrentFileName.emit(str(self.CurrentFileIndex))
