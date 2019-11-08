@@ -1,21 +1,17 @@
-import datetime
-import os
 import numpy as np
 import json
 
-from PyQt5.QtCore import QObject, pyqtSignal, QFile, QIODevice
+from PyQt5.QtCore import QObject, pyqtSignal
 
-from Common.Consts import Consts
-from Utils.PyQtUtils import pyqtSlotWExceptions
 
-import time
+
 
 
 class Logger(QObject):
     updated = pyqtSignal()
-    t = 0
     ZeroPositionFileName='ZeroPosition.txt'
-    SavedDataFolderName='SavedData'
+    SpectralDataFolder='SpectralData\\'
+    TDFolder='TimeDomainData\\'
     ParametersFileName='Parameters.txt'
 
     def __init__(self, parent=None):
@@ -29,19 +25,23 @@ class Logger(QObject):
 
 
 
-    def save_data(self, Data,FilePrefix,X,Y,Z):
-        FileName=self.SavedDataFolderName+ '\\'+FilePrefix+'_X={}_Y={}_Z={}'.format(X,Y,Z)+'.txt'
+    def save_data(self, Data,name,X,Y,Z,SourceOfData:str):
+        if SourceOfData=='FromScope':
+            FilePrefix=self.TDFolder+'TD_'+name
+        elif SourceOfData=='FromOSA':
+            FilePrefix=self.SpectralDataFolder+'Sp_'+name
+        FileName=FilePrefix+'_X={}_Y={}_Z={}'.format(X,Y,Z)+'.txt'
         np.savetxt(FileName, Data)
         print('\nData saved\n')
 
     def SaveParameters(self, Dict):
-        f=open(ParametersFileName,'w')
+        f=open(self.ParametersFileName,'w')
         json.dump(Dict,f)
         f.close()
         print('\nParameters saved\n')
 
     def LoadParameters(self):
-        f=open(ParametersFileName)
+        f=open(self.ParametersFileName)
         dictionary=json.load(f)
         f.close()
         return dictionary
@@ -51,13 +51,13 @@ class Logger(QObject):
         Dict['X']=str(X)
         Dict['Y']=str(Y)
         Dict['Z']=str(Z)
-        f=open(ZeroPositionFileName,'w')
+        f=open(self.ZeroPositionFileName,'w')
         json.dump(Dict,f)
         f.close()
         print('\nzero position saved\n')
         
     def load_zero_position(self):
-        f=open(ZeroPositionFileName)
+        f=open(self.ZeroPositionFileName)
         dictionary=json.load(f)
         f.close()
         return dictionary['X'],dictionary['Y'],dictionary['Z']

@@ -6,7 +6,7 @@ Version Oct 18 2019
 @author: Ilya
 """
 
-from PyQt5.QtCore import pyqtSignal, QThread, QState, QStateMachine, QObject
+from PyQt5.QtCore import pyqtSignal,  QObject
 import numpy as np
 import winsound
 import time
@@ -20,7 +20,7 @@ class ScanningProcess(QObject):
     AxisToScan='Z' # 'X',or 'Y', or 'Z'. Axis to scan along
     AxisToGetContact='X' # 'X',or 'Y', or 'Z'. The script will be searching for contactbetween the taper and the microresonator with moving along AxisToGetContact
     
-    LevelToDistinctContact=40 # mV, used to determine if there is contact between the taper and the sample. see function checkIfContact for details
+    LevelToDistinctContact=0.004 # V, used to determine if there is contact between the taper and the sample. see function checkIfContact for details
      
     ScanStep=30 #in stage steps, Step to move stage "AxisToScan" 
     SeekContactStep=30 #in stage steps, Step to move stage AxisToGetContact to find the contact
@@ -37,8 +37,7 @@ class ScanningProcess(QObject):
     
     
     S_updateCurrentFileName=pyqtSignal(str) #signal to initiate update the index of the current file in lineEdit_CurrentFile of main window
-    S_saveSpectrum=pyqtSignal(object,str) #signal to initiate saving measured spectrum to a file
-    S_saveSpectrumToOSA=pyqtSignal(str) # signal used if high resolution needed. Initiate saving spectral data to inner hard drive of OSA
+    S_saveData=pyqtSignal(object,str) #signal to initiate saving measured spectrum to a file
     S_addPosition_and_FilePrefix=pyqtSignal(str) #signal to initiate saving current position of the stages and current file index to file "Positions.txt"
     S_finished=pyqtSignal()  # signal to finish
     
@@ -47,9 +46,10 @@ class ScanningProcess(QObject):
                  Scope:QObject,
                  Stages:QObject,
                  scanstep:int,seekcontactstep:int,backstep:int,seekcontactvalue:float,ScanningType:int,
-                 CurrentFileIndex:int,StopFileIndex:int,numberofscans:int):
+                 CurrentFileIndex:int,StopFileIndex:int,numberofscans:int,searchcontact:bool):
         super().__init__()
         self.scope=Scope # add scope
+        self.SamplingRate=self.scope.get_sampling_rate()
         self.stages=Stages # add all three stages
         self.set_ScanningType(ScanningType) 
         self.ScanStep=scanstep
@@ -59,6 +59,7 @@ class ScanningProcess(QObject):
         self.CurrentFileIndex=CurrentFileIndex
         self.StopFileIndex=StopFileIndex
         self.NumberOfScans=numberofscans
+        
 
     def set_ScanningType(self,ScanningType:int): # set axis depending on choice in MainWindow
         if ScanningType==0:
@@ -85,7 +86,7 @@ class ScanningProcess(QObject):
             if not self.is_running : ##if scanning process is interrupted,stop searching contact
                 return 0
         print('\nContact found\n')
-       winsound.Beep(1000, 500)
+        winsound.Beep(1000, 500)
             
     def losing_contact(self): ##move taper away from sample until contact is lost
       while self.IsInContact:
@@ -118,14 +119,17 @@ class ScanningProcess(QObject):
             time0=time.time()
             
             ## Getting in contact between the taper and the sample
-            self.search_contact() 
+            if self.searchcontact:
+                self.search_contact() 
+            else:
+                self.stages.shiftOnArbitrary(self.AxisToGetContact,self.SeekContactStep)
             
             ## Acquring and saving data 
             for jj in range(0,self.NumberOfScans):
                 print('saving sweep # ', jj+1)
                 Times,signal,channel_number=self.scope.acquire() # signal consists of all active traces data
                 time.sleep(0.05)
-                self.S_saveTimeTraces.emit(signal,str(self.CurrentFileIndex)+'_'+str(jj)) # save spectrum to file
+                self.S_saveData.emit(signal,'SR='+self.SamplingRate+'_p='+str(self.CurrentFileIndex)+'_j='+str(jj)) # save data to file
                 if not self.is_running: break
             
             #update indexes in MainWindow and save positions into "Positions.txt"
@@ -134,7 +138,10 @@ class ScanningProcess(QObject):
             
             ## Loosing contact between the taper and the sample
             if not self.is_running: break
-            self.losing_contact()
+            if self.searchcontact:    
+                self.losing_contact()
+            else:
+                self.stages.shiftOnArbitrary(self.AxisToGetContact,-self.SeekContactStep)
             
             
             ##  move sample along scanning axis

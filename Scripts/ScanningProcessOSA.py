@@ -6,7 +6,7 @@ Version Oct 18 2019
 @author: Ilya
 """
 
-from PyQt5.QtCore import pyqtSignal, QThread, QState, QStateMachine, QObject
+from PyQt5.QtCore import pyqtSignal, QObject
 import numpy as np
 import winsound
 import time
@@ -39,7 +39,7 @@ class ScanningProcess(QObject):
     
     
     S_updateCurrentFileName=pyqtSignal(str) #signal to initiate update the index of the current file in lineEdit_CurrentFile of main window
-    S_saveSpectrum=pyqtSignal(object,str) #signal to initiate saving measured spectrum to a file
+    S_saveData=pyqtSignal(object,str) #signal to initiate saving measured spectrum to a file
     S_saveSpectrumToOSA=pyqtSignal(str) # signal used if high resolution needed. Initiate saving spectral data to inner hard drive of OSA
     S_addPosition_and_FilePrefix=pyqtSignal(str) #signal to initiate saving current position of the stages and current file index to file "Positions.txt"
     S_finished=pyqtSignal()  # signal to finish
@@ -152,7 +152,10 @@ class ScanningProcess(QObject):
         while self.is_running and self.CurrentFileIndex<self.StopFileIndex+1:
             time0=time.time()
             ## Getting in contact between the taper and the sample
-            self.search_contact() 
+            if self.searchcontact:
+                self.search_contact() 
+            else:
+                self.stages.shiftOnArbitrary(self.AxisToGetContact,self.SeekContactStep)
             
             if self.SqueezeSpanWhileSearchingContact:   ## after contact is found, set the span of OSA back to span of interest
                 self.set_OSA_to_Measuring_State()
@@ -163,7 +166,7 @@ class ScanningProcess(QObject):
                 wavelengthdata, spectrum=self.OSA.acquire_spectrum()
                 time.sleep(0.05)
                 Data=np.stack((wavelengthdata, spectrum),axis=1)
-                self.S_saveSpectrum.emit(Data,'p='+str(self.CurrentFileIndex)+'_j='+str(jj)) # save spectrum to file
+                self.S_saveData.emit(Data,'p='+str(self.CurrentFileIndex)+'_j='+str(jj)) # save spectrum to file
                 if self.IsHighRes: #if true and high resolution of OSA is used, spectra have to be saved on OSA hardDrive to preserve full resolution
                     self.S_saveSpectrumToOSA.emit('p='+str(self.CurrentFileIndex)+'_j='+str(jj))
                 if not self.is_running: break
@@ -178,7 +181,11 @@ class ScanningProcess(QObject):
             if self.SqueezeSpanWhileSearchingContact: ## to speed up the process of losing contact, the very narrow span of OSA can be set  
                 self.set_OSA_to_Searching_Contact_State()
        
-            self.losing_contact()
+            if self.searchcontact:    
+                self.losing_contact()
+            else:
+                self.stages.shiftOnArbitrary(self.AxisToGetContact,-self.SeekContactStep)
+            
                 
 
             ##  move sample along scanning axis

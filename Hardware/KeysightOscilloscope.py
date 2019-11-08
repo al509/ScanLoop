@@ -4,13 +4,13 @@ Created on Sat Mar 23 21:03:02 2019
 You need NI-VISA, PyVISA>1.6 to use this.
 Data is transferred using BINARY format
 """
-import socket
-import traceback
+
+
 import pyvisa
 import numpy as np
-import time
 
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
+
+from PyQt5.QtCore import QObject, pyqtSignal
 
 class Scope(QObject):
     
@@ -184,6 +184,10 @@ class Scope(QObject):
     def set_time_range(self,time_range:float):
 #        time_range in seconds
         return self.device.query(':TIMebase:RANGe '+format(time_range,'.4E')+';*OPC?')
+    
+    def get_sampling_rate(self):
+#        time_range in seconds
+        return self.device.query(':ACQuire:SRATe?')
 
     
     def get_y_data(self,channel_number:int):
@@ -238,6 +242,7 @@ if __name__ == "__main__":
     scope.set_averaging_state(True)
     scope.set_averaging_number(256)
     X,Y,ch=scope.acquire()
+    temp=scope.get_sampling_rate()
     plt.plot(X,Y[0])
 #    scope.device.write(':Wav:Format WORD')
 #    scope.device.write(':Wav:Format ASCII')

@@ -3,10 +3,10 @@
 Version Oct 18 2019
 @author: Ilya
 """
-
+import sys
 import numpy as np
 import os
-import time
+
 #
 #from Analyzer.SpectrumAnalyzer import SpectrumAnalyzer
 #import Analyzer.PrecisePeakSearchers as pps
@@ -14,17 +14,15 @@ import time
 if __name__ is "__main__":
     os.chdir('..')
 
-from PyQt5.QtCore import pyqtSignal, QThread, QState, QStateMachine, QObject
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QFileDialog
-from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSignal, QThread
+from PyQt5.QtWidgets import QMainWindow, QFileDialog
 
 from Common.Consts import Consts
 from Hardware.Config import Config
 from Hardware.Interrogator import Interrogator
 from Hardware.YokogawaOSA import OSA_AQ6370
 from Hardware.KeysightOscilloscope import Scope
-from Hardware.MyStanda import *
+from Hardware.MyStanda import Stages
 from Hardware.APEX_OSA import APEX_OSA_with_additional_features
 from Logger.Logger import Logger
 from Visualization.Painter import MyPainter
@@ -48,7 +46,8 @@ class ThreadedMainWindow(QMainWindow):
         self.threads = []
         self.destroyed.connect(self.kill_threads)
         self.stages=None
-        self.interrogator=None
+        self.OSA=None
+        self.scope=None
 
     def add_thread(self, objects):
         """
@@ -126,8 +125,8 @@ class MainWindow(ThreadedMainWindow):
 
         self.ui.EditLine_StartWavelength.textChanged[str].connect(lambda S: self.OSA.change_range(start_wavelength=float(S)) if (isfloat(S) and float(S)>1500 and float(S)<1600) else 0)
         self.ui.EditLine_StopWavelength.textChanged[str].connect(lambda S: self.OSA.change_range(stop_wavelength=float(S)) if (isfloat(S) and float(S)>1500 and float(S)<1600) else 0)
-        self.ui.pushButton_SaveParameters.pressed.connect(self.SaveParametersToFile)
-        self.ui.pushButton_LoadParameters.pressed.connect(self.LoadParametersFromFile)
+        self.ui.pushButton_SaveParameters.pressed.connect(self.saveParametersToFile)
+        self.ui.pushButton_LoadParameters.pressed.connect(self.loadParametersFromFile)
         self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
         
         self.ui.pushButton_process_arb_data.clicked.connect(self.process_arb_data_clicked)
@@ -143,7 +142,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.tabWidget_instruments.setEnabled(True)
         self.ui.tabWidget_instruments.setCurrentIndex(1)
         self.ui.groupBox_scope_control.setEnabled(True)
-        self.EnableScanningProcess()
+        self.enableScanningProcess()
         
         widgets = (self.ui.horizontalLayout_3.itemAt(i).widget() for i in range(self.ui.horizontalLayout_3.count())) 
         for i,widget in enumerate(widgets):
@@ -212,7 +211,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.groupBox_OSA_control.setEnabled(True)
         print('Connected with OSA')
         self.on_pushButton_acquireSpectrum_pressed()
-        self.EnableScanningProcess()
+        self.enableScanningProcess()
         self.painter.TypeOfData='FromOSA'
 
     def connectStages(self):
@@ -221,24 +220,24 @@ class MainWindow(ThreadedMainWindow):
             print('Connected to stages')
             self.add_thread([self.stages])
             self.X_0,self.Y_0,self.Z_0=self.logger.load_zero_position()
-            self.UpdatePositions()
-            self.ui.pushButton_MovePlusX.pressed.connect(lambda :self.SetStageMoving('X',int(self.ui.lineEdit_StepX.text())))
-            self.ui.pushButton_MoveMinusX.pressed.connect(lambda :self.SetStageMoving('X',-1*int(self.ui.lineEdit_StepX.text())))
-            self.ui.pushButton_MovePlusY.pressed.connect(lambda :self.SetStageMoving('Y',int(self.ui.lineEdit_StepY.text())))
-            self.ui.pushButton_MoveMinusY.pressed.connect(lambda :self.SetStageMoving('Y',-1*int(self.ui.lineEdit_StepY.text())))
-            self.ui.pushButton_MovePlusZ.pressed.connect(lambda :self.SetStageMoving('Z',int(self.ui.lineEdit_StepZ.text())))
-            self.ui.pushButton_MoveMinusZ.pressed.connect(lambda :self.SetStageMoving('Z',-1*int(self.ui.lineEdit_StepZ.text())))
-            self.ui.pushButton_ZeroingPositions.pressed.connect(self.ZeroingPosition)
+            self.updatePositions()
+            self.ui.pushButton_MovePlusX.pressed.connect(lambda :self.setStageMoving('X',int(self.ui.lineEdit_StepX.text())))
+            self.ui.pushButton_MoveMinusX.pressed.connect(lambda :self.setStageMoving('X',-1*int(self.ui.lineEdit_StepX.text())))
+            self.ui.pushButton_MovePlusY.pressed.connect(lambda :self.setStageMoving('Y',int(self.ui.lineEdit_StepY.text())))
+            self.ui.pushButton_MoveMinusY.pressed.connect(lambda :self.setStageMoving('Y',-1*int(self.ui.lineEdit_StepY.text())))
+            self.ui.pushButton_MovePlusZ.pressed.connect(lambda :self.setStageMoving('Z',int(self.ui.lineEdit_StepZ.text())))
+            self.ui.pushButton_MoveMinusZ.pressed.connect(lambda :self.setStageMoving('Z',-1*int(self.ui.lineEdit_StepZ.text())))
+            self.ui.pushButton_zeroingPositions.pressed.connect(self.zeroingPosition)
             self.force_stage_move[str,int].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
-            self.stages.stopped.connect(self.UpdatePositions)
+            self.stages.stopped.connect(self.updatePositions)
             self.ui.groupBox_stand.setEnabled(True)
             self.ui.pushButton_StagesConnect.setEnabled(False)
             
-            self.EnableScanningProcess()
+            self.enableScanningProcess()
 
 
     @pyqtSlotWExceptions()
-    def EnableScanningProcess(self):
+    def enableScanningProcess(self):
         if (self.ui.groupBox_stand.isEnabled() and self.ui.tabWidget_instruments.isEnabled()):
             self.ui.groupBox_Scanning.setEnabled(True)
             self.ui.pushButton_Scanning.clicked[bool].connect(self.on_pushButton_Scanning_pressed)
@@ -250,11 +249,11 @@ class MainWindow(ThreadedMainWindow):
         self.ui.groupBox_theExperiment.setEnabled(is_ready)
 
 
-    def SetStageMoving(self,key,step):
+    def setStageMoving(self,key,step):
         self.force_stage_move.emit(key,step)
 
     @pyqtSlotWExceptions("PyQt_PyObject")
-    def UpdatePositions(self):
+    def updatePositions(self):
         X_abs=(self.stages.position['X'])
         Y_abs=(self.stages.position['Y'])
         Z_abs=(self.stages.position['Z'])
@@ -269,12 +268,12 @@ class MainWindow(ThreadedMainWindow):
         
         
         
-    def ZeroingPosition(self):
+    def zeroingPosition(self):
         self.X_0=(self.stages.position['X'])
         self.Y_0=(self.stages.position['Y'])
         self.Z_0=(self.stages.position['Z'])
         self.logger.save_zero_position(self.X_0,self.Y_0,self.Z_0)
-        self.UpdatePositions()
+        self.updatePositions()
     
     def on_pushButton_scope_single_measurement_pressed(self):
         self.scope.acquire()
@@ -340,62 +339,59 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_pushButton_Scanning_pressed(self,pressed:bool):
-        if pressed and  self.ui.tabWidget_instruments.currentIndex()==0: ## if OSA is active
-            from Scripts.ScanningProcessOSA import ScanningProcess
-            self.scanningProcess=ScanningProcess(OSA=self.OSA,Stages=self.stages,
-                                                 scanstep=int(self.ui.lineEdit_ScanningStep.text()),
-                                                 seekcontactstep=int(self.ui.lineEdit_SearchingStep.text()),
-                                                 backstep=int(self.ui.lineEdit_BackStep.text()),
-                                                 seekcontactvalue=float(self.ui.lineEdit_LevelToDetectContact.text()),
-                                                 ScanningType=int(self.ui.comboBox_ScanningType.currentIndex()),
-                                                 SqueezeSpanWhileSearchingContact=self.ui.checkBox_SqueezeSpan.isChecked(),
-                                                 CurrentFileIndex=int(self.ui.lineEdit_CurrentFile.text()),
-                                                 StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
-                                                 numberofscans=int(self.ui.lineEdit_numberOfScans.text()))
-            self.add_thread([self.scanningProcess])
-            self.scanningProcess.S_updateCurrentFileName.connect(lambda S: self.ui.lineEdit_CurrentFile.setText(S))
-            self.scanningProcess.S_saveSpectrum.connect(lambda Data,FilePrefix: self.logger.save_data(Data,'Sp_'+FilePrefix, self.stages.positin['X'],
-                                                                                                      self.stages.position['Y'],self.stages.posiiton['Z']))
-            self.scanningProcess.S_saveSpectrumToOSA.connect(lambda FilePrefix: self.OSA.SaveToFile('D:'+'Spec_Ch'+str(self.OSA.channel_num)+'_'+FilePrefix, TraceNumber=1, Type="txt"))
+        if pressed:
+            if self.ui.tabWidget_instruments.currentIndex()==0: ## if OSA is active, scanning with OSA
+                from Scripts.ScanningProcessOSA import ScanningProcess
+                self.scanningProcess=ScanningProcess(OSA=self.OSA,Stages=self.stages,
+                                                     scanstep=int(self.ui.lineEdit_ScanningStep.text()),
+                                                     seekcontactstep=int(self.ui.lineEdit_SearchingStep.text()),
+                                                     backstep=int(self.ui.lineEdit_BackStep.text()),
+                                                     seekcontactvalue=float(self.ui.lineEdit_LevelToDetectContact.text()),
+                                                     ScanningType=int(self.ui.comboBox_ScanningType.currentIndex()),
+                                                     SqueezeSpanWhileSearchingContact=self.ui.checkBox_SqueezeSpan.isChecked(),
+                                                     CurrentFileIndex=int(self.ui.lineEdit_CurrentFile.text()),
+                                                     StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
+                                                     numberofscans=int(self.ui.lineEdit_numberOfScans.text()))
+                self.scanningProcess.S_saveData.connect(lambda Data,prefix: self.logger.save_data(Data,prefix,
+                                                                                                  self.stages.position['X']-self.X_0,
+                                                                                                  self.stages.position['X']-self.X_0,
+                                                                                                  self.stages.position['X']-self.X_0,
+                                                                                                  'FromOSA'))                                                                                             
+                self.scanningProcess.S_saveSpectrumToOSA.connect(lambda FilePrefix: self.OSA.SaveToFile('D:'+'Sp_'+FilePrefix, TraceNumber=1, Type="txt"))
+            
+            elif self.ui.tabWidget_instruments.currentIndex()==1: ## if scope is active, scanning with scope
+                from Scripts.ScanningProcessScope import ScanningProcess
+                self.scanningProcess=ScanningProcess(Scope=self.scope,Stages=self.stages,
+                                                     scanstep=int(self.ui.lineEdit_ScanningStep.text()),
+                                                     seekcontactstep=int(self.ui.lineEdit_SearchingStep.text()),
+                                                     backstep=int(self.ui.lineEdit_BackStep.text()),
+                                                     seekcontactvalue=float(self.ui.lineEdit_LevelToDetectContact.text()),
+                                                     ScanningType=int(self.ui.comboBox_ScanningType.currentIndex()),
+                                                     CurrentFileIndex=int(self.ui.lineEdit_CurrentFile.text()),
+                                                     StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
+                                                     numberofscans=int(self.ui.lineEdit_numberOfScans.text()))
+                self.scanningProcess.S_saveData.connect(lambda Data,prefix: self.logger.save_data(Data,prefix,
+                                                                                                  self.stages.position['X']-self.X_0,
+                                                                                                  self.stages.position['X']-self.X_0,
+                                                                                                  self.stages.position['X']-self.X_0,
+                                                                                                  'FromScope'))
             self.scanningProcess.S_finished.connect(self.ui.pushButton_Scanning.toggle)
             self.scanningProcess.S_finished.connect(lambda : self.on_pushButton_Scanning_pressed(False))
-            self.logger.open_file()
-            self.ui.groupBox_OSA_control.setEnabled(False)
+            self.scanningProcess.S_updateCurrentFileName.connect(lambda S: self.ui.lineEdit_CurrentFile.setText(S))
+            self.add_thread([self.scanningProcess])
+            self.ui.tabWidget_instruments.setEnabled(False)
             self.ui.groupBox_stand.setEnabled(False)
             self.force_scanning_process.connect(self.scanningProcess.run)
             print('Start Scanning')
             self.force_scanning_process.emit()
-        
-        elif pressed and  self.ui.tabWidget_instruments.currentIndex()==1: ## if scope is active
-            from Scripts.ScanningProcessScope import ScanningProcess
-            self.scanningProcess=ScanningProcess(Scope=self.scope,Stages=self.stages,
-                                                 scanstep=int(self.ui.lineEdit_ScanningStep.text()),
-                                                 seekcontactstep=int(self.ui.lineEdit_SearchingStep.text()),
-                                                 backstep=int(self.ui.lineEdit_BackStep.text()),
-                                                 seekcontactvalue=float(self.ui.lineEdit_LevelToDetectContact.text()),
-                                                 ScanningType=int(self.ui.comboBox_ScanningType.currentIndex()),
-                                                 CurrentFileIndex=int(self.ui.lineEdit_CurrentFile.text()),
-                                                 StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
-                                                 numberofscans=int(self.ui.lineEdit_numberOfScans.text()))
-            self.add_thread([self.scanningProcess])
-            self.scanningProcess.S_updateCurrentFileName.connect(lambda S: self.ui.lineEdit_CurrentFile.setText(S))
-            self.scanningProcess.S_saveTimeTraces.connect(lambda Data,FilePrefix: self.logger.SaveData(Data,'TimeTraces_'+FilePrefix+'.txt'))
-            self.scanningProcess.S_addPosition_and_FilePrefix.connect(self.addPositionToPositionList)
-            self.scanningProcess.S_finished.connect(self.ui.pushButton_Scanning.toggle)
-            self.scanningProcess.S_finished.connect(lambda : self.on_pushButton_Scanning_pressed(False))
-            self.logger.open_file()
-            self.ui.groupBox_scope_control.setEnabled(False)
-            self.ui.groupBox_stand.setEnabled(False)
-            self.force_scanning_process.connect(self.scanningProcess.run)
-            print('Start Scanning')
-            self.force_scanning_process.emit()
+
         else:
             self.scanningProcess.is_running=False
             del self.scanningProcess
-            self.ui.groupBox_OSA_control.setEnabled(True)
+            self.ui.tabWidget_instruments.setEnabled(True)
             self.ui.groupBox_scope_control.setEnabled(True)
             self.ui.groupBox_stand.setEnabled(True)
-            self.logger.close_file()
+
 
 
     def on_pushButton_save_data(self):
@@ -411,14 +407,11 @@ class MainWindow(ThreadedMainWindow):
         for YDataColumn in Ydata:
             if YDataColumn is not None:
                 Data=np.column_stack((Data, YDataColumn))
-        if self.painter.TypeOfData=='FromOSA':
-            FilePrefix='Sp_'+self.ui.EditLine_saveSpectrumName.text()
-            if self.OSA.IsHighRes:
+
+        FilePrefix=self.ui.EditLine_saveSpectrumName.text()
+        self.logger.save_data(Data,FilePrefix,X,Y,Z,self.painter.TypeOfData)
+        if self.painter.TypeOfData=='FromOSA' and self.OSA.IsHighRes:
                 self.OSA.SaveToFile('D:'+self.ui.EditLine_saveSpectrumName.text(),TraceNumber=1, Type="txt")
-        elif self.painter.TypeOfData=='FromScope':
-            FilePrefix='TD_'+self.ui.EditLine_saveSpectrumName.text()
-        self.logger.save_data(Data,FilePrefix,X,Y,Z)
-        
 
     def on_pushButton_getRange(self):
         Range=(self.painter.ax.get_xlim())
@@ -476,7 +469,7 @@ class MainWindow(ThreadedMainWindow):
         Thread.quit()
 
 
-    def SaveParametersToFile(self):
+    def saveParametersToFile(self):
         Dict={}
         Dict['saveSpectrumName']=(self.ui.EditLine_saveSpectrumName.text())
         Dict['StartWavelength']=float(self.ui.EditLine_StartWavelength.text())
@@ -501,20 +494,13 @@ class MainWindow(ThreadedMainWindow):
         Dict['IsHighRes']=str(self.ui.checkBox_HighRes.isChecked())
         self.logger.SaveParameters(Dict)
 
-    def LoadParametersFromFile(self):
+    def loadParametersFromFile(self):
         Dict=self.logger.LoadParameters()
         self.ui.EditLine_saveSpectrumName.setText(str(Dict['saveSpectrumName']))
         self.ui.EditLine_StartWavelength.setText('{:.5f}'.format(Dict['StartWavelength']))
         self.ui.EditLine_StopWavelength.setText('{:.5f}'.format(Dict['StopWavelength']))
         
-        if Dict['IsHighRes']=='True':
-            self.ui.checkBox_HighRes.setChecked(True)
-            self.OSA.SetWavelengthResolution('High')
-        else:
-            self.ui.checkBox_HighRes.setChecked(False)
-            self.OSA.SetWavelengthResolution('Low')
-      
-        self.OSA.change_range(float(Dict['StartWavelength']), float(Dict['StopWavelength']))
+                
         self.ui.lineEdit_StepX.setText(str(Dict['StepX']))
         self.ui.lineEdit_StepY.setText(str(Dict['StepY']))
         self.ui.lineEdit_StepZ.setText(str(Dict['StepZ']))
@@ -532,7 +518,22 @@ class MainWindow(ThreadedMainWindow):
         self.ui.CheckBox_ApplyFFTFilter.setChecked(Dict['ApplyFFT']=='True')
         self.ui.checkBox_SqueezeSpan.setChecked(Dict['SqueezeSpan?']=='True')
         self.ui.lineEdit_numberOfScans.setText(str(Dict['NumberOfScans']))
-        self.force_OSA_acquire.emit()
+        
+                
+        if Dict['IsHighRes']=='True':
+            self.ui.checkBox_HighRes.setChecked(True)
+            if self.OSA is not None:
+                self.OSA.SetWavelengthResolution('High')
+                self.OSA.change_range(float(Dict['StartWavelength']), float(Dict['StopWavelength']))
+                self.force_OSA_acquire.emit()
+        else:
+            self.ui.checkBox_HighRes.setChecked(False)
+            if self.OSA is not None:
+                self.OSA.SetWavelengthResolution('Low')
+                self.OSA.change_range(float(Dict['StartWavelength']), float(Dict['StopWavelength']))
+                self.force_OSA_acquire.emit()
+      
+        
         print('Parameters loaded')
 
     

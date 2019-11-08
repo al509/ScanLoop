@@ -92,6 +92,9 @@
              <height>20</height>
             </rect>
            </property>
+           <property name="text">
+            <string>1550</string>
+           </property>
            <property name="maxLength">
             <number>12</number>
            </property>
@@ -104,6 +107,9 @@
              <width>131</width>
              <height>20</height>
             </rect>
+           </property>
+           <property name="text">
+            <string>1551</string>
            </property>
            <property name="maxLength">
             <number>12</number>
@@ -1020,19 +1026,6 @@
                </property>
               </widget>
              </item>
-             <item row="4" column="2">
-              <widget class="QCheckBox" name="checkBox_SqueezeSpan">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="iconSize">
-                <size>
-                 <width>1</width>
-                 <height>1</height>
-                </size>
-               </property>
-              </widget>
-             </item>
              <item row="2" column="3">
               <widget class="QLineEdit" name="lineEdit_LevelToDetectContact">
                <property name="text">
@@ -1090,16 +1083,6 @@
                </property>
               </widget>
              </item>
-             <item row="4" column="3">
-              <widget class="QLabel" name="label_9">
-               <property name="text">
-                <string>Squeeze Span?</string>
-               </property>
-               <property name="wordWrap">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
              <item row="7" column="0">
               <widget class="QLabel" name="label_8">
                <property name="text">
@@ -1114,6 +1097,32 @@
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="3">
+              <widget class="QCheckBox" name="checkBox_SqueezeSpan">
+               <property name="toolTip">
+                <string>Squeeze Span while search contact</string>
+               </property>
+               <property name="text">
+                <string>Squeeze Span</string>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>1</width>
+                 <height>1</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="2">
+              <widget class="QCheckBox" name="checkBox_searchContact">
+               <property name="toolTip">
+                <string>Search contact at each scanning point</string>
+               </property>
+               <property name="text">
+                <string>Search contact</string>
                </property>
               </widget>
              </item>

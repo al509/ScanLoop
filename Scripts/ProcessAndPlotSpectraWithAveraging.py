@@ -1,12 +1,10 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
 import time
 from scipy.fftpack import rfft, irfft, fftfreq
 from scipy import interpolate
-from scipy import signal
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
+from PyQt5.QtCore import QObject
 
 
 class ProcessSpectraWithAveraging(QObject):
@@ -90,7 +88,8 @@ class ProcessSpectraWithAveraging(QObject):
 
 
 
-    def run(self,StepSize,Averaging:bool,Shifting:bool,DirName):
+    def run(self,StepSize,Averaging:bool,Shifting:bool,DirName,axis_to_plot_along='X'):
+        self.axis_to_plot_along=axis_to_plot_along
         AccuracyOfWavelength=self.AccuracyOfWavelength
         time1=time.time()
         FileList=os.listdir(DirName)
@@ -170,9 +169,9 @@ class ProcessSpectraWithAveraging(QObject):
             X_0=0
             X_max=StepSize*NumberOfPointsZ
         else:
-            X_0=Positions[0][number_of_axis[axis_to_plot_along]]
-            X_max=Positions[-1][number_of_axis[axis_to_plot_along]]
-        ImGraph=plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap='RdBu_r',extent=[X_0,X_max,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
+            X_0=Positions[0][self.number_of_axis[self.axis_to_plot_along]]
+            X_max=Positions[-1][self.number_of_axis[self.axis_to_plot_along]]
+        plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap='RdBu_r',extent=[X_0,X_max,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
 
         plt.show()
         plt.colorbar()
@@ -187,8 +186,7 @@ class ProcessSpectraWithAveraging(QObject):
         
         if self.file_naming_style=='new':
             plt.figure()
-#        Positions_given_axis=np.array(s[number_of_axis[axis_to_plot_along] for s in Positions])
-            Positions_at_given_axis=np.linspace(X_0,X_max,NumberOfPointsZ)
+            Positions_at_given_axis=np.array([s[self.number_of_axis[self.axis_to_plot_along]] for s in Positions])
             plt.contourf(Positions_at_given_axis,MainWavelengths,SignalArray,200,cmap='RdBu_r')
             plt.xlabel('Position, steps (2.5 um each)')
             plt.ylabel('Wavelength, nm')
