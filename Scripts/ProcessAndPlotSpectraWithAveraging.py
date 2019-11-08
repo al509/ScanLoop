@@ -8,6 +8,7 @@ from scipy import interpolate
 from scipy import signal
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
+
 class ProcessSpectraWithAveraging(QObject):
     ProcessedDataFolder='ProcessedData\\'
     skip_Header=3
@@ -19,7 +20,7 @@ class ProcessSpectraWithAveraging(QObject):
     MinimumPeakDistance=500 ## For peak searching
     file_naming_style='new'
     axis_to_plot_along='X'
-
+    number_of_axis={'X':0,'Y':1,'Z':2}
     AccuracyOfWavelength=0.008 # in nm. Maximum expected shift to define the correlation window
 #    
     def define_file_naming_style(self,FileName):
@@ -51,6 +52,7 @@ class ProcessSpectraWithAveraging(QObject):
 
     def Create2DListOfFiles(self,FileList,axis='X'):  #Find all files which acqured at the same point
         NewFileList=[]
+        Positions=[]
         ## if Files are named with X position then Using new 
         if self.file_naming_style=='old':
             while FileList:
@@ -60,9 +62,8 @@ class ProcessSpectraWithAveraging(QObject):
                 Temp=[T for T in FileList if s in T]  # take all 'signature' + 'i' instances
                 NewFileList.append(Temp)
                 FileList=[T for T in FileList if not (T in Temp)]
-            return NewFileList
+            return NewFileList,Positions
         else:
-            Position=[]
             while FileList:
                 Name=FileList[0]
                 s=axis+'='+str(self.KeyFunctionForSortingFileList(Name,axis=axis))
@@ -73,7 +74,7 @@ class ProcessSpectraWithAveraging(QObject):
                                   self.KeyFunctionForSortingFileList(Name,axis='Y'),
                                   self.KeyFunctionForSortingFileList(Name,axis='Z')])
                 FileList=[T for T in FileList if not (T in Temp)]
-            return NewFileList
+            return NewFileList,Positions
             
 
 
@@ -94,16 +95,26 @@ class ProcessSpectraWithAveraging(QObject):
         time1=time.time()
         FileList=os.listdir(DirName)
         self.define_file_naming_style(FileList[0])
+        """
+        group files at each point
+        """
         FileList=sorted(FileList,key=self.KeyFunctionForSortingFileList)
-        StructuredFileList=self.Create2DListOfFiles(FileList)
+        StructuredFileList,Positions=self.Create2DListOfFiles(FileList)
         NumberOfPointsZ=len(StructuredFileList)
         #Data = np.loadtxt(DirName+ '\\Signal' + '\\' +FileList[0])
         print(DirName+ '\\' +FileList[0])
+        """
+        Create main wavelength array
+        """
         Data = np.genfromtxt(DirName+ '\\' +FileList[0],skip_header=self.skip_Header)
         MainWavelengths=np.arange(np.min(Data[:,0]),np.max(Data[:,0]),np.max(np.abs(np.diff(Data[:,0]))))
         NumberOfWavelengthPoints=len(MainWavelengths)
         SignalArray=np.zeros((NumberOfWavelengthPoints,NumberOfPointsZ))
         WavelengthStep=MainWavelengths[1]-MainWavelengths[0]
+        
+        """
+        Process files at each group
+        """
         for ii,FileNameListAtPoint in enumerate(StructuredFileList):
             NumberOfArraysToAverage=len(FileNameListAtPoint)
             SmallSignalArray=np.zeros((NumberOfWavelengthPoints,NumberOfArraysToAverage))
@@ -117,6 +128,9 @@ class ProcessSpectraWithAveraging(QObject):
             ShiftArray=np.zeros(NumberOfArraysToAverage)
             if Averaging or Shifting:
                 if Shifting:    
+                    """
+                    Apply cross-correlation for more accurate absolute wavelength determination
+                    """
                     for jj, FileName in enumerate(FileNameListAtPoint):
                         for kk, FileName in enumerate(FileNameListAtPoint):
                             if jj<kk:
@@ -125,6 +139,9 @@ class ProcessSpectraWithAveraging(QObject):
                                 ShiftIndexesMatrix[kk,jj]=-ShiftIndexesMatrix[jj,kk]
                     ShiftArray=(np.mean(ShiftIndexesMatrix,1))
                 if Averaging:
+                    """
+                    Apply averaging across the spectra at one point
+                    """
                     for jj, FileName in enumerate(FileNameListAtPoint):
                         Temp=np.ones(NumberOfWavelengthPoints)*MeanLevel
                         Temp[int(AccuracyOfWavelength/WavelengthStep)+int(ShiftArray[jj]):-int(AccuracyOfWavelength/WavelengthStep)+int(ShiftArray[jj])]=SmallSignalArray[int(AccuracyOfWavelength/WavelengthStep):-int(AccuracyOfWavelength/WavelengthStep),jj]
@@ -135,16 +152,27 @@ class ProcessSpectraWithAveraging(QObject):
                     Temp[int(AccuracyOfWavelength/WavelengthStep)+int(ShiftArray[0]):-int(AccuracyOfWavelength/WavelengthStep)+int(ShiftArray[0])]=SmallSignalArray[int(AccuracyOfWavelength/WavelengthStep):-int(AccuracyOfWavelength/WavelengthStep),0]
                     SignalArray[:,ii]=Temp    
             else:
+                """
+                    If shifting and averaging are OFF, just take the first spectrum from the bundle correpsonding to a measuring point
+                """
                 SignalArray[:,ii]=SmallSignalArray[:,0]
 
 
         np.savetxt(self.ProcessedDataFolder+'SignalArray.txt',SignalArray)
         np.savetxt(self.ProcessedDataFolder+'WavelengthArray.txt', MainWavelengths)
+        np.savetxt(self.ProcessedDataFolder+'Positions.txt', Positions)
 
-        #plt.ylim(1547.2,1547.5)
+                
         plt.figure()
         plt.clf()
-        ImGraph=plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap='RdBu_r',extent=[0,StepSize*NumberOfPointsZ,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
+        
+        if self.file_naming_style=='old':
+            X_0=0
+            X_max=StepSize*NumberOfPointsZ
+        else:
+            X_0=Positions[0][number_of_axis[axis_to_plot_along]]
+            X_max=Positions[-1][number_of_axis[axis_to_plot_along]]
+        ImGraph=plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap='RdBu_r',extent=[X_0,X_max,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
 
         plt.show()
         plt.colorbar()
@@ -156,8 +184,19 @@ class ProcessSpectraWithAveraging(QObject):
         plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
         #plt.plot(TimeArray,CorrelationArray)
         #np.savetxt('Correlation'+DirName+'.txt',np.column_stack((TimeArray,CorrelationArray)))#np.hstack([X,CorrelationArray]))
-
-        time2=time.time()
+        
+        if self.file_naming_style=='new':
+            plt.figure()
+#        Positions_given_axis=np.array(s[number_of_axis[axis_to_plot_along] for s in Positions])
+            Positions_at_given_axis=np.linspace(X_0,X_max,NumberOfPointsZ)
+            plt.contourf(Positions_at_given_axis,MainWavelengths,SignalArray,200,cmap='RdBu_r')
+            plt.xlabel('Position, steps (2.5 um each)')
+            plt.ylabel('Wavelength, nm')
+            ax2=(plt.gca()).twiny()
+            ax2.set_xlabel('Distance, um')
+            ax2.set_xlim([np.min(Positions_at_given_axis),np.max(Positions_at_given_axis)]*2.5)
+            time2=time.time()
+            
         print('Time used =', time2-time1 ,' s')
 
 if __name__ == "__main__":
