@@ -1,14 +1,14 @@
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QObject,  pyqtSignal
 import sys
 import os
 import numpy as np
-from PyQt5.QtWidgets import QWidget
+
 
 
 OldPath=os.getcwd()
 #    if (os.path.dirname(sys.argv[0])+'/Hardware') not in sys.path:
 #        sys.path.append(os.path.dirname(sys.argv[0])+'/Hardware')
-if __name__ is not "__main__":
+if __name__ != "__main__":
 #    os.chdir(os.path.dirname(sys.argv[0])+'/Hardware')
     os.chdir(os.path.dirname(__file__))
 if sys.version_info >= (3,0):
