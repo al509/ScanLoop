@@ -34,7 +34,7 @@ class Stages(QObject):
     stopped = pyqtSignal()
 #    StepSize={'X':10,'Y':10,'Z':10}
     Stage_key={'X':None,'Y':None,'Z':None}
-    Position={'X':0,'Y':0,'Z':0}
+    position={'X':0,'Y':0,'Z':0}
 
     def __init__(self):
         super().__init__()
@@ -169,9 +169,9 @@ class Stages(QObject):
     def shiftOnArbitrary(self, key:str, distance:int):
         device_id=self.Stage_key[key]
         result = self.lib.command_movr(device_id, distance, 0)
-        if (result>-1):
-            self.position[key]=self.get_position(device_id)
+#        if (result>-1):
         lib.command_wait_for_stop(device_id, 11)
+        self.position[key]=self.get_position(device_id)
         self.stopped.emit()
 
 #    def shift(self, key:str,Sign_key):

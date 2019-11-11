@@ -48,19 +48,22 @@ class Logger(QObject):
     
     def save_zero_position(self,X:int,Y:int,Z:int):
         Dict={}
-        Dict['X']=str(X)
-        Dict['Y']=str(Y)
-        Dict['Z']=str(Z)
+        Dict['X_0']=str(X)
+        Dict['Y_0']=str(Y)
+        Dict['Z_0']=str(Z)
         f=open(self.ZeroPositionFileName,'w')
         json.dump(Dict,f)
         f.close()
         print('\nzero position saved\n')
         
     def load_zero_position(self):
-        f=open(self.ZeroPositionFileName)
+        try:
+            f=open(self.ZeroPositionFileName)
+        except FileNotFoundError:
+            return 0,0,0,
         dictionary=json.load(f)
         f.close()
-        return dictionary['X'],dictionary['Y'],dictionary['Z']
+        return int(dictionary['X_0']),int(dictionary['Y_0']),int(dictionary['Z_0'])
 
 
 

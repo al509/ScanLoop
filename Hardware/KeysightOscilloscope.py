@@ -187,7 +187,7 @@ class Scope(QObject):
     
     def get_sampling_rate(self):
 #        time_range in seconds
-        return self.device.query(':ACQuire:SRATe?')
+        return float(self.device.query(':ACQuire:SRATe?'))
 
     
     def get_y_data(self,channel_number:int):

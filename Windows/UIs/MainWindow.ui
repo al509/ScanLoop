@@ -415,8 +415,8 @@
             </property>
             <property name="geometry">
              <rect>
-              <x>9</x>
-              <y>235</y>
+              <x>10</x>
+              <y>220</y>
               <width>281</width>
               <height>121</height>
              </rect>
@@ -612,8 +612,8 @@
              <rect>
               <x>9</x>
               <y>9</y>
-              <width>282</width>
-              <height>221</height>
+              <width>281</width>
+              <height>211</height>
              </rect>
             </property>
             <property name="title">
@@ -732,7 +732,7 @@
                  <set>Qt::AlignCenter</set>
                 </property>
                </widget>
-               <widget class="QPushButton" name="pushButton_ZeroingPositions">
+               <widget class="QPushButton" name="pushButton_zeroingPositions">
                 <property name="geometry">
                  <rect>
                   <x>12</x>
@@ -843,9 +843,9 @@
             <property name="geometry">
              <rect>
               <x>9</x>
-              <y>574</y>
-              <width>255</width>
-              <height>137</height>
+              <y>560</y>
+              <width>281</width>
+              <height>141</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -860,60 +860,180 @@
             <property name="alignment">
              <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
             </property>
-            <layout class="QGridLayout" name="gridLayout_6">
-             <item row="0" column="1">
-              <widget class="QPushButton" name="pushButton_LoadParameters">
-               <property name="text">
-                <string>Load param</string>
-               </property>
-              </widget>
+            <widget class="QPushButton" name="pushButton_LoadParameters">
+             <property name="geometry">
+              <rect>
+               <x>100</x>
+               <y>23</y>
+               <width>171</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Load param</string>
+             </property>
+            </widget>
+            <widget class="QLineEdit" name="EditLine_saveSpectrumName">
+             <property name="geometry">
+              <rect>
+               <x>100</x>
+               <y>52</y>
+               <width>171</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>File Name</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_save_data">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>50</y>
+               <width>84</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Save data</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_SaveParameters">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>23</y>
+               <width>84</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Save param</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_processTDData">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>110</y>
+               <width>81</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Process TD</string>
+             </property>
+            </widget>
+            <widget class="QCheckBox" name="checkBox_IsShiftingWhileProcessing">
+             <property name="geometry">
+              <rect>
+               <x>140</x>
+               <y>80</y>
+               <width>81</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Shift spectra</string>
+             </property>
+            </widget>
+            <widget class="QCheckBox" name="checkBox_IsAveragingWhileProcessing">
+             <property name="geometry">
+              <rect>
+               <x>230</x>
+               <y>81</y>
+               <width>61</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Average </string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_processSpectralData">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>77</y>
+               <width>84</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Process spectra</string>
+             </property>
+            </widget>
+            <widget class="QComboBox" name="comboBox_TD_channel_to_plot">
+             <property name="geometry">
+              <rect>
+               <x>100</x>
+               <y>110</y>
+               <width>32</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="toolTip">
+              <string>Choose channel to plot</string>
+             </property>
+             <property name="sizeAdjustPolicy">
+              <enum>QComboBox::AdjustToContents</enum>
+             </property>
+             <item>
+              <property name="text">
+               <string>1</string>
+              </property>
              </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="EditLine_saveSpectrumName">
-               <property name="text">
-                <string>File Name</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
+             <item>
+              <property name="text">
+               <string>2</string>
+              </property>
              </item>
-             <item row="1" column="0">
-              <widget class="QPushButton" name="pushButton_save_data">
-               <property name="text">
-                <string>Save data</string>
-               </property>
-              </widget>
+             <item>
+              <property name="text">
+               <string>3</string>
+              </property>
              </item>
-             <item row="0" column="0">
-              <widget class="QPushButton" name="pushButton_SaveParameters">
-               <property name="text">
-                <string>Save param</string>
-               </property>
-              </widget>
+             <item>
+              <property name="text">
+               <string>4</string>
+              </property>
              </item>
-             <item row="4" column="0">
-              <widget class="QCheckBox" name="checkBox_IsAveragingWhileProcessing">
-               <property name="text">
-                <string>Average shape</string>
-               </property>
-              </widget>
+            </widget>
+            <widget class="QComboBox" name="comboBox_axis_to_plot_along">
+             <property name="geometry">
+              <rect>
+               <x>100</x>
+               <y>80</y>
+               <width>33</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="toolTip">
+              <string>Choose channel to plot</string>
+             </property>
+             <property name="sizeAdjustPolicy">
+              <enum>QComboBox::AdjustToContents</enum>
+             </property>
+             <item>
+              <property name="text">
+               <string>X</string>
+              </property>
              </item>
-             <item row="2" column="0" colspan="2">
-              <widget class="QPushButton" name="pushButton_ProcessData">
-               <property name="text">
-                <string>Process files</string>
-               </property>
-              </widget>
+             <item>
+              <property name="text">
+               <string>Y</string>
+              </property>
              </item>
-             <item row="4" column="1">
-              <widget class="QCheckBox" name="checkBox_IsShiftingWhileProcessing">
-               <property name="text">
-                <string>Shift spectra</string>
-               </property>
-              </widget>
+             <item>
+              <property name="text">
+               <string>Z</string>
+              </property>
              </item>
-            </layout>
+            </widget>
            </widget>
            <widget class="QGroupBox" name="groupBox_Scanning">
             <property name="enabled">
@@ -922,7 +1042,7 @@
             <property name="geometry">
              <rect>
               <x>9</x>
-              <y>357</y>
+              <y>350</y>
               <width>282</width>
               <height>211</height>
              </rect>
@@ -1130,6 +1250,14 @@
            </widget>
           </widget>
           <widget class="QWidget" name="page_3">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>300</width>
+             <height>720</height>
+            </rect>
+           </property>
            <attribute name="label">
             <string>Work with files</string>
            </attribute>
@@ -1138,8 +1266,8 @@
              <rect>
               <x>0</x>
               <y>20</y>
-              <width>291</width>
-              <height>143</height>
+              <width>301</width>
+              <height>189</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -1149,85 +1277,133 @@
              </sizepolicy>
             </property>
             <property name="title">
-             <string>Work with spectral files</string>
+             <string>Work with files</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
             </property>
-            <widget class="QCheckBox" name="checkBox_IsAveragingWhileProcessingArbData">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>105</y>
-               <width>72</width>
-               <height>17</height>
-              </rect>
-             </property>
-             <property name="toolTip">
-              <string>Straightforward averaging of all spectra at the point</string>
-             </property>
-             <property name="text">
-              <string>Averaging</string>
-             </property>
-            </widget>
-            <widget class="QCheckBox" name="checkBox_IsShiftingWhileProcessingArbData">
-             <property name="geometry">
-              <rect>
-               <x>149</x>
-               <y>105</y>
-               <width>59</width>
-               <height>17</height>
-              </rect>
-             </property>
-             <property name="toolTip">
-              <string>Calculate the averaged position of the spectrum (mainly for Apex)</string>
-             </property>
-             <property name="text">
-              <string>Shifting</string>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="pushButton_process_arb_data">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>68</y>
-               <width>271</width>
-               <height>23</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Process files from folder</string>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="pushButton_choose_folder_to_process">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>31</y>
-               <width>75</width>
-               <height>23</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Choose folder</string>
-             </property>
-            </widget>
-            <widget class="QLabel" name="label_folder_to_process_files">
-             <property name="geometry">
-              <rect>
-               <x>92</x>
-               <y>31</y>
-               <width>191</width>
-               <height>21</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>none</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
+            <layout class="QGridLayout" name="gridLayout_3">
+             <item row="5" column="0" colspan="5">
+              <widget class="QPushButton" name="pushButton_process_arb_TD_data">
+               <property name="text">
+                <string>Process time dinamics from raw data</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QPushButton" name="pushButton_choose_folder_to_process">
+               <property name="text">
+                <string>Choose folder</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0" colspan="5">
+              <widget class="QPushButton" name="pushButton_process_arb_spectral_data">
+               <property name="text">
+                <string>Process spectra from raw data</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2" colspan="3">
+              <widget class="QLabel" name="label_folder_to_process_files">
+               <property name="text">
+                <string>none</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QCheckBox" name="checkBox_IsShiftingWhileProcessingArbData">
+               <property name="toolTip">
+                <string>Calculate the averaged position of the spectrum (mainly for Apex)</string>
+               </property>
+               <property name="text">
+                <string>Shifting</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_9">
+               <property name="text">
+                <string>Plot along</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QCheckBox" name="checkBox_IsAveragingWhileProcessingArbData">
+               <property name="toolTip">
+                <string>Straightforward averaging of all spectra at the point</string>
+               </property>
+               <property name="text">
+                <string>Averaging</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="0">
+              <widget class="QLabel" name="label_13">
+               <property name="text">
+                <string>Channel number</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="1">
+              <widget class="QComboBox" name="comboBox_TD_channel_to_plot_arb_data">
+               <property name="toolTip">
+                <string>Choose channel to plot</string>
+               </property>
+               <property name="sizeAdjustPolicy">
+                <enum>QComboBox::AdjustToContents</enum>
+               </property>
+               <item>
+                <property name="text">
+                 <string>1</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>3</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>4</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QComboBox" name="comboBox_axis_to_plot_along_arb_data">
+               <property name="toolTip">
+                <string>Choose channel to plot</string>
+               </property>
+               <property name="sizeAdjustPolicy">
+                <enum>QComboBox::AdjustToContents</enum>
+               </property>
+               <item>
+                <property name="text">
+                 <string>X</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Y</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Z</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </widget>
          </widget>

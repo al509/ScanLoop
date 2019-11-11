@@ -59,6 +59,7 @@ class ScanningProcess(QObject):
         self.CurrentFileIndex=CurrentFileIndex
         self.StopFileIndex=StopFileIndex
         self.NumberOfScans=numberofscans
+        self.searchcontact=searchcontact
         
 
     def set_ScanningType(self,ScanningType:int): # set axis depending on choice in MainWindow
@@ -129,7 +130,8 @@ class ScanningProcess(QObject):
                 print('saving sweep # ', jj+1)
                 Times,signals,channel_number=self.scope.acquire() # signal consists of all active traces data
                 time.sleep(0.05)
-                self.S_saveData.emit(signals,'SR='+self.SamplingRate+'_p='+str(self.CurrentFileIndex)+'_j='+str(jj)) # save data to file
+#                Data=np.stack((Times, signals),axis=1)
+                self.S_saveData.emit(signals,'SR='+'{:.2e}'.format(self.SamplingRate)+'_p='+str(self.CurrentFileIndex)+'_j='+str(jj)) # save data to file
                 if not self.is_running: break
             
             #update indexes in MainWindow and save positions into "Positions.txt"

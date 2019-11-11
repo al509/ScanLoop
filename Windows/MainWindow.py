@@ -11,8 +11,7 @@ import os
 #from Analyzer.SpectrumAnalyzer import SpectrumAnalyzer
 #import Analyzer.PrecisePeakSearchers as pps
 #import Analyzer.RudePeaksSearchers as rps
-if __name__ is "__main__":
-    os.chdir('..')
+
 
 from PyQt5.QtCore import pyqtSignal, QThread
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
@@ -104,7 +103,9 @@ class MainWindow(ThreadedMainWindow):
 
 
 
-        self.ui.pushButton_ProcessData.pressed.connect(self.on_Push_Button_ProcessSpectra)
+        self.ui.pushButton_processSpectralData.pressed.connect(self.on_Push_Button_ProcessSpectra)
+        self.ui.pushButton_processTDData.pressed.connect(self.on_Push_Button_ProcessTD)
+        
         self.ui.pushButton_OSA_Acquire.pressed.connect(self.on_pushButton_acquireSpectrum_pressed)
         self.ui.pushButton_save_data.pressed.connect(self.on_pushButton_save_data)
         self.ui.pushButton_OSA_AcquireAll.pressed.connect(self.on_pushButton_AcquireAllSpectra_pressed)
@@ -129,7 +130,8 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_LoadParameters.pressed.connect(self.loadParametersFromFile)
         self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
         
-        self.ui.pushButton_process_arb_data.clicked.connect(self.process_arb_data_clicked)
+        self.ui.pushButton_process_arb_spectral_data.clicked.connect(self.process_arb_spectral_data_clicked)
+        self.ui.pushButton_process_arb_TD_data.clicked.connect(self.process_arb_TD_data_clicked)
         self.ui.pushButton_choose_folder_to_process.clicked.connect(self.choose_folder_to_process)
     
 
@@ -241,7 +243,7 @@ class MainWindow(ThreadedMainWindow):
         if (self.ui.groupBox_stand.isEnabled() and self.ui.tabWidget_instruments.isEnabled()):
             self.ui.groupBox_Scanning.setEnabled(True)
             self.ui.pushButton_Scanning.clicked[bool].connect(self.on_pushButton_Scanning_pressed)
-            self.ui.toolBox.setCurrentIndex(1)
+            self.ui.tabWidget_instruments.setCurrentIndex(1)
 
 
     @pyqtSlotWExceptions()
@@ -287,9 +289,7 @@ class MainWindow(ThreadedMainWindow):
         else:
             self.painter.ReplotEnded.disconnect(self.scope.acquire)
 #            self.painter.ReplotEnded.disconnect(self.force_scope_acquire)
-            self.ui.pushButton_OSA_AcquireRepAll.setEnabled(True)
             self.ui.pushButton_scope_single.setEnabled(True)
-            self.ui.pushButton_OSA_AcquireAll.setEnabled(True)
             self.ui.pushButton_Scanning.setEnabled(True)
     
     @pyqtSlotWExceptions()
@@ -351,7 +351,8 @@ class MainWindow(ThreadedMainWindow):
                                                      SqueezeSpanWhileSearchingContact=self.ui.checkBox_SqueezeSpan.isChecked(),
                                                      CurrentFileIndex=int(self.ui.lineEdit_CurrentFile.text()),
                                                      StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
-                                                     numberofscans=int(self.ui.lineEdit_numberOfScans.text()))
+                                                     numberofscans=int(self.ui.lineEdit_numberOfScans.text()),
+                                                     searchcontact=self.ui.checkBox_searchContact.isChecked())
                 self.scanningProcess.S_saveData.connect(lambda Data,prefix: self.logger.save_data(Data,prefix,
                                                                                                   self.stages.position['X']-self.X_0,
                                                                                                   self.stages.position['X']-self.X_0,
@@ -369,11 +370,12 @@ class MainWindow(ThreadedMainWindow):
                                                      ScanningType=int(self.ui.comboBox_ScanningType.currentIndex()),
                                                      CurrentFileIndex=int(self.ui.lineEdit_CurrentFile.text()),
                                                      StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
-                                                     numberofscans=int(self.ui.lineEdit_numberOfScans.text()))
+                                                     numberofscans=int(self.ui.lineEdit_numberOfScans.text()),
+                                                     searchcontact=self.ui.checkBox_searchContact.isChecked())
                 self.scanningProcess.S_saveData.connect(lambda Data,prefix: self.logger.save_data(Data,prefix,
                                                                                                   self.stages.position['X']-self.X_0,
-                                                                                                  self.stages.position['X']-self.X_0,
-                                                                                                  self.stages.position['X']-self.X_0,
+                                                                                                  self.stages.position['Y']-self.Y_0,
+                                                                                                  self.stages.position['Z']-self.Z_0,
                                                                                                   'FromScope'))
             self.scanningProcess.S_finished.connect(self.ui.pushButton_Scanning.toggle)
             self.scanningProcess.S_finished.connect(lambda : self.on_pushButton_Scanning_pressed(False))
@@ -469,6 +471,15 @@ class MainWindow(ThreadedMainWindow):
         Thread.quit()
 
 
+    def on_Push_Button_ProcessTD(self):
+        from Scripts.ProcessAndPlotTD import ProcessAndPlotTD
+        self.ProcessTD=ProcessAndPlotTD()
+        Thread=self.add_thread([self.ProcessTD])
+        self.ProcessTD.run(Averaging=self.ui.checkBox_IsAveragingWhileProcessing.isChecked(),
+                           DirName='TimeDomainData',axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText(),
+                           channel_number=self.ui.comboBox_TD_channel_to_plot.currentIndex())
+        Thread.quit()
+
     def saveParametersToFile(self):
         Dict={}
         Dict['saveSpectrumName']=(self.ui.EditLine_saveSpectrumName.text())
@@ -492,6 +503,12 @@ class MainWindow(ThreadedMainWindow):
         Dict['SqueezeSpan?']=str(self.ui.checkBox_SqueezeSpan.isChecked())
         Dict['NumberOfScans']=int(self.ui.lineEdit_numberOfScans.text())
         Dict['IsHighRes']=str(self.ui.checkBox_HighRes.isChecked())
+        Dict['SearchingContact?']=str(self.ui.checkBox_searchContact.isChecked())
+        Dict['AverageShapeWhileProcessing?']=str(self.ui.checkBox_IsAveragingWhileProcessing.isChecked())
+        Dict['ShiftingWhileProcessing?']=str(self.ui.checkBox_IsShiftingWhileProcessing.isChecked())
+        Dict['axis_to_plot_along']=str(self.ui.comboBox_TD_channel_to_plot.currentIndex())
+        Dict['Channel_TD_to_plot']=str(self.ui.comboBox_TD_channel_to_plot.currentIndex())
+   
         self.logger.SaveParameters(Dict)
 
     def loadParametersFromFile(self):
@@ -517,7 +534,13 @@ class MainWindow(ThreadedMainWindow):
         self.ui.EditLine_FilterHighFreqEdge.setText(str(Dict['FFTHigherEdge']))
         self.ui.CheckBox_ApplyFFTFilter.setChecked(Dict['ApplyFFT']=='True')
         self.ui.checkBox_SqueezeSpan.setChecked(Dict['SqueezeSpan?']=='True')
+        self.ui.checkBox_searchContact.setChecked(Dict['SearchingContact?']=='True')
+        self.ui.checkBox_IsAveragingWhileProcessing.setChecked(Dict['AverageShapeWhileProcessing?']=='True')
+        self.ui.checkBox_IsShiftingWhileProcessing.setChecked(Dict['ShiftingWhileProcessing?']=='True')
         self.ui.lineEdit_numberOfScans.setText(str(Dict['NumberOfScans']))
+        
+        self.ui.comboBox_axis_to_plot_along.setCurrentIndex(int(Dict['axis_to_plot_along']))
+        self.ui.comboBox_TD_channel_to_plot.setCurrentIndex(int(Dict['Channel_TD_to_plot']))
         
                 
         if Dict['IsHighRes']=='True':
@@ -541,7 +564,7 @@ class MainWindow(ThreadedMainWindow):
         self.Folder = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
         self.ui.label_folder_to_process_files.setText(self.Folder)
     
-    def process_arb_data_clicked(self):
+    def process_arb_spectral_data_clicked(self):
         from Scripts.ProcessAndPlotSpectraWithAveraging import ProcessSpectraWithAveraging
         self.ProcessSpectra=ProcessSpectraWithAveraging()
         Thread=self.add_thread([self.ProcessSpectra])
@@ -555,6 +578,16 @@ class MainWindow(ThreadedMainWindow):
 #            fname = QtWidgets.QFileDialog().getOpenFileName()[0]
 
 
+
+    def process_arb_TD_data_clicked(self):
+        from Scripts.ProcessAndPlotTD import ProcessAndPlotTD
+        self.ProcessTD=ProcessAndPlotTD()
+        Thread=self.add_thread([self.ProcessTD])
+        self.ProcessTD.run(Averaging=self.ui.checkBox_IsAveragingWhileProcessing.isChecked(),
+                           DirName=self.Folder,axis_to_plot_along=self.ui.comboBox_axis_to_plot_along_arb_data.currentText(),
+                           channel_number=self.ui.comboBox_TD_channel_to_plot_arb_data.currentIndex())
+        Thread.quit()
+#            fname = QtWidgets.QFileDialog().getOpenFileName()[0]
 
     def closeEvent(self, event):
 #         here you can terminate your threads and do other stuff
@@ -573,7 +606,10 @@ class MainWindow(ThreadedMainWindow):
             print('exception while closing')
         super(QMainWindow, self).closeEvent(event)
 #
+    
+
 if __name__ == "__main__":
+    os.chdir('..')
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())

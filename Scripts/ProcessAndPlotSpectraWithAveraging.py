@@ -27,7 +27,7 @@ class ProcessSpectraWithAveraging(QObject):
         else:
             self.file_naming_style='new'
         
-    def find_between( s, first, last ): ## local function to find the substring between two given strings
+    def find_between(self, s, first, last ): ## local function to find the substring between two given strings
         try:
             start = s.index( first ) + len( first )
             end = s.index( last, start )
@@ -157,9 +157,9 @@ class ProcessSpectraWithAveraging(QObject):
                 SignalArray[:,ii]=SmallSignalArray[:,0]
 
 
-        np.savetxt(self.ProcessedDataFolder+'SignalArray.txt',SignalArray)
+        np.savetxt(self.ProcessedDataFolder+'SpectraArray.txt',SignalArray)
         np.savetxt(self.ProcessedDataFolder+'WavelengthArray.txt', MainWavelengths)
-        np.savetxt(self.ProcessedDataFolder+'Positions.txt', Positions)
+        np.savetxt(self.ProcessedDataFolder+'Sp_Positions.txt', Positions)
 
                 
         plt.figure()

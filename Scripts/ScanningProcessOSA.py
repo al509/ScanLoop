@@ -49,7 +49,7 @@ class ScanningProcess(QObject):
                  OSA:QObject,
                  Stages:QObject,
                  scanstep:int,seekcontactstep:int,backstep:int,seekcontactvalue:float,ScanningType:int,SqueezeSpanWhileSearchingContact:bool,
-                 CurrentFileIndex:int,StopFileIndex:int,numberofscans:int):
+                 CurrentFileIndex:int,StopFileIndex:int,numberofscans:int,searchcontact:bool):
         super().__init__()
         self.OSA=OSA # add Optical Spectral Analyzer
         self.FullSpan=self.OSA._Span
@@ -65,6 +65,7 @@ class ScanningProcess(QObject):
         self.StopFileIndex=StopFileIndex
         self.SqueezeSpanWhileSearchingContact=SqueezeSpanWhileSearchingContact
         self.NumberOfScans=numberofscans
+        self.searchcontact=searchcontact
 
     def set_ScanningType(self,ScanningType:int): # set axis depending on choice in MainWindow
         if ScanningType==0:
