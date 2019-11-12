@@ -1,3 +1,6 @@
+"""
+Version Nov 13 2019
+"""
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -86,7 +89,19 @@ class ProcessSpectraWithAveraging(QObject):
             Output[-1]=np.mean(Output[1:-1])
         return Output
 
-
+    def plot_sample_shape(self,DirName,axis_to_plot_along):
+        from mpl_toolkits.mplot3d import Axes3D
+        FileList=os.listdir(DirName)
+        FileList=sorted(FileList,key=lambda s:self.get_position_from_file_name(s,axis=axis_to_plot_along))
+        StructuredFileList,Positions=self.Create2DListOfFiles(FileList,axis=axis_to_plot_along)
+        Positions=np.array(Positions)*2.5
+        plt.figure()
+        ax = plt.axes(projection='3d')
+        ax.plot(Positions[:,0],Positions[:,1],Positions[:,2])
+        ax.set_xlabel('X,um')
+        ax.set_ylabel('Y,um')
+        ax.set_zlabel('Z,um')
+        
 
     def run(self,StepSize,Averaging:bool,Shifting:bool,DirName,axis_to_plot_along='X'):
         self.axis_to_plot_along=axis_to_plot_along
@@ -161,11 +176,9 @@ class ProcessSpectraWithAveraging(QObject):
         np.savetxt(self.ProcessedDataFolder+'WavelengthArray.txt', MainWavelengths)
         np.savetxt(self.ProcessedDataFolder+'Sp_Positions.txt', Positions)
 
-                
-        plt.figure()
-        plt.clf()
         
         if self.file_naming_style=='old':
+            plt.figure()
             X_0=0
             X_max=StepSize*NumberOfPointsZ
             plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap='RdBu_r',extent=[X_0,X_max,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
@@ -187,12 +200,15 @@ class ProcessSpectraWithAveraging(QObject):
             plt.ylabel('Wavelength, nm')
             ax2=(plt.gca()).twiny()
             ax2.set_xlabel('Distance, um')
-            ax2.set_xlim([0, np.max(Positions_at_given_axis)-np.min(Positions_at_given_axis)*2.5])
+            ax2.set_xlim([0, (np.max(Positions_at_given_axis)-np.min(Positions_at_given_axis))*2.5])
             time2=time.time()
-            
+            plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')           
         print('Time used =', time2-time1 ,' s')
 
 if __name__ == "__main__":
     os.chdir('..')
     ProcessSpectra=ProcessSpectraWithAveraging()
-    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False,DirName='SpectralData',axis_to_plot_along='Y')
+#    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
+#                                     axis_to_plot_along='Z')
+    
+    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False,DirName='SpectralData',axis_to_plot_along='Z')

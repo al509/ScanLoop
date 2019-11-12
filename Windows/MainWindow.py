@@ -133,6 +133,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_process_arb_spectral_data.clicked.connect(self.process_arb_spectral_data_clicked)
         self.ui.pushButton_process_arb_TD_data.clicked.connect(self.process_arb_TD_data_clicked)
         self.ui.pushButton_choose_folder_to_process.clicked.connect(self.choose_folder_to_process)
+        self.ui.pushButton_plotSampleShape.clicked.connect(self.plotSampleShape)
     
 
     def connectScope(self):
@@ -479,6 +480,14 @@ class MainWindow(ThreadedMainWindow):
                            channel_number=self.ui.comboBox_TD_channel_to_plot.currentIndex())
         Thread.quit()
 
+    def plotSampleShape(self):
+        from Scripts.ProcessAndPlotSpectraWithAveraging import ProcessSpectraWithAveraging
+        self.ProcessSpectra=ProcessSpectraWithAveraging()
+        Thread=self.add_thread([self.ProcessSpectra])
+        self.ProcessSpectra.plot_sample_shape(DirName='SpectralData',
+                                                       axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText())
+        Thread.quit()
+        
     def saveParametersToFile(self):
         Dict={}
         Dict['saveSpectrumName']=(self.ui.EditLine_saveSpectrumName.text())

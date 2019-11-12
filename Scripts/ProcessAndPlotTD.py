@@ -1,3 +1,7 @@
+"""
+Version Nov 13 2019
+"""
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -132,7 +136,7 @@ class ProcessAndPlotTD(QObject):
         plt.ylabel('Time,s')
         ax2=(plt.gca()).twiny()
         ax2.set_xlabel('Distance, um')
-        ax2.set_xlim([0,np.max(Positions_at_given_axis)-np.min(Positions_at_given_axis)*2.5])
+        ax2.set_xlim([0,(np.max(Positions_at_given_axis)-np.min(Positions_at_given_axis))*2.5])
         time2=time.time()
         plt.savefig(self.ProcessedDataFolder+'Scanned TD')
         print('Time used =', time2-time1 ,' s')
