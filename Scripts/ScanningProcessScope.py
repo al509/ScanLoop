@@ -49,7 +49,7 @@ class ScanningProcess(QObject):
                  CurrentFileIndex:int,StopFileIndex:int,numberofscans:int,searchcontact:bool):
         super().__init__()
         self.scope=Scope # add scope
-        self.SamplingRate=self.scope.get_sampling_rate()
+        self.SamplingRate=self.scope.get_x_inc()
         self.stages=Stages # add all three stages
         self.set_ScanningType(ScanningType) 
         self.ScanStep=scanstep

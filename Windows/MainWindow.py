@@ -243,7 +243,7 @@ class MainWindow(ThreadedMainWindow):
         if (self.ui.groupBox_stand.isEnabled() and self.ui.tabWidget_instruments.isEnabled()):
             self.ui.groupBox_Scanning.setEnabled(True)
             self.ui.pushButton_Scanning.clicked[bool].connect(self.on_pushButton_Scanning_pressed)
-            self.ui.tabWidget_instruments.setCurrentIndex(1)
+            self.ui.tabWidget_instruments.setCurrentIndex(0)
 
 
     @pyqtSlotWExceptions()
@@ -305,14 +305,12 @@ class MainWindow(ThreadedMainWindow):
     def on_pushButton_acquireSpectrumRep_pressed(self,pressed):
         if pressed:
             self.painter.ReplotEnded.connect(self.force_OSA_acquire)
-            self.ui.pushButton_OSA_AcquireRepAll.setEnabled(False)
             self.ui.pushButton_OSA_Acquire.setEnabled(False)
             self.ui.pushButton_OSA_AcquireAll.setEnabled(False)
             self.ui.pushButton_Scanning.setEnabled(False)
             self.force_OSA_acquire.emit()
         else:
             self.painter.ReplotEnded.disconnect(self.force_OSA_acquire)
-            self.ui.pushButton_OSA_AcquireRepAll.setEnabled(True)
             self.ui.pushButton_OSA_Acquire.setEnabled(True)
             self.ui.pushButton_OSA_AcquireAll.setEnabled(True)
             self.ui.pushButton_Scanning.setEnabled(True)
@@ -355,8 +353,8 @@ class MainWindow(ThreadedMainWindow):
                                                      searchcontact=self.ui.checkBox_searchContact.isChecked())
                 self.scanningProcess.S_saveData.connect(lambda Data,prefix: self.logger.save_data(Data,prefix,
                                                                                                   self.stages.position['X']-self.X_0,
-                                                                                                  self.stages.position['X']-self.X_0,
-                                                                                                  self.stages.position['X']-self.X_0,
+                                                                                                  self.stages.position['Y']-self.Y_0,
+                                                                                                  self.stages.position['Z']-self.Z_0,
                                                                                                   'FromOSA'))                                                                                             
                 self.scanningProcess.S_saveSpectrumToOSA.connect(lambda FilePrefix: self.OSA.SaveToFile('D:'+'Sp_'+FilePrefix, TraceNumber=1, Type="txt"))
             
@@ -467,7 +465,8 @@ class MainWindow(ThreadedMainWindow):
         self.ProcessSpectra=ProcessSpectraWithAveraging()
         Thread=self.add_thread([self.ProcessSpectra])
         self.ProcessSpectra.run(StepSize=float(self.ui.lineEdit_ScanningStep.text()),Averaging=self.ui.checkBox_IsAveragingWhileProcessing.isChecked(),
-                                Shifting=self.ui.checkBox_IsShiftingWhileProcessing.isChecked(),DirName='SavedData')
+                                Shifting=self.ui.checkBox_IsShiftingWhileProcessing.isChecked(),DirName='SpectralData',
+                                axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText())
         Thread.quit()
 
 
@@ -506,7 +505,7 @@ class MainWindow(ThreadedMainWindow):
         Dict['SearchingContact?']=str(self.ui.checkBox_searchContact.isChecked())
         Dict['AverageShapeWhileProcessing?']=str(self.ui.checkBox_IsAveragingWhileProcessing.isChecked())
         Dict['ShiftingWhileProcessing?']=str(self.ui.checkBox_IsShiftingWhileProcessing.isChecked())
-        Dict['axis_to_plot_along']=str(self.ui.comboBox_TD_channel_to_plot.currentIndex())
+        Dict['axis_to_plot_along']=str(self.ui.comboBox_axis_to_plot_along.currentIndex())
         Dict['Channel_TD_to_plot']=str(self.ui.comboBox_TD_channel_to_plot.currentIndex())
    
         self.logger.SaveParameters(Dict)
@@ -573,7 +572,8 @@ class MainWindow(ThreadedMainWindow):
         except ValueError:
             StepSize=float(self.ui.lineEdit_ScanningStep.text())
         self.ProcessSpectra.run(StepSize=StepSize,Averaging=self.ui.checkBox_IsAveragingWhileProcessingArbData.isChecked(),
-                                Shifting=self.ui.checkBox_IsShiftingWhileProcessingArbData.isChecked(),DirName=self.Folder)
+                                Shifting=self.ui.checkBox_IsShiftingWhileProcessingArbData.isChecked(),DirName=self.Folder,
+                                axis_to_plot_along=self.ui.comboBox_axis_to_plot_along_arb_data.currentText())
         Thread.quit()
 #            fname = QtWidgets.QFileDialog().getOpenFileName()[0]
 

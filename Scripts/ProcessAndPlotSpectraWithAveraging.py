@@ -2,7 +2,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from scipy.fftpack import rfft, irfft, fftfreq
 from scipy import interpolate
 from PyQt5.QtCore import QObject
 
@@ -35,18 +34,18 @@ class ProcessSpectraWithAveraging(QObject):
         except ValueError:
             return ""
 
-    def KeyFunctionForSortingFileList(self,string,axis='X'):
+
+    def get_position_from_file_name(self,string,axis):
         if self.file_naming_style=='old':
             string=string.split('_');
             return float(string[2])
         else:
             if axis=='X':
-                return float(self.find_between(string,'X=','_'))
+                return int(self.find_between(string,'X=','_Y'))
             if axis=='Y':
-                return float(self.find_between(string,'Y=','_'))
+                return int(self.find_between(string,'Y=','_Z'))
             if axis=='Z':
-                return float(self.find_between(string,'Z=','.txt'))
-
+                return int(self.find_between(string,'Z=','.txt'))
 
     def Create2DListOfFiles(self,FileList,axis='X'):  #Find all files which acqured at the same point
         NewFileList=[]
@@ -62,15 +61,16 @@ class ProcessSpectraWithAveraging(QObject):
                 FileList=[T for T in FileList if not (T in Temp)]
             return NewFileList,Positions
         else:
+        ## if Files are named with X position then Using new 
             while FileList:
                 Name=FileList[0]
-                s=axis+'='+str(self.KeyFunctionForSortingFileList(Name,axis=axis))
+                s=axis+'='+str(self.get_position_from_file_name(Name,axis=axis))
                  #s=s[2] # take signature of the position,  etc
                 Temp=[T for T in FileList if s in T]  # take all 'signature' + 'i' instances
                 NewFileList.append(Temp)
-                Positions.append([self.KeyFunctionForSortingFileList(Name,axis='X'),
-                                  self.KeyFunctionForSortingFileList(Name,axis='Y'),
-                                  self.KeyFunctionForSortingFileList(Name,axis='Z')])
+                Positions.append([self.get_position_from_file_name(Name,axis='X'),
+                                  self.get_position_from_file_name(Name,axis='Y'),
+                                  self.get_position_from_file_name(Name,axis='Z')])
                 FileList=[T for T in FileList if not (T in Temp)]
             return NewFileList,Positions
             
@@ -97,8 +97,8 @@ class ProcessSpectraWithAveraging(QObject):
         """
         group files at each point
         """
-        FileList=sorted(FileList,key=self.KeyFunctionForSortingFileList)
-        StructuredFileList,Positions=self.Create2DListOfFiles(FileList)
+        FileList=sorted(FileList,key=lambda s:self.get_position_from_file_name(s,axis=axis_to_plot_along))
+        StructuredFileList,Positions=self.Create2DListOfFiles(FileList,axis=axis_to_plot_along)
         NumberOfPointsZ=len(StructuredFileList)
         #Data = np.loadtxt(DirName+ '\\Signal' + '\\' +FileList[0])
         print(DirName+ '\\' +FileList[0])
@@ -168,22 +168,17 @@ class ProcessSpectraWithAveraging(QObject):
         if self.file_naming_style=='old':
             X_0=0
             X_max=StepSize*NumberOfPointsZ
-        else:
-            X_0=Positions[0][self.number_of_axis[self.axis_to_plot_along]]
-            X_max=Positions[-1][self.number_of_axis[self.axis_to_plot_along]]
-        plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap='RdBu_r',extent=[X_0,X_max,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
-
-        plt.show()
-        plt.colorbar()
-        plt.xlabel('Position, steps (2.5 um each)')
-        plt.ylabel('Wavelength, nm')
-        ax2=(plt.gca()).twiny()
-        ax2.set_xlabel('Distance, um')
-        ax2.set_xlim([0,StepSize*NumberOfPointsZ*2.5])
-        plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
-        #plt.plot(TimeArray,CorrelationArray)
-        #np.savetxt('Correlation'+DirName+'.txt',np.column_stack((TimeArray,CorrelationArray)))#np.hstack([X,CorrelationArray]))
-        
+            plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap='RdBu_r',extent=[X_0,X_max,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
+    
+            plt.show()
+            plt.colorbar()
+            plt.xlabel('Position, steps (2.5 um each)')
+            plt.ylabel('Wavelength, nm')
+            ax2=(plt.gca()).twiny()
+            ax2.set_xlabel('Distance, um')
+            ax2.set_xlim([0,StepSize*NumberOfPointsZ*2.5])
+            plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
+      
         if self.file_naming_style=='new':
             plt.figure()
             Positions_at_given_axis=np.array([s[self.number_of_axis[self.axis_to_plot_along]] for s in Positions])
@@ -192,11 +187,12 @@ class ProcessSpectraWithAveraging(QObject):
             plt.ylabel('Wavelength, nm')
             ax2=(plt.gca()).twiny()
             ax2.set_xlabel('Distance, um')
-            ax2.set_xlim([np.min(Positions_at_given_axis),np.max(Positions_at_given_axis)]*2.5)
+            ax2.set_xlim([0, np.max(Positions_at_given_axis)-np.min(Positions_at_given_axis)*2.5])
             time2=time.time()
             
         print('Time used =', time2-time1 ,' s')
 
 if __name__ == "__main__":
+    os.chdir('..')
     ProcessSpectra=ProcessSpectraWithAveraging()
-    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False)
+    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False,DirName='SpectralData',axis_to_plot_along='Y')

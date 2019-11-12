@@ -189,6 +189,9 @@ class Scope(QObject):
 #        time_range in seconds
         return float(self.device.query(':ACQuire:SRATe?'))
 
+    def get_x_inc(self):
+#        time_range in seconds
+        return float(self.device.query(":WAV:XINC?"))
     
     def get_y_data(self,channel_number:int):
         self.device.query(':WAVeform:SOURce CHANnel'+str(channel_number)+';*OPC?')

@@ -81,7 +81,9 @@ class ProcessAndPlotTD(QObject):
         """
         Create data array
         """
-        Data = np.genfromtxt(DirName+ '\\' +FileList[0],skip_header=self.skip_Header)[channel_number,:]
+        Data = np.genfromtxt(DirName+ '\\' +FileList[0],skip_header=self.skip_Header)
+        if np.size(Data[0])>1:
+            Data=Data[channel_number,:]
         NumberOfTimePoints=len(Data)
         SignalArray=np.zeros((NumberOfTimePoints,NumberOfPointsScanAxis))
         
@@ -93,22 +95,27 @@ class ProcessAndPlotTD(QObject):
             NumberOfArraysToAverage=len(FileNameListAtPoint)
             SmallSignalArray=np.zeros((NumberOfTimePoints,NumberOfArraysToAverage))
             print(FileNameListAtPoint[0])
-            for jj, FileName in enumerate(FileNameListAtPoint):
-                SmallSignalArray[:,jj] = np.genfromtxt(DirName+ '\\' +FileName,skip_header=self.skip_Header)[channel_number,:]
-            
-            
-                       
+           
             if Averaging:
                 """
                 Apply averaging across the spectra at one point
                 """
                 for jj, FileName in enumerate(FileNameListAtPoint):
+                    Data= np.genfromtxt(DirName+ '\\' +FileName,skip_header=self.skip_Header)
+                    if np.size(Data[0])>1:
+                        SmallSignalArray[:,jj]=Data[channel_number,:]
+                    else:
+                        SmallSignalArray[:,jj]=Data
                     SignalArray[:,ii]=np.mean(SmallSignalArray,axis=1)
             else:
                 """
                     If shifting and averaging are OFF, just take the first spectrum from the bundle correpsonding to a measuring point
                 """
-                SignalArray[:,ii]=SmallSignalArray[:,0]
+                Data= np.genfromtxt(DirName+ '\\' +FileNameListAtPoint[0],skip_header=self.skip_Header)
+                if np.size(Data[0])>1:
+                    SignalArray[:,ii]=Data[channel_number,:]
+                else:
+                    SignalArray[:,ii]=Data
 
         TimeArray=np.arange(0,1/sampling_rate*NumberOfTimePoints,1/sampling_rate)
         
