@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 import socket
-import getopt, sys, datetime
-import locale
 #from string import atof, atoi
 # import atexit
-import re
-import time
-import os
 import numpy as np
-import traceback
 
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal
 
 class OSA_AQ6370(QObject):
     received_wavelengths = pyqtSignal(object)
@@ -25,33 +19,40 @@ class OSA_AQ6370(QObject):
                  timeout_long: int,
                  timeout_short: int):
         super().__init__(parent=parent)
-        self.osa=Yokogawa_AQ6370_socket(host, command_port,timeout_long,timeout_short)
-        self.osa.set_resolution(20)
-        self.osa.set_sampling_step(4)
-        self.osa.wait_long()
-        self.wavelengtharray=self.osa.get_X_values()
-        self.spectrum=None
+        self.device=Yokogawa_AQ6370_socket(host, command_port,timeout_long,timeout_short)
+        self.device.set_resolution(20)
+        self.device.set_sampling_step(2)
+        self.device.wait_long()
+        self.acquire_spectrum()
         self.channel_num=0
-        self.range=[self.osa.get_start_wavelength(),self.osa.get_stop_wavelength()]
-
+        self._StartWavelength=self.device.get_start_wavelength()
+        self._StopWavelength=self.device.get_stop_wavelength()
+        self._Span = self._StopWavelength  - self._StartWavelength
+        self._Center = self._StartWavelength + (self._Span / 2)
 
 
     def acquire_spectrum(self):
-        self.osa.single_scan()
-        self.spectrum= self.osa.get_Y_values()
-        self.wavelengtharray=self.osa.get_X_values()
+        self.device.single_scan()
+        self.spectrum= self.device.get_Y_values()
+        self.wavelengtharray=self.device.get_X_values()
         self.received_spectrum.emit(self.wavelengtharray,list([self.spectrum]),[0])
+        return self.wavelengtharray,self.spectrum
 
 
     def acquire_spectra(self):
-        self.osa.single_scan()
-        self.spectrum= self.osa.get_Y_values()
-        self.wavelengtharray=self.osa.get_X_values()
+        self.device.single_scan()
+        self.spectrum= self.device.get_Y_values()
+        self.wavelengtharray=self.device.get_X_values()
         self.received_spectrum.emit(self.spectrum,self.wavelengtharray)
 
-    def set_span(self,start_wavelength=None,stop_wavelength=None):
-        self.osa.set_span(start_wavelength,stop_wavelength)
+    def change_range(self,start_wavelength=None,stop_wavelength=None):
+        self.device.set_span(start_wavelength,stop_wavelength)
 
+    def SetWavelengthResolution(self,Res:str):
+        print('Yokogawa has no High resolution')
+
+    def close(self):
+        self.device.close()
 
 
 class Yokogawa_AQ6370_socket(socket.socket):
@@ -69,8 +70,8 @@ class Yokogawa_AQ6370_socket(socket.socket):
         socket.socket.__init__(self, socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.connect((host,port))
-        except socket.error(code, message):
-            raise self.OSError(str(host) + ":" + str(port) + ": " + message)
+        except Exception:
+            raise self.OSError(str(host) + ":" + str(port) + ": Error")
         self.settimeout(timeout_long)
         self.timeout_long=timeout_long
         self.timeout_short=timeout_short
@@ -80,12 +81,12 @@ class Yokogawa_AQ6370_socket(socket.socket):
         except socket.timeout:
             pass
         self.send(b":ABORt\n")
-		# check whether we connect to an OSA
+		# check whether we connect to an device
         self.send(b"*IDN?\n")
         try:
-            data = self.recv(1024).strip()
+            self.recv(1024).strip()
         except socket.timeout:
-            raise self.Error(b"OSA responce timeout")
+            raise self.Error(b"device responce timeout")
         tr=self.recv(1024)
         print('Connected to ', tr)
 
@@ -104,7 +105,7 @@ class Yokogawa_AQ6370_socket(socket.socket):
         return int(self.recv(1024))
 
     def get_ActiveTrace(self):
-        osa.send(b':TRACe:ACTIVE?\n')
+        self.device.send(b':TRACe:ACTIVE?\n')
         return self.recv(1024)
 
     def recieve_whole_message(self):
@@ -131,17 +132,29 @@ class Yokogawa_AQ6370_socket(socket.socket):
         strData=self.recieve_whole_message()
         strData=strData.split(',')
         if not strData:
-            print('Did non get any data from the OSA')
-        return np.array(strData,dtype='f')*1e9
+            print('Did non get any data from the device')
+        try:
+            X_values=np.array(strData,dtype='f')*1e9
+        except:
+            print('Error while getting X data')
+            X_values=0
+        return X_values
+
 
     def get_Y_values(self,Trace='A'):
+        self.wait_long()
         Command = ':TRACe:Y? TR'+Trace+'\n'
         self.send(Command.encode('utf-8'))
         strData = self.recieve_whole_message()
         strData = strData.split(',')
         if not strData:
-                    print('Did non get any data from the OSA')
-        return np.array(strData,dtype='f')
+                    print('Did non get any data from the device')
+        try:
+            Y_values=np.array(strData,dtype='f')
+        except:
+            print('Error while getting Y data')
+            Y_values=0
+        return Y_values
 
     def get_start_wavelength(self):
         Command = ':SENSe:WAVelength:STARt?\n'
@@ -168,25 +181,17 @@ class Yokogawa_AQ6370_socket(socket.socket):
     def set_sampling_step(self,step_in_pm=int):
         Command = ':SENSe:SWEep:STEP '+str(step_in_pm)+'PM\n'
         self.send(Command.encode('utf-8'))
-
-
 #
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
     try:
-        HOST = '192.168.19.109'
+        HOST = '10.2.60.20'
         PORT = 10001
         timeout_short = 0.2
         timeout_long = 10
-        osa=Yokogawa_AQ6370_socket(HOST, PORT, timeout_long,timeout_short)
-        osa.single_scan()
-        X = osa.get_X_values()
-        Y=osa.get_Y_values()
-        print(osa.get_stop_wavelength())
-#        osa.set_span(start_wavelength=1543,stop_wavelength=1544)
+#        device=Yokogawa_AQ6370_socket(HOST, PORT, timeout_long,timeout_short)
+        osa=OSA_AQ6370(None,HOST, PORT, timeout_long,timeout_short)
+        X,Y=osa.acquire_spectrum()
+        osa.change_range(1550.1,1550.2)
         osa.close()
-    except Exception as e:
-        traceback.print_exc()
-        osa.close()
-
-
+    except:
+        print(0)

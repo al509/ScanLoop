@@ -22,13 +22,13 @@ class ProcessSpectraWithAveraging(QObject):
     axis_to_plot_along='X'
     number_of_axis={'X':0,'Y':1,'Z':2}
     AccuracyOfWavelength=0.008 # in nm. Maximum expected shift to define the correlation window
-#    
+#
     def define_file_naming_style(self,FileName):
         if FileName.find('X=')==-1:
             self.file_naming_style='old'
         else:
             self.file_naming_style='new'
-        
+
     def find_between(self, s, first, last ): ## local function to find the substring between two given strings
         try:
             start = s.index( first ) + len( first )
@@ -53,7 +53,7 @@ class ProcessSpectraWithAveraging(QObject):
     def Create2DListOfFiles(self,FileList,axis='X'):  #Find all files which acqured at the same point
         NewFileList=[]
         Positions=[]
-        ## if Files are named with X position then Using new 
+        ## if Files are named with X position then Using new
         if self.file_naming_style=='old':
             while FileList:
                 Name=FileList[0]
@@ -64,7 +64,7 @@ class ProcessSpectraWithAveraging(QObject):
                 FileList=[T for T in FileList if not (T in Temp)]
             return NewFileList,Positions
         else:
-        ## if Files are named with X position then Using new 
+        ## if Files are named with X position then Using new
             while FileList:
                 Name=FileList[0]
                 s=axis+'='+str(self.get_position_from_file_name(Name,axis=axis))
@@ -76,7 +76,7 @@ class ProcessSpectraWithAveraging(QObject):
                                   self.get_position_from_file_name(Name,axis='Z')])
                 FileList=[T for T in FileList if not (T in Temp)]
             return NewFileList,Positions
-            
+
 
 
 
@@ -94,14 +94,14 @@ class ProcessSpectraWithAveraging(QObject):
         FileList=os.listdir(DirName)
         FileList=sorted(FileList,key=lambda s:self.get_position_from_file_name(s,axis=axis_to_plot_along))
         StructuredFileList,Positions=self.Create2DListOfFiles(FileList,axis=axis_to_plot_along)
-        Positions=np.array(Positions)*2.5
+        Positions=np.array(Positions)
         plt.figure()
         ax = plt.axes(projection='3d')
         ax.plot(Positions[:,0],Positions[:,1],Positions[:,2])
-        ax.set_xlabel('X,um')
-        ax.set_ylabel('Y,um')
-        ax.set_zlabel('Z,um')
-        
+        ax.set_xlabel('X,steps')
+        ax.set_ylabel('Y,steps')
+        ax.set_zlabel('Z,steps')
+
 
     def run(self,StepSize,Averaging:bool,Shifting:bool,DirName,axis_to_plot_along='X'):
         self.axis_to_plot_along=axis_to_plot_along
@@ -125,7 +125,7 @@ class ProcessSpectraWithAveraging(QObject):
         NumberOfWavelengthPoints=len(MainWavelengths)
         SignalArray=np.zeros((NumberOfWavelengthPoints,NumberOfPointsZ))
         WavelengthStep=MainWavelengths[1]-MainWavelengths[0]
-        
+
         """
         Process files at each group
         """
@@ -141,7 +141,7 @@ class ProcessSpectraWithAveraging(QObject):
             MeanLevel=np.mean(SmallSignalArray)
             ShiftArray=np.zeros(NumberOfArraysToAverage)
             if Averaging or Shifting:
-                if Shifting:    
+                if Shifting:
                     """
                     Apply cross-correlation for more accurate absolute wavelength determination
                     """
@@ -164,7 +164,7 @@ class ProcessSpectraWithAveraging(QObject):
                 elif Shifting:
                     Temp=np.ones(NumberOfWavelengthPoints)*MeanLevel
                     Temp[int(AccuracyOfWavelength/WavelengthStep)+int(ShiftArray[0]):-int(AccuracyOfWavelength/WavelengthStep)+int(ShiftArray[0])]=SmallSignalArray[int(AccuracyOfWavelength/WavelengthStep):-int(AccuracyOfWavelength/WavelengthStep),0]
-                    SignalArray[:,ii]=Temp    
+                    SignalArray[:,ii]=Temp
             else:
                 """
                     If shifting and averaging are OFF, just take the first spectrum from the bundle correpsonding to a measuring point
@@ -176,13 +176,13 @@ class ProcessSpectraWithAveraging(QObject):
         np.savetxt(self.ProcessedDataFolder+'WavelengthArray.txt', MainWavelengths)
         np.savetxt(self.ProcessedDataFolder+'Sp_Positions.txt', Positions)
 
-        
+
         if self.file_naming_style=='old':
             plt.figure()
             X_0=0
             X_max=StepSize*NumberOfPointsZ
             plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap='RdBu_r',extent=[X_0,X_max,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
-    
+
             plt.show()
             plt.colorbar()
             plt.xlabel('Position, steps (2.5 um each)')
@@ -191,7 +191,7 @@ class ProcessSpectraWithAveraging(QObject):
             ax2.set_xlabel('Distance, um')
             ax2.set_xlim([0,StepSize*NumberOfPointsZ*2.5])
             plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
-      
+
         if self.file_naming_style=='new':
             plt.figure()
             Positions_at_given_axis=np.array([s[self.number_of_axis[self.axis_to_plot_along]] for s in Positions])
@@ -202,13 +202,13 @@ class ProcessSpectraWithAveraging(QObject):
             ax2.set_xlabel('Distance, um')
             ax2.set_xlim([0, (np.max(Positions_at_given_axis)-np.min(Positions_at_given_axis))*2.5])
             time2=time.time()
-            plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')           
+            plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
         print('Time used =', time2-time1 ,' s')
 
 if __name__ == "__main__":
     os.chdir('..')
     ProcessSpectra=ProcessSpectraWithAveraging()
-#    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
-#                                     axis_to_plot_along='Z')
-    
-    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False,DirName='SpectralData',axis_to_plot_along='Z')
+    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
+                                     axis_to_plot_along='Y')
+
+#    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False,DirName='SpectralData',axis_to_plot_along='Z')

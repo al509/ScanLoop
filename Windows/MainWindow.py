@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Version Oct 18 2019
-@author: Ilya
-"""
+
+__version__='14.1'
+
 import sys
 import numpy as np
 import os
@@ -92,20 +91,20 @@ class MainWindow(ThreadedMainWindow):
         # GUI
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.setWindowTitle("Scanning spectra")
+        self.setWindowTitle("ScanLoop V."+__version__)
         self.logger = Logger(parent=None)
         self.add_thread([self.logger])
-        
+
         self.ui.pushButton_StagesConnect.pressed.connect(self.connectStages)
         self.ui.pushButton_OSA_connect.pressed.connect(self.connectOSA)
-   
+
         self.X_0,self.Y_0,self.Z_0=[0,0,0]
 
 
 
         self.ui.pushButton_processSpectralData.pressed.connect(self.on_Push_Button_ProcessSpectra)
         self.ui.pushButton_processTDData.pressed.connect(self.on_Push_Button_ProcessTD)
-        
+
         self.ui.pushButton_OSA_Acquire.pressed.connect(self.on_pushButton_acquireSpectrum_pressed)
         self.ui.pushButton_save_data.pressed.connect(self.on_pushButton_save_data)
         self.ui.pushButton_OSA_AcquireAll.pressed.connect(self.on_pushButton_AcquireAllSpectra_pressed)
@@ -129,12 +128,12 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_SaveParameters.pressed.connect(self.saveParametersToFile)
         self.ui.pushButton_LoadParameters.pressed.connect(self.loadParametersFromFile)
         self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
-        
+
         self.ui.pushButton_process_arb_spectral_data.clicked.connect(self.process_arb_spectral_data_clicked)
         self.ui.pushButton_process_arb_TD_data.clicked.connect(self.process_arb_TD_data_clicked)
         self.ui.pushButton_choose_folder_to_process.clicked.connect(self.choose_folder_to_process)
         self.ui.pushButton_plotSampleShape.clicked.connect(self.plotSampleShape)
-    
+
 
     def connectScope(self):
         self.scope=Scope(Consts.Scope.HOST)
@@ -146,17 +145,17 @@ class MainWindow(ThreadedMainWindow):
         self.ui.tabWidget_instruments.setCurrentIndex(1)
         self.ui.groupBox_scope_control.setEnabled(True)
         self.enableScanningProcess()
-        
-        widgets = (self.ui.horizontalLayout_3.itemAt(i).widget() for i in range(self.ui.horizontalLayout_3.count())) 
+
+        widgets = (self.ui.horizontalLayout_3.itemAt(i).widget() for i in range(self.ui.horizontalLayout_3.count()))
         for i,widget in enumerate(widgets):
             widget.setChecked(self.scope.channels_states[i])
             widget.stateChanged.connect(self.update_scope_channel_state)
 #            print("checkBox: %s  - %s" %(widget.objectName(), widget.checkState()))
         self.painter.TypeOfData='FromScope'
         print('Connected to scope')
-        
+
     def update_scope_channel_state(self):
-        widgets = (self.ui.horizontalLayout_3.itemAt(i).widget() for i in range(self.ui.horizontalLayout_3.count())) 
+        widgets = (self.ui.horizontalLayout_3.itemAt(i).widget() for i in range(self.ui.horizontalLayout_3.count()))
         for i,widget in enumerate(widgets):
             self.scope.channels_states[i]=widget.isChecked()
             self.scope.set_channel_state(i+1,widget.isChecked())
@@ -165,7 +164,7 @@ class MainWindow(ThreadedMainWindow):
 
     def connectOSA(self):
         if self.ui.comboBox_Type_of_OSA.currentText()=='Yokogawa':
-            HOST = Consts.Interrogator.HOST
+            HOST = Consts.Yokogawa.HOST
             PORT = 10001
             timeout_short = 0.2
             timeout_long = 100
@@ -203,14 +202,14 @@ class MainWindow(ThreadedMainWindow):
         self.OSA.received_spectrum.connect(self.painter.set_data)
             # self.interrogator.received_wavelengths.connect(self.painter.set_wavelengths)
 #            self.force_OSA_acquireAll.connect(self.OSA.acquire_spectra)
-       
+
         self.force_OSA_acquire.connect(self.OSA.acquire_spectrum)
         self.ui.tabWidget_instruments.setEnabled(True)
         self.ui.tabWidget_instruments.setCurrentIndex(0)
 #        self.ui.pushButton_OSA_connect.setEnabled(False)
         self.ui.EditLine_StartWavelength.setText(str(self.OSA._StartWavelength))
         self.ui.EditLine_StopWavelength.setText(str(self.OSA._StopWavelength))
-    
+
         self.ui.groupBox_OSA_control.setEnabled(True)
         print('Connected with OSA')
         self.on_pushButton_acquireSpectrum_pressed()
@@ -235,7 +234,7 @@ class MainWindow(ThreadedMainWindow):
             self.stages.stopped.connect(self.updatePositions)
             self.ui.groupBox_stand.setEnabled(True)
             self.ui.pushButton_StagesConnect.setEnabled(False)
-            
+
             self.enableScanningProcess()
 
 
@@ -260,7 +259,7 @@ class MainWindow(ThreadedMainWindow):
         X_abs=(self.stages.position['X'])
         Y_abs=(self.stages.position['Y'])
         Z_abs=(self.stages.position['Z'])
-        
+
         self.ui.label_PositionX.setText(str(X_abs-self.X_0))
         self.ui.label_PositionY.setText(str(Y_abs-self.Y_0))
         self.ui.label_PositionZ.setText(str(Z_abs-self.Z_0))
@@ -268,16 +267,16 @@ class MainWindow(ThreadedMainWindow):
         self.ui.label_AbsPositionX.setText(str(X_abs))
         self.ui.label_AbsPositionY.setText(str(Y_abs))
         self.ui.label_AbsPositionZ.setText(str(Z_abs))
-        
-        
-        
+
+
+
     def zeroingPosition(self):
         self.X_0=(self.stages.position['X'])
         self.Y_0=(self.stages.position['Y'])
         self.Z_0=(self.stages.position['Z'])
         self.logger.save_zero_position(self.X_0,self.Y_0,self.Z_0)
         self.updatePositions()
-    
+
     def on_pushButton_scope_single_measurement_pressed(self):
         self.scope.acquire()
 
@@ -292,7 +291,7 @@ class MainWindow(ThreadedMainWindow):
 #            self.painter.ReplotEnded.disconnect(self.force_scope_acquire)
             self.ui.pushButton_scope_single.setEnabled(True)
             self.ui.pushButton_Scanning.setEnabled(True)
-    
+
     @pyqtSlotWExceptions()
     def on_pushButton_AcquireAllSpectra_pressed(self):
         self.force_OSA_acquireAll.emit()
@@ -356,9 +355,9 @@ class MainWindow(ThreadedMainWindow):
                                                                                                   self.stages.position['X']-self.X_0,
                                                                                                   self.stages.position['Y']-self.Y_0,
                                                                                                   self.stages.position['Z']-self.Z_0,
-                                                                                                  'FromOSA'))                                                                                             
+                                                                                                  'FromOSA'))
                 self.scanningProcess.S_saveSpectrumToOSA.connect(lambda FilePrefix: self.OSA.SaveToFile('D:'+'Sp_'+FilePrefix, TraceNumber=1, Type="txt"))
-            
+
             elif self.ui.tabWidget_instruments.currentIndex()==1: ## if scope is active, scanning with scope
                 from Scripts.ScanningProcessScope import ScanningProcess
                 self.scanningProcess=ScanningProcess(Scope=self.scope,Stages=self.stages,
@@ -402,7 +401,7 @@ class MainWindow(ThreadedMainWindow):
             Z=self.stages.position['Z']-self.Z_0
         else:
             X,Y,Z=[0,0,0]
-        
+
         Ydata=self.painter.Ydata
         Data=self.painter.Xdata
         for YDataColumn in Ydata:
@@ -423,7 +422,7 @@ class MainWindow(ThreadedMainWindow):
             print('Range is taken')
         except:
             print('Error while taking range')
-            
+
 #    def ChangeRange(self,Minimum=None,Maximum=None):
 #        if Minimum is not None:
 #            self.OSA.set_range(start_wavelength=float(Minimum))
@@ -487,7 +486,7 @@ class MainWindow(ThreadedMainWindow):
         self.ProcessSpectra.plot_sample_shape(DirName='SpectralData',
                                                        axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText())
         Thread.quit()
-        
+
     def saveParametersToFile(self):
         Dict={}
         Dict['saveSpectrumName']=(self.ui.EditLine_saveSpectrumName.text())
@@ -516,7 +515,7 @@ class MainWindow(ThreadedMainWindow):
         Dict['ShiftingWhileProcessing?']=str(self.ui.checkBox_IsShiftingWhileProcessing.isChecked())
         Dict['axis_to_plot_along']=str(self.ui.comboBox_axis_to_plot_along.currentIndex())
         Dict['Channel_TD_to_plot']=str(self.ui.comboBox_TD_channel_to_plot.currentIndex())
-   
+
         self.logger.SaveParameters(Dict)
 
     def loadParametersFromFile(self):
@@ -524,8 +523,8 @@ class MainWindow(ThreadedMainWindow):
         self.ui.EditLine_saveSpectrumName.setText(str(Dict['saveSpectrumName']))
         self.ui.EditLine_StartWavelength.setText('{:.5f}'.format(Dict['StartWavelength']))
         self.ui.EditLine_StopWavelength.setText('{:.5f}'.format(Dict['StopWavelength']))
-        
-                
+
+
         self.ui.lineEdit_StepX.setText(str(Dict['StepX']))
         self.ui.lineEdit_StepY.setText(str(Dict['StepY']))
         self.ui.lineEdit_StepZ.setText(str(Dict['StepZ']))
@@ -546,11 +545,11 @@ class MainWindow(ThreadedMainWindow):
         self.ui.checkBox_IsAveragingWhileProcessing.setChecked(Dict['AverageShapeWhileProcessing?']=='True')
         self.ui.checkBox_IsShiftingWhileProcessing.setChecked(Dict['ShiftingWhileProcessing?']=='True')
         self.ui.lineEdit_numberOfScans.setText(str(Dict['NumberOfScans']))
-        
+
         self.ui.comboBox_axis_to_plot_along.setCurrentIndex(int(Dict['axis_to_plot_along']))
         self.ui.comboBox_TD_channel_to_plot.setCurrentIndex(int(Dict['Channel_TD_to_plot']))
-        
-                
+
+
         if Dict['IsHighRes']=='True':
             self.ui.checkBox_HighRes.setChecked(True)
             if self.OSA is not None:
@@ -563,15 +562,15 @@ class MainWindow(ThreadedMainWindow):
                 self.OSA.SetWavelengthResolution('Low')
                 self.OSA.change_range(float(Dict['StartWavelength']), float(Dict['StopWavelength']))
                 self.force_OSA_acquire.emit()
-      
-        
+
+
         print('Parameters loaded')
 
-    
+
     def choose_folder_to_process(self):
         self.Folder = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
         self.ui.label_folder_to_process_files.setText(self.Folder)
-    
+
     def process_arb_spectral_data_clicked(self):
         from Scripts.ProcessAndPlotSpectraWithAveraging import ProcessSpectraWithAveraging
         self.ProcessSpectra=ProcessSpectraWithAveraging()
@@ -615,7 +614,7 @@ class MainWindow(ThreadedMainWindow):
             print('exception while closing')
         super(QMainWindow, self).closeEvent(event)
 #
-    
+
 
 if __name__ == "__main__":
     os.chdir('..')

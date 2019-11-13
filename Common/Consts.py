@@ -38,6 +38,9 @@ class Consts:
     class APEX:
         HOST = "10.2.60.25"
 
+    class Yokogawa:
+        HOST = "10.2.60.20"
+
     class Interrogator:
         HOST = "192.168.19.111"
         COMMAND_PORT = 3500
@@ -62,14 +65,7 @@ class Consts:
         MIN_WL = 1500
         MAX_WL = 1600
 
-    class Logger:
-        class DataType(Enum):
-            POSITION = 1
-            BENDING = 2
-            WAVELENGTH = 3
-
-        LOGS_PATH = "\\Data"
 
     class Scope:
         HOST = '10.2.60.27'
-#        HOST = "192.168.19.112"
+
