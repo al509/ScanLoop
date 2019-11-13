@@ -1,2 +1,2 @@
 # ScanLoop
- Program to scan whispering gallery modes on microresonators 
+ Program to scan loops
