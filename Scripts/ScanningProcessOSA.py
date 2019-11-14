@@ -205,12 +205,10 @@ class ScanningProcess(QObject):
         # if scanning finishes because all points along scanning axis are measured  
         if self.is_running and self.CurrentFileIndex>self.StopFileIndex:
             self.is_running=False
-            if self.SqueezeSpanWhileSearchingContact:
-                self.set_OSA_to_Measuring_State()
             print('\nScanning finished\n')
-            self.S_finished.emit()
-
-
+        if self.SqueezeSpanWhileSearchingContact:
+            self.set_OSA_to_Measuring_State()
+        self.S_finished.emit()
 
     def __del__(self):
         print('Closing scanning object...')
