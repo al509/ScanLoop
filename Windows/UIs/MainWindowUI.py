@@ -475,6 +475,9 @@ class Ui_MainWindow(object):
         self.comboBox_axis_to_plot_along_arb_data.addItem("")
         self.comboBox_axis_to_plot_along_arb_data.addItem("")
         self.gridLayout_3.addWidget(self.comboBox_axis_to_plot_along_arb_data, 4, 1, 1, 1)
+        self.pushButton_plotSampleShape_arb_data = QtWidgets.QPushButton(self.groupBox_save_data_2)
+        self.pushButton_plotSampleShape_arb_data.setObjectName("pushButton_plotSampleShape_arb_data")
+        self.gridLayout_3.addWidget(self.pushButton_plotSampleShape_arb_data, 4, 3, 1, 1)
         self.File_work.addItem(self.page_3, "")
         self.gridLayout_4.addWidget(self.File_work, 0, 0, 2, 1)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
@@ -489,9 +492,8 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.File_work.setCurrentIndex(1)
+        self.File_work.setCurrentIndex(0)
         self.tabWidget_instruments.setCurrentIndex(0)
-        self.checkBox_searchContact.toggled['bool'].connect(self.checkBox_SqueezeSpan.setEnabled)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -623,6 +625,7 @@ class Ui_MainWindow(object):
         self.comboBox_axis_to_plot_along_arb_data.setItemText(0, _translate("MainWindow", "X"))
         self.comboBox_axis_to_plot_along_arb_data.setItemText(1, _translate("MainWindow", "Y"))
         self.comboBox_axis_to_plot_along_arb_data.setItemText(2, _translate("MainWindow", "Z"))
+        self.pushButton_plotSampleShape_arb_data.setText(_translate("MainWindow", "Plot sample shape"))
         self.File_work.setItemText(self.File_work.indexOf(self.page_3), _translate("MainWindow", "Work with files"))
 
 

@@ -1450,6 +1450,13 @@
                </item>
               </widget>
              </item>
+             <item row="4" column="3">
+              <widget class="QPushButton" name="pushButton_plotSampleShape_arb_data">
+               <property name="text">
+                <string>Plot sample shape</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </widget>
@@ -1474,22 +1481,5 @@
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>checkBox_searchContact</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>checkBox_SqueezeSpan</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>239</x>
-     <y>579</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>317</x>
-     <y>579</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

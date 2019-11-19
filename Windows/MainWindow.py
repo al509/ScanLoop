@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__='15'
+__version__='15.3'
 
 import sys
 import numpy as np
@@ -132,7 +132,10 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_process_arb_spectral_data.clicked.connect(self.process_arb_spectral_data_clicked)
         self.ui.pushButton_process_arb_TD_data.clicked.connect(self.process_arb_TD_data_clicked)
         self.ui.pushButton_choose_folder_to_process.clicked.connect(self.choose_folder_to_process)
-        self.ui.pushButton_plotSampleShape.clicked.connect(self.plotSampleShape)
+        self.ui.pushButton_plotSampleShape.clicked.connect(lambda: self.plotSampleShape(DirName='SpectralData',
+                                                                                        axis=self.ui.comboBox_axis_to_plot_along.currentText()))
+        self.ui.pushButton_plotSampleShape_arb_data.clicked.connect(lambda: self.plotSampleShape(DirName=self.Folder,
+                                                                                        axis=self.ui.comboBox_axis_to_plot_along_arb_data.currentText()))
 
 
     def connectScope(self):
@@ -479,12 +482,12 @@ class MainWindow(ThreadedMainWindow):
                            channel_number=self.ui.comboBox_TD_channel_to_plot.currentIndex())
         Thread.quit()
 
-    def plotSampleShape(self):
+    def plotSampleShape(self,DirName,axis):
         from Scripts.ProcessAndPlotSpectraWithAveraging import ProcessSpectraWithAveraging
         self.ProcessSpectra=ProcessSpectraWithAveraging()
         Thread=self.add_thread([self.ProcessSpectra])
-        self.ProcessSpectra.plot_sample_shape(DirName='SpectralData',
-                                                       axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText())
+        self.ProcessSpectra.plot_sample_shape(DirName=DirName,
+                                                       axis_to_plot_along=axis)
         Thread.quit()
 
     def saveParametersToFile(self):

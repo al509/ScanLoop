@@ -30,7 +30,7 @@ class Logger(QObject):
             FilePrefix=self.TDFolder+'TD_'+name
         elif SourceOfData=='FromOSA':
             FilePrefix=self.SpectralDataFolder+'Sp_'+name
-        FileName=FilePrefix+'_X={}_Y={}_Z={}'.format(X,Y,Z)+'.txt'
+        FileName=FilePrefix+'_X={}_Y={}_Z={}_'.format(X,Y,Z)+'.txt'
         np.savetxt(FileName, Data)
         print('\nData saved\n')
 

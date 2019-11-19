@@ -23,7 +23,7 @@ class ProcessSpectraWithAveraging(QObject):
     number_of_axis={'X':0,'Y':1,'Z':2}
     AccuracyOfWavelength=0.008 # in nm. Maximum expected shift to define the correlation window
 #
-    def define_file_naming_style(self,FileName):
+    def define_file_naming_style(self,FileName): # legacy code
         if FileName.find('X=')==-1:
             self.file_naming_style='old'
         else:
@@ -37,8 +37,23 @@ class ProcessSpectraWithAveraging(QObject):
         except ValueError:
             return ""
 
+    def get_min_max_wavelengths_from_file(self,file): # fastly extract min, maximum wavelength from the file
+        def extract_wavelength_from_line(bytes_array):
+            s=bytes_array.decode()
+            a=s.find(' ')
+            s=s[0:a]
+            return float(s)
+        with open(file, "rb") as f:
+            min_wavelength = extract_wavelength_from_line(f.readline())        # Read the first line.
+            f.seek(-2, os.SEEK_END)     # Jump to the second last byte.
+            while f.read(1) != b"\n":   # Until EOL is found...
+                f.seek(-2, os.SEEK_CUR) # ...jump back the read byte plus one more.
+            max_wavelength = extract_wavelength_from_line(f.readline())         # Read last line.
+        f.close()
+        return min_wavelength,max_wavelength
 
-    def get_position_from_file_name(self,string,axis):
+
+    def get_position_from_file_name(self,string,axis): # extract postitions of the contact from the file name
         if self.file_naming_style=='old':
             string=string.split('_');
             return float(string[2])
@@ -48,7 +63,7 @@ class ProcessSpectraWithAveraging(QObject):
             if axis=='Y':
                 return int(self.find_between(string,'Y=','_Z'))
             if axis=='Z':
-                return int(self.find_between(string,'Z=','.txt'))
+                return int(self.find_between(string,'Z=','_.'))
 
     def Create2DListOfFiles(self,FileList,axis='X'):  #Find all files which acqured at the same point
         NewFileList=[]
@@ -67,7 +82,7 @@ class ProcessSpectraWithAveraging(QObject):
         ## if Files are named with X position then Using new
             while FileList:
                 Name=FileList[0]
-                s=axis+'='+str(self.get_position_from_file_name(Name,axis=axis))
+                s=axis+'='+str(self.get_position_from_file_name(Name,axis=axis))+'_'
                  #s=s[2] # take signature of the position,  etc
                 Temp=[T for T in FileList if s in T]  # take all 'signature' + 'i' instances
                 NewFileList.append(Temp)
@@ -81,12 +96,8 @@ class ProcessSpectraWithAveraging(QObject):
 
 
     def InterpolateInDesiredPoint(self, YArray,XOldArray,XNewarray):
-        f=interpolate.interp1d(XOldArray,YArray,fill_value='extrapolate')
+        f=interpolate.interp1d(XOldArray,YArray,bounds_error=False,fill_value=np.nan)
         Output=f(XNewarray)
-        if np.isinf(Output[0]):
-            Output[0]=np.mean(Output[1:-1])
-        if np.isinf(Output[-1]):
-            Output[-1]=np.mean(Output[1:-1])
         return Output
 
     def plot_sample_shape(self,DirName,axis_to_plot_along):
@@ -97,10 +108,12 @@ class ProcessSpectraWithAveraging(QObject):
         Positions=np.array(Positions)
         plt.figure()
         ax = plt.axes(projection='3d')
-        ax.plot(Positions[:,0],Positions[:,1],Positions[:,2])
-        ax.set_xlabel('X,steps')
-        ax.set_ylabel('Y,steps')
-        ax.set_zlabel('Z,steps')
+        ax.plot(Positions[:,2],Positions[:,0],Positions[:,1])
+        ax.set_xlabel('Z,steps')
+        ax.set_ylabel('X,steps')
+        ax.set_zlabel('Y,steps')
+        plt.gca().invert_zaxis()
+        plt.gca().invert_xaxis()
 
 
     def run(self,StepSize,Averaging:bool,Shifting:bool,DirName,axis_to_plot_along='X'):
@@ -120,11 +133,23 @@ class ProcessSpectraWithAveraging(QObject):
         """
         Create main wavelength array
         """
-        Data = np.genfromtxt(DirName+ '\\' +FileList[0],skip_header=self.skip_Header)
-        MainWavelengths=np.arange(np.min(Data[:,0]),np.max(Data[:,0]),np.max(np.abs(np.diff(Data[:,0]))))
+        MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(DirName+ '\\' +FileList[0])
+        Data=np.genfromtxt(DirName+ '\\' +FileList[0],skip_header=self.skip_Header)[:,0]
+        WavelengthStep=np.max(np.diff(Data))
+        for File in FileList:
+            try:
+                minw,maxw=self.get_min_max_wavelengths_from_file(DirName+ '\\' +File)
+            except UnicodeDecodeError:
+                print('Error while getting wavelengths from file {}'.format(File))
+            
+            if minw<MinWavelength:
+                MinWavelength=minw
+            if maxw>MaxWavelength:
+                MaxWavelength=maxw        
+        MainWavelengths=np.arange(MinWavelength,MaxWavelength,WavelengthStep)
         NumberOfWavelengthPoints=len(MainWavelengths)
         SignalArray=np.zeros((NumberOfWavelengthPoints,NumberOfPointsZ))
-        WavelengthStep=MainWavelengths[1]-MainWavelengths[0]
+
 
         """
         Process files at each group
@@ -135,7 +160,10 @@ class ProcessSpectraWithAveraging(QObject):
             ShiftIndexesMatrix=np.zeros((NumberOfArraysToAverage,NumberOfArraysToAverage))
             print(FileNameListAtPoint[0])
             for jj, FileName in enumerate(FileNameListAtPoint):
-                Data = np.genfromtxt(DirName+ '\\' +FileName,skip_header=self.skip_Header)
+                try:
+                    Data = np.genfromtxt(DirName+ '\\' +FileName,skip_header=self.skip_Header)
+                except UnicodeDecodeError:
+                    print('Error while getting data from file {}'.format(FileName))
                 SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(Data[:,1],Data[:,0],MainWavelengths)
             SignalLog=np.zeros(NumberOfWavelengthPoints)
             MeanLevel=np.mean(SmallSignalArray)
@@ -201,14 +229,14 @@ class ProcessSpectraWithAveraging(QObject):
             ax2=(plt.gca()).twiny()
             ax2.set_xlabel('Distance, um')
             ax2.set_xlim([0, (np.max(Positions_at_given_axis)-np.min(Positions_at_given_axis))*2.5])
-            time2=time.time()
             plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
+            time2=time.time()
         print('Time used =', time2-time1 ,' s')
 
 if __name__ == "__main__":
     os.chdir('..')
     ProcessSpectra=ProcessSpectraWithAveraging()
-    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
-                                     axis_to_plot_along='Y')
+#    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
+#                                     axis_to_plot_along='Z')
 
-#    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False,DirName='SpectralData',axis_to_plot_along='Z')
+    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False,DirName='SpectralData',axis_to_plot_along='Z')
