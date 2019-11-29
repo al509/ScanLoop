@@ -206,7 +206,7 @@ class ProcessSpectraWithAveraging(QObject):
 
 
         if self.file_naming_style=='old':
-            plt.figure()
+            plt.figure(1)
             X_0=0
             X_max=StepSize*NumberOfPointsZ
             plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap='RdBu_r',extent=[X_0,X_max,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
@@ -221,7 +221,7 @@ class ProcessSpectraWithAveraging(QObject):
             plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
 
         if self.file_naming_style=='new':
-            plt.figure()
+            plt.figure(1)
             Positions_at_given_axis=np.array([s[self.number_of_axis[self.axis_to_plot_along]] for s in Positions])
             plt.contourf(Positions_at_given_axis,MainWavelengths,SignalArray,200,cmap='RdBu_r')
             plt.xlabel('Position, steps (2.5 um each)')

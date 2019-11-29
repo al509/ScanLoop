@@ -190,9 +190,10 @@ class ScanningProcess(QObject):
                 
 
             ##  move sample along scanning axis
-            if not self.is_running: 
+            if not self.is_running: # if we stop scanning
                 if self.SqueezeSpanWhileSearchingContact:   ##  set the span of OSA back to span of interest
                     self.set_OSA_to_Measuring_State()
+                    self.OSA.acquire_spectrum()
                 break
             
             self.stages.shiftOnArbitrary(self.AxisToScan,self.ScanStep)
@@ -208,6 +209,7 @@ class ScanningProcess(QObject):
             print('\nScanning finished\n')
         if self.SqueezeSpanWhileSearchingContact:
             self.set_OSA_to_Measuring_State()
+            self.OSA.acquire_spectrum()
         self.S_finished.emit()
 
     def __del__(self):

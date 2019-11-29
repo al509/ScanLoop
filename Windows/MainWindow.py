@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__='15.4'
+__version__='15.6'
 
 import sys
 import numpy as np
@@ -26,6 +26,7 @@ from Logger.Logger import Logger
 from Visualization.Painter import MyPainter
 from Utils.PyQtUtils import pyqtSlotWExceptions
 from Windows.UIs.MainWindowUI import Ui_MainWindow
+from Scripts import AnalyzerForSpectrogram
 
 
 def isfloat(value):
@@ -94,6 +95,8 @@ class MainWindow(ThreadedMainWindow):
         self.setWindowTitle("ScanLoop V."+__version__)
         self.logger = Logger(parent=None)
         self.add_thread([self.logger])
+        self.analyzer=AnalyzerForSpectrogram.AnalyzerForSpectrogram()
+        self.add_thread([self.analyzer])
 
         self.ui.pushButton_StagesConnect.pressed.connect(self.connectStages)
         self.ui.pushButton_OSA_connect.pressed.connect(self.connectOSA)
@@ -136,7 +139,14 @@ class MainWindow(ThreadedMainWindow):
                                                                                         axis=self.ui.comboBox_axis_to_plot_along.currentText()))
         self.ui.pushButton_plotSampleShape_arb_data.clicked.connect(lambda: self.plotSampleShape(DirName=self.Folder,
                                                                                         axis=self.ui.comboBox_axis_to_plot_along_arb_data.currentText()))
-
+        
+        self.ui.pushButton__analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plotSlice(int(self.ui.lineEdit_slice_position.text()),
+                                                                                               float(self.ui.lineEdit_analyzer_resonance_level.text()),
+                                                                                               self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
+        self.ui.pushButton__analyzer_extractERV.clicked.connect(lambda: self.analyzer.extractERV(float(self.ui.lineEdit_analyzer_resonance_level.text()),
+                                                                                                float(self.ui.lineEdit_analyzer_wavelength_min.text()),
+                                                                                                float(self.ui.lineEdit_analyzer_wavelength_max.text()),
+                                                                                                self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
 
     def connectScope(self):
         self.scope=Scope(Consts.Scope.HOST)
@@ -518,6 +528,10 @@ class MainWindow(ThreadedMainWindow):
         Dict['ShiftingWhileProcessing?']=str(self.ui.checkBox_IsShiftingWhileProcessing.isChecked())
         Dict['axis_to_plot_along']=str(self.ui.comboBox_axis_to_plot_along.currentIndex())
         Dict['Channel_TD_to_plot']=str(self.ui.comboBox_TD_channel_to_plot.currentIndex())
+        Dict['analyzer_axis_to_plot_along']=str(self.ui.comboBox_axis_to_analyze_along_arb_data.currentIndex())
+        Dict['analyzer_min_wavelength']=float(self.ui.lineEdit_analyzer_wavelength_min.text())
+        Dict['analyzer_max_wavelength']=float(self.ui.lineEdit_analyzer_wavelength_max.text())
+        Dict['analyzer_resonance_level']=float(self.ui.lineEdit_analyzer_resonance_level.text())
 
         self.logger.SaveParameters(Dict)
 
@@ -551,6 +565,12 @@ class MainWindow(ThreadedMainWindow):
 
         self.ui.comboBox_axis_to_plot_along.setCurrentIndex(int(Dict['axis_to_plot_along']))
         self.ui.comboBox_TD_channel_to_plot.setCurrentIndex(int(Dict['Channel_TD_to_plot']))
+        
+        self.ui.comboBox_axis_to_analyze_along_arb_data.setCurrentIndex(int(Dict['analyzer_axis_to_plot_along']))
+        self.ui.lineEdit_analyzer_wavelength_min.setText('{:.2f}'.format(Dict['analyzer_min_wavelength']))
+        self.ui.lineEdit_analyzer_wavelength_max.setText('{:.2f}'.format(Dict['analyzer_max_wavelength']))
+        self.ui.lineEdit_analyzer_resonance_level.setText('{:.2f}'.format(Dict['analyzer_resonance_level']))
+
 
 
         if Dict['IsHighRes']=='True':
@@ -602,19 +622,28 @@ class MainWindow(ThreadedMainWindow):
 
     def closeEvent(self, event):
 #         here you can terminate your threads and do other stuff
-        print('Deleting everything...')
+#        try:
+        del self.stages
+        print('Stages object is deleted')
+        del self.OSA
+        print('OSA object is deleted')
+        del self.painter
+        print('Painter object is deleted')
+        del self.logger
+        print('Logger is deleted')
+        del self.analyzer
+        print('Analyzer is deleted')
         try:
-            del self.stages
-            print('Stages object is deleted')
-            del self.OSA
-            print('OSA object is deleted')
-            del self.painter
-            print('Painter object is deleted')
             del self.scanningProcess
-            del self.ProcessSpectra
-            del self.logger
+            print('Scanning object is deleted')
         except:
-            print('exception while closing')
+            pass  
+        try:
+            del self.ProcessSpectra
+            print('Processing is deleted')
+        except:
+            pass
+#            print('exception while closing')
         super(QMainWindow, self).closeEvent(event)
 #
 

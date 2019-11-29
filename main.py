@@ -1,11 +1,20 @@
 """
- V.15.4
- 22.11.2019
+ V.15.6
+ 29.11.2019
 """
 
 # -*- coding: utf-8 -*-
 
 import sys
+if 'init_modules' in globals(  ):
+    # second or subsequent run: remove all but initially loaded modules
+    for m in sys.modules.keys(  ):
+        if m not in init_modules:
+            del(sys.modules[m])
+else:
+    # first run: find out which modules were initially loaded
+    init_modules = sys.modules.keys(  )
+
 from PyQt5 import QtWidgets 
 from Windows.MainWindow import MainWindow
 
@@ -20,5 +29,7 @@ def main():
 
     return main
 
+    
 if __name__ == '__main__':         
+
     m = main()
