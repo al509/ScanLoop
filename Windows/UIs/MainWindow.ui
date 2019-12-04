@@ -1309,7 +1309,7 @@
              <item row="0" column="0">
               <widget class="QPushButton" name="pushButton_choose_folder_to_process">
                <property name="text">
-                <string>Choose folder</string>
+                <string>Folder</string>
                </property>
               </widget>
              </item>
@@ -1437,96 +1437,17 @@
               <x>0</x>
               <y>230</y>
               <width>311</width>
-              <height>181</height>
+              <height>261</height>
              </rect>
             </property>
             <property name="title">
-             <string>Analyze data</string>
+             <string>Analyze spectrogram</string>
             </property>
-            <widget class="QPushButton" name="pushButton__analyzer_plotSlice">
-             <property name="geometry">
-              <rect>
-               <x>20</x>
-               <y>30</y>
-               <width>75</width>
-               <height>23</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>PLot slice at</string>
-             </property>
-            </widget>
-            <widget class="QLineEdit" name="lineEdit_slice_position">
-             <property name="geometry">
-              <rect>
-               <x>99</x>
-               <y>32</y>
-               <width>41</width>
-               <height>21</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>500</string>
-             </property>
-            </widget>
-            <widget class="QLabel" name="label_14">
-             <property name="geometry">
-              <rect>
-               <x>146</x>
-               <y>34</y>
-               <width>91</width>
-               <height>16</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>steps along axis</string>
-             </property>
-            </widget>
-            <widget class="QComboBox" name="comboBox_axis_to_analyze_along_arb_data">
-             <property name="geometry">
-              <rect>
-               <x>228</x>
-               <y>33</y>
-               <width>61</width>
-               <height>20</height>
-              </rect>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="toolTip">
-              <string>Choose channel to plot</string>
-             </property>
-             <property name="currentIndex">
-              <number>2</number>
-             </property>
-             <property name="sizeAdjustPolicy">
-              <enum>QComboBox::AdjustToContents</enum>
-             </property>
-             <item>
-              <property name="text">
-               <string>X</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Y</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Z</string>
-              </property>
-             </item>
-            </widget>
             <widget class="QGroupBox" name="groupBox_2">
              <property name="geometry">
               <rect>
-               <x>20</x>
-               <y>90</y>
+               <x>10</x>
+               <y>180</y>
                <width>281</width>
                <height>80</height>
               </rect>
@@ -1534,7 +1455,7 @@
              <property name="title">
               <string>Get ERV</string>
              </property>
-             <widget class="QPushButton" name="pushButton__analyzer_extractERV">
+             <widget class="QPushButton" name="pushButton_analyzer_extractERV">
               <property name="geometry">
                <rect>
                 <x>150</x>
@@ -1551,7 +1472,7 @@
               <property name="geometry">
                <rect>
                 <x>90</x>
-                <y>10</y>
+                <y>20</y>
                 <width>60</width>
                 <height>20</height>
                </rect>
@@ -1564,8 +1485,8 @@
               <property name="geometry">
                <rect>
                 <x>10</x>
-                <y>10</y>
-                <width>61</width>
+                <y>14</y>
+                <width>81</width>
                 <height>31</height>
                </rect>
               </property>
@@ -1580,7 +1501,7 @@
               <property name="geometry">
                <rect>
                 <x>160</x>
-                <y>10</y>
+                <y>20</y>
                 <width>60</width>
                 <height>20</height>
                </rect>
@@ -1590,34 +1511,181 @@
               </property>
              </widget>
             </widget>
-            <widget class="QLabel" name="label_17">
+            <widget class="QPushButton" name="pushButton_analyzer_choose_file_spectrogram">
              <property name="geometry">
               <rect>
-               <x>160</x>
-               <y>50</y>
-               <width>51</width>
-               <height>41</height>
+               <x>20</x>
+               <y>30</y>
+               <width>100</width>
+               <height>23</height>
               </rect>
              </property>
              <property name="text">
-              <string>Level to recognize dip</string>
-             </property>
-             <property name="wordWrap">
-              <bool>true</bool>
+              <string>Folder to analyze</string>
              </property>
             </widget>
-            <widget class="QLineEdit" name="lineEdit_analyzer_resonance_level">
+            <widget class="QLabel" name="label_analyzer_folder">
              <property name="geometry">
               <rect>
-               <x>220</x>
-               <y>60</y>
-               <width>41</width>
-               <height>20</height>
+               <x>159</x>
+               <y>30</y>
+               <width>121</width>
+               <height>23</height>
               </rect>
              </property>
              <property name="text">
-              <string>20</string>
+              <string>none</string>
              </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_analyzer_plot2D">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>60</y>
+               <width>90</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Plot 2D</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_analyzer_plotSampleShape">
+             <property name="geometry">
+              <rect>
+               <x>130</x>
+               <y>60</y>
+               <width>94</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Plot sample shape</string>
+             </property>
+            </widget>
+            <widget class="QGroupBox" name="groupBox_4">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>90</y>
+               <width>281</width>
+               <height>80</height>
+              </rect>
+             </property>
+             <property name="title">
+              <string>Plot slice</string>
+             </property>
+             <widget class="QPushButton" name="pushButton_analyzer_plotSlice">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>20</y>
+                <width>75</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Plot slice at</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_slice_position">
+              <property name="geometry">
+               <rect>
+                <x>100</x>
+                <y>20</y>
+                <width>41</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>500</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_14">
+              <property name="geometry">
+               <rect>
+                <x>150</x>
+                <y>20</y>
+                <width>91</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>steps along axis</string>
+              </property>
+             </widget>
+             <widget class="QComboBox" name="comboBox_axis_to_analyze_along_arb_data">
+              <property name="geometry">
+               <rect>
+                <x>240</x>
+                <y>20</y>
+                <width>33</width>
+                <height>20</height>
+               </rect>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>Choose channel to plot</string>
+              </property>
+              <property name="currentIndex">
+               <number>2</number>
+              </property>
+              <property name="sizeAdjustPolicy">
+               <enum>QComboBox::AdjustToContents</enum>
+              </property>
+              <item>
+               <property name="text">
+                <string>X</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Y</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Z</string>
+               </property>
+              </item>
+             </widget>
+             <widget class="QLabel" name="label_17">
+              <property name="geometry">
+               <rect>
+                <x>70</x>
+                <y>40</y>
+                <width>111</width>
+                <height>41</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Level to peak analyzer</string>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_analyzer_resonance_level">
+              <property name="geometry">
+               <rect>
+                <x>190</x>
+                <y>50</y>
+                <width>41</width>
+                <height>20</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>20</string>
+              </property>
+             </widget>
             </widget>
            </widget>
           </widget>

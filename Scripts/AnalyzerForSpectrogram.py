@@ -8,13 +8,8 @@ This script is used to find peaks in processed 2D spectrograms and extract ERV s
 
 import os
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
-from mpl_toolkits.axes_grid1.parasite_axes import SubplotHost
-import matplotlib.transforms as mtransforms
 import time
-import math
 from PyQt5.QtCore import QObject
 from Scripts.detect_peaks import detect_peaks
 
@@ -37,6 +32,33 @@ class AnalyzerForSpectrogram(QObject):
             return np.max(LineWidths)
         else:
             return 0
+        
+    def plot_sample_shape(self):
+        from mpl_toolkits.mplot3d import Axes3D
+        Positions=np.loadtxt(self.PositionsFileName)
+        plt.figure()
+        ax = plt.axes(projection='3d')
+        ax.plot(Positions[:,2],Positions[:,0],Positions[:,1])
+        ax.set_xlabel('Z,steps')
+        ax.set_ylabel('X,steps')
+        ax.set_zlabel('Y,steps')
+        plt.gca().invert_zaxis()
+        plt.gca().invert_xaxis()
+    
+    def plot2D(self,axis_to_process='Z'):
+        Data=np.loadtxt(self.SignalFileName)
+        WavelengthArray=np.loadtxt(self.WavelengthFileName)
+        Positions=np.loadtxt(self.PositionsFileName)
+        index=self.number_of_axis[axis_to_process]
+        Positions=Positions[:,index]
+        plt.figure()
+        plt.contourf(Positions,WavelengthArray,Data,200,cmap='RdBu_r')
+        plt.xlabel('Position, steps (2.5 um each)')
+        plt.ylabel('Wavelength, nm')
+        ax2=(plt.gca()).twiny()
+        ax2.set_xlabel('Distance, um')
+        ax2.set_xlim([0,(np.max(Positions)-np.min(Positions))*2.5])
+        plt.tight_layout()
     
     def plotSlice(self,position, MinimumPeakDepth,axis_to_process='Z'):
         Data=np.loadtxt(self.SignalFileName)
@@ -45,12 +67,13 @@ class AnalyzerForSpectrogram(QObject):
         Positions=Positions[:,self.number_of_axis[axis_to_process]]
         i=np.argmin(abs(Positions-position))
         SignalData=Data[:,i]
-        Fig=plt.figure(10)
+        plt.figure()
         plt.clf()
         plt.plot(WavelengthArray,SignalData)
         plt.title('Position=' + str(Positions[i])+ ' steps along axis '+axis_to_process) 
         peakind2=detect_peaks(SignalData, MinimumPeakDepth, self.MinimumPeakDistance, valley=True, show=False)
         plt.plot(WavelengthArray[peakind2], SignalData[peakind2], '.')
+        plt.tight_layout()
         
     def extractERV(self,MinimumPeakDepth,MinWavelength,MaxWavelength,axis_to_process='Z'):
         time1=time.time()
@@ -81,31 +104,32 @@ class AnalyzerForSpectrogram(QObject):
                 PeakWavelengthArray[Zind]=np.nan
                 LineWidthArray[Zind]=np.nan
         
-        
-        np.savetxt(self.ProcessedDataFolder+'PeakWavelengths.txt',np.transpose(np.stack((Positions,PeakWavelengthArray,LineWidthArray))))
+        DirName=os.path.basename(self.ProcessedDataFolder)
+        np.savetxt(self.ProcessedDataFolder+'\\ERVs_'+DirName+'.txt',np.transpose(np.stack((Positions,PeakWavelengthArray,LineWidthArray))))
         
         time2=time.time()
         print('Time used =', time2-time1 ,' s')
-        Fig=plt.figure(2)
+        plt.figure()
         plt.clf()
         plt.plot(Positions,LineWidthArray)
         plt.xlabel('Step Number')
         plt.ylabel('Linewidth, nm')
-        Fig2=plt.figure(3)
+        plt.figure()
         plt.clf()
         plt.plot(Positions,PeakWavelengthArray,'.')
         plt.xlabel('Step Number')
         plt.ylabel('Wavelength, nm')
-        Fig3=plt.figure(4)
+        plt.figure()
         plt.clf()
-        ImGraph=plt.contourf(Positions,WavelengthArray,Data,200,cmap='jet')
+        plt.contourf(Positions,WavelengthArray,Data,200,cmap='jet')
         plt.pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix)
+        plt.tight_layout()
         
 if __name__ == "__main__":
     os.chdir('..')
     AnalyzerForSpectrogram=AnalyzerForSpectrogram()
 
 #    AnalyzerForSpectrogram.plotSlice(100)
-    AnalyzerForSpectrogram.plotSlice(1000,20)
-    AnalyzerForSpectrogram.extractERV(20,1552,1553)
+    AnalyzerForSpectrogram.plot2D()
+#    AnalyzerForSpectrogram.extractERV(20,1552,1553)
     

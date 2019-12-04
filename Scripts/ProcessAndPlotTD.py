@@ -34,7 +34,7 @@ class ProcessAndPlotTD(QObject):
         if axis=='Y':
             return int(self.find_between(string,'Y=','_Z'))
         if axis=='Z':
-            return int(self.find_between(string,'Z=','.txt'))
+            return int(self.find_between(string,'Z=','_.'))
 
 
 

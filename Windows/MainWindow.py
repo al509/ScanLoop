@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__='15.6'
+__version__='15.7'
 
 import sys
 import numpy as np
@@ -85,8 +85,9 @@ class MainWindow(ThreadedMainWindow):
     force_stage_move = pyqtSignal(str,int)
     force_scope_acquire = pyqtSignal()
     force_scanning_process=pyqtSignal()
-
-
+    '''
+    Initialization
+    '''
     def __init__(self, parent=None):
         super().__init__(parent)
         # GUI
@@ -140,10 +141,16 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_plotSampleShape_arb_data.clicked.connect(lambda: self.plotSampleShape(DirName=self.Folder,
                                                                                         axis=self.ui.comboBox_axis_to_plot_along_arb_data.currentText()))
         
-        self.ui.pushButton__analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plotSlice(int(self.ui.lineEdit_slice_position.text()),
+        self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(self.choose_folder_for_analyzer)
+        
+        self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(self.analyzer.plot_sample_shape)
+        
+        self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot2D())
+        
+        self.ui.pushButton_analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plotSlice(int(self.ui.lineEdit_slice_position.text()),
                                                                                                float(self.ui.lineEdit_analyzer_resonance_level.text()),
                                                                                                self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
-        self.ui.pushButton__analyzer_extractERV.clicked.connect(lambda: self.analyzer.extractERV(float(self.ui.lineEdit_analyzer_resonance_level.text()),
+        self.ui.pushButton_analyzer_extractERV.clicked.connect(lambda: self.analyzer.extractERV(float(self.ui.lineEdit_analyzer_resonance_level.text()),
                                                                                                 float(self.ui.lineEdit_analyzer_wavelength_min.text()),
                                                                                                 float(self.ui.lineEdit_analyzer_wavelength_max.text()),
                                                                                                 self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
@@ -289,6 +296,10 @@ class MainWindow(ThreadedMainWindow):
         self.Z_0=(self.stages.position['Z'])
         self.logger.save_zero_position(self.X_0,self.Y_0,self.Z_0)
         self.updatePositions()
+        
+    '''
+    Interface logic
+    '''
 
     def on_pushButton_scope_single_measurement_pressed(self):
         self.scope.acquire()
@@ -474,8 +485,8 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_Push_Button_ProcessSpectra(self):
-        from Scripts.ProcessAndPlotSpectraWithAveraging import ProcessSpectraWithAveraging
-        self.ProcessSpectra=ProcessSpectraWithAveraging()
+        from Scripts.ProcessAndPlotSpectra import ProcessSpectra
+        self.ProcessSpectra=ProcessSpectra()
         Thread=self.add_thread([self.ProcessSpectra])
         self.ProcessSpectra.run(StepSize=float(self.ui.lineEdit_ScanningStep.text()),Averaging=self.ui.checkBox_IsAveragingWhileProcessing.isChecked(),
                                 Shifting=self.ui.checkBox_IsShiftingWhileProcessing.isChecked(),DirName='SpectralData',
@@ -493,8 +504,8 @@ class MainWindow(ThreadedMainWindow):
         Thread.quit()
 
     def plotSampleShape(self,DirName,axis):
-        from Scripts.ProcessAndPlotSpectraWithAveraging import ProcessSpectraWithAveraging
-        self.ProcessSpectra=ProcessSpectraWithAveraging()
+        from Scripts.ProcessAndPlotSpectra import ProcessSpectra
+        self.ProcessSpectra=ProcessSpectra()
         Thread=self.add_thread([self.ProcessSpectra])
         self.ProcessSpectra.plot_sample_shape(DirName=DirName,
                                                        axis_to_plot_along=axis)
@@ -595,8 +606,8 @@ class MainWindow(ThreadedMainWindow):
         self.ui.label_folder_to_process_files.setText(self.Folder)
 
     def process_arb_spectral_data_clicked(self):
-        from Scripts.ProcessAndPlotSpectraWithAveraging import ProcessSpectraWithAveraging
-        self.ProcessSpectra=ProcessSpectraWithAveraging()
+        from Scripts.ProcessAndPlotSpectra import ProcessSpectra
+        self.ProcessSpectra=ProcessSpectra()
         Thread=self.add_thread([self.ProcessSpectra])
         try:
             StepSize=int(self.Folder[self.Folder.index('Step=')+len('Step='):len(self.Folder)])
@@ -619,6 +630,15 @@ class MainWindow(ThreadedMainWindow):
                            channel_number=self.ui.comboBox_TD_channel_to_plot_arb_data.currentIndex())
         Thread.quit()
 #            fname = QtWidgets.QFileDialog().getOpenFileName()[0]
+        
+    def choose_folder_for_analyzer(self):
+        ProcessedDataFolder= str(QFileDialog.getExistingDirectory(self, "Select Directory"))
+        self.analyzer.ProcessedDataFolder=ProcessedDataFolder
+        self.analyzer.SignalFileName=ProcessedDataFolder+'\\SpectraArray.txt'
+        self.analyzer.WavelengthFileName=ProcessedDataFolder+'\\WavelengthArray.txt'
+        self.analyzer.PositionsFileName=ProcessedDataFolder+'\\Sp_Positions.txt'
+        self.ui.label_analyzer_folder.setText(self.analyzer.ProcessedDataFolder)
+
 
     def closeEvent(self, event):
 #         here you can terminate your threads and do other stuff
