@@ -72,6 +72,9 @@ class ScanningProcess(QObject):
         elif ScanningType==2:
             self.AxisToScan='Y'
             self.AxisToGetContact='Z'
+        elif ScanningType==3:
+            self.AxisToScan='X'
+            self.AxisToGetContact='Z'
 
         
     def search_contact(self): ## move taper towards sample until contact has been obtained

@@ -77,6 +77,9 @@ class ScanningProcess(QObject):
         elif ScanningType==2:
             self.AxisToScan='Y'
             self.AxisToGetContact='Z'
+        elif ScanningType==3:
+            self.AxisToScan='X'
+            self.AxisToGetContact='Z'
 
     def set_OSA_to_Searching_Contact_State(self): #set rough resolution and narrowband span 
         print(self.OSA._Span)

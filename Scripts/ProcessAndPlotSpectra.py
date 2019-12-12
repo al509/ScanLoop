@@ -199,7 +199,6 @@ class ProcessSpectra(QObject):
                 """
                 SignalArray[:,ii]=SmallSignalArray[:,0]
 
-
         np.savetxt(self.ProcessedDataFolder+'SpectraArray.txt',SignalArray)
         np.savetxt(self.ProcessedDataFolder+'WavelengthArray.txt', MainWavelengths)
         np.savetxt(self.ProcessedDataFolder+'Sp_Positions.txt', Positions)

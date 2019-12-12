@@ -1110,6 +1110,11 @@
                  <string>Along Y, get contact along Z</string>
                 </property>
                </item>
+               <item>
+                <property name="text">
+                 <string>Along X, get contact along Z</string>
+                </property>
+               </item>
               </widget>
              </item>
              <item row="7" column="3">

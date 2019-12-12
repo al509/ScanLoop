@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__='15.7'
+__version__='15.8'
 
 import sys
 import numpy as np
