@@ -625,7 +625,7 @@ class MainWindow(ThreadedMainWindow):
         from Scripts.ProcessAndPlotTD import ProcessAndPlotTD
         self.ProcessTD=ProcessAndPlotTD()
         Thread=self.add_thread([self.ProcessTD])
-        self.ProcessTD.run(Averaging=self.ui.checkBox_IsAveragingWhileProcessing.isChecked(),
+        self.ProcessTD.run(Averaging=self.ui.checkBox_IsAveragingWhileProcessingArbData.isChecked(),
                            DirName=self.Folder,axis_to_plot_along=self.ui.comboBox_axis_to_plot_along_arb_data.currentText(),
                            channel_number=self.ui.comboBox_TD_channel_to_plot_arb_data.currentIndex())
         Thread.quit()
