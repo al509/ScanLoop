@@ -22,6 +22,7 @@ class AnalyzerForSpectrogram(QObject):
     WavelengthFileName=ProcessedDataFolder+'WavelengthArray.txt'
     PositionsFileName=ProcessedDataFolder+'Sp_Positions.txt'
     number_of_axis={'X':0,'Y':1,'Z':2}
+    Cmap='jet'
     
     def CalculateLinewidth(self,Xarray,Yarray,IndexOfMinimum,AreaToSearch):
         Ymin=Yarray[IndexOfMinimum]
@@ -52,7 +53,7 @@ class AnalyzerForSpectrogram(QObject):
         index=self.number_of_axis[axis_to_process]
         Positions=Positions[:,index]
         plt.figure()
-        plt.contourf(Positions,WavelengthArray,Data,200,cmap='RdBu_r')
+        plt.contourf(Positions,WavelengthArray,Data,200,cmap=self.Cmap)
         plt.xlabel('Position, steps (2.5 um each)')
         plt.ylabel('Wavelength, nm')
         ax2=(plt.gca()).twiny()

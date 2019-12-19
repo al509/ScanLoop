@@ -22,6 +22,8 @@ class ProcessSpectra(QObject):
     axis_to_plot_along='X'
     number_of_axis={'X':0,'Y':1,'Z':2}
     AccuracyOfWavelength=0.008 # in nm. Maximum expected shift to define the correlation window
+    
+    Cmap='jet'
 #
     def define_file_naming_style(self,FileName): # legacy code
         if FileName.find('X=')==-1:
@@ -121,6 +123,7 @@ class ProcessSpectra(QObject):
         AccuracyOfWavelength=self.AccuracyOfWavelength
         time1=time.time()
         FileList=os.listdir(DirName)
+        if '.gitignore' in FileList:FileList.remove('.gitignore')
         self.define_file_naming_style(FileList[0])
         """
         group files at each point
@@ -208,7 +211,7 @@ class ProcessSpectra(QObject):
             plt.figure()
             X_0=0
             X_max=StepSize*NumberOfPointsZ
-            plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap='RdBu_r',extent=[X_0,X_max,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
+            plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap=self.Cmap,extent=[X_0,X_max,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
 
             plt.show()
             plt.colorbar()
@@ -223,7 +226,7 @@ class ProcessSpectra(QObject):
         if self.file_naming_style=='new':
             plt.figure()
             Positions_at_given_axis=np.array([s[self.number_of_axis[self.axis_to_plot_along]] for s in Positions])
-            plt.contourf(Positions_at_given_axis,MainWavelengths,SignalArray,200,cmap='RdBu_r')
+            plt.contourf(Positions_at_given_axis,MainWavelengths,SignalArray,200,cmap=self.Cmap)
             plt.xlabel('Position, steps (2.5 um each)')
             plt.ylabel('Wavelength, nm')
             ax2=(plt.gca()).twiny()

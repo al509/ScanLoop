@@ -72,6 +72,7 @@ class ProcessAndPlotTD(QObject):
         self.axis_to_plot_along=axis_to_plot_along
         time1=time.time()
         FileList=os.listdir(DirName)
+        if '.gitignore' in FileList:FileList.remove('.gitignore')
         sampling_rate=self.get_sampling_rate(FileList[0])
         
         """
@@ -110,7 +111,7 @@ class ProcessAndPlotTD(QObject):
                         SmallSignalArray[:,jj]=Data[channel_number,:]
                     else:
                         SmallSignalArray[:,jj]=Data
-                    SignalArray[:,ii]=np.mean(SmallSignalArray,axis=1)
+                SignalArray[:,ii]=np.mean(SmallSignalArray,axis=1)
             else:
                 """
                     If shifting and averaging are OFF, just take the first spectrum from the bundle correpsonding to a measuring point
@@ -121,7 +122,7 @@ class ProcessAndPlotTD(QObject):
                 else:
                     SignalArray[:,ii]=Data
 
-        TimeArray=np.arange(0,1/sampling_rate*NumberOfTimePoints,1/sampling_rate)
+        TimeArray=np.arange(0,sampling_rate*NumberOfTimePoints,sampling_rate)
         
         np.savetxt(self.ProcessedDataFolder+'TDArray.txt',SignalArray)
         np.savetxt(self.ProcessedDataFolder+'TimesArray.txt', TimeArray)
@@ -144,6 +145,6 @@ class ProcessAndPlotTD(QObject):
 if __name__ == "__main__":
     os.chdir('..')
     ProcessTD=ProcessAndPlotTD()
-    ProcessTD.run(Averaging=False,
+    ProcessTD.run(Averaging=True,
                   DirName='TimeDomainData',axis_to_plot_along='Y',
                   channel_number=0)
