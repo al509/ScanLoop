@@ -18,9 +18,9 @@ class AnalyzerForSpectrogram(QObject):
     MinimumPeakDistance=10  ## For peak searching 
     IndexOfPeakOfInterest=0 ## Zero is for deepest peak within the range, one is for next after deepest etc
     AreaToSearch=200 # This is to calculate peak linewidth
-    SignalFileName=ProcessedDataFolder+'SpectraArray.txt'
-    WavelengthFileName=ProcessedDataFolder+'WavelengthArray.txt'
-    PositionsFileName=ProcessedDataFolder+'Sp_Positions.txt'
+    SignalFileName='SpectraArray.txt'
+    WavelengthFileName='WavelengthArray.txt'
+    PositionsFileName='Sp_Positions.txt'
     number_of_axis={'X':0,'Y':1,'Z':2}
     Cmap='jet'
     
@@ -47,9 +47,9 @@ class AnalyzerForSpectrogram(QObject):
         plt.gca().invert_xaxis()
     
     def plot2D(self,axis_to_process='Z'):
-        Data=np.loadtxt(self.SignalFileName)
-        WavelengthArray=np.loadtxt(self.WavelengthFileName)
-        Positions=np.loadtxt(self.PositionsFileName)
+        Data=np.loadtxt(self.ProcessedDataFolder+self.SignalFileName)
+        WavelengthArray=np.loadtxt(self.ProcessedDataFolder+self.WavelengthFileName)
+        Positions=np.loadtxt(self.ProcessedDataFolder+self.PositionsFileName)
         index=self.number_of_axis[axis_to_process]
         Positions=Positions[:,index]
         plt.figure()
@@ -62,9 +62,9 @@ class AnalyzerForSpectrogram(QObject):
         plt.tight_layout()
     
     def plotSlice(self,position, MinimumPeakDepth,axis_to_process='Z'):
-        Data=np.loadtxt(self.SignalFileName)
-        WavelengthArray=np.loadtxt(self.WavelengthFileName)
-        Positions=np.loadtxt(self.PositionsFileName)
+        Data=np.loadtxt(self.ProcessedDataFolder+self.SignalFileName)
+        WavelengthArray=np.loadtxt(self.ProcessedDataFolder+self.WavelengthFileName)
+        Positions=np.loadtxt(self.ProcessedDataFolder+self.PositionsFileName)
         Positions=Positions[:,self.number_of_axis[axis_to_process]]
         i=np.argmin(abs(Positions-position))
         SignalData=Data[:,i]
@@ -78,9 +78,9 @@ class AnalyzerForSpectrogram(QObject):
         
     def extractERV(self,MinimumPeakDepth,MinWavelength,MaxWavelength,axis_to_process='Z'):
         time1=time.time()
-        Data=np.loadtxt(self.SignalFileName)
-        WavelengthArray=np.loadtxt(self.WavelengthFileName)
-        Positions=np.loadtxt(self.PositionsFileName)
+        Data=np.loadtxt(self.ProcessedDataFolder+self.SignalFileName)
+        WavelengthArray=np.loadtxt(self.ProcessedDataFolder+self.WavelengthFileName)
+        Positions=np.loadtxt(self.ProcessedDataFolder+self.PositionsFileName)
         Positions=Positions[:,self.number_of_axis[axis_to_process]]
         
         NumberOfWavelength,Number_of_positions = Data.shape
