@@ -23,7 +23,7 @@ class Scope(QObject):
 #        self.device=rm.open_resource('TCPIP::'+host+'::hislip0,4880::INSTR')
 #        self.device=rm.open_resource('TCPIP0::WINDOWS-E76DLEM::hislip0,4880::INSTR')
         self.device=rm.open_resource('TCPIP0::WINDOWS-E76DLEM::inst0::INSTR')
-        self.device.timeout=10000
+        self.device.timeout=1000
         self.device.write(":WAV:FORMAT WORD")
         self.device.write(":WAV:BYTEORDER MSBF") # Set the byte order to Big-Endian (default for Infinium oscilloscopes)
         self.device.read_termination = None # '\n' # Since we're transferring binary data we need to remove the newline read termination
@@ -242,7 +242,7 @@ if __name__ == "__main__":
     print('Channels that are ON:',scope.channels_states)
     scope.set_time_range(50e-9)
     print(scope.get_number_of_points())
-    scope.set_averaging_state(True)
+    scope.set_averaging_state(False)
     scope.set_averaging_number(256)
     X,Y,ch=scope.acquire()
     temp=scope.get_sampling_rate()

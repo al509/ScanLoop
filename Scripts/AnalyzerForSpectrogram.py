@@ -23,6 +23,9 @@ class AnalyzerForSpectrogram(QObject):
     PositionsFileName='Sp_Positions.txt'
     number_of_axis={'X':0,'Y':1,'Z':2}
     Cmap='jet'
+
+    Radius=62.5e3
+    lambda_0=1530.5
     
     def CalculateLinewidth(self,Xarray,Yarray,IndexOfMinimum,AreaToSearch):
         Ymin=Yarray[IndexOfMinimum]
@@ -33,6 +36,12 @@ class AnalyzerForSpectrogram(QObject):
             return np.max(LineWidths)
         else:
             return 0
+        
+    def forward(self,x):
+        return (x-self.lambda_0)/self.lambda_0*self.Radius
+    
+    def backward(self,y):
+        return y/self.Radius*self.lambda_0+self.lambda_0
         
     def plot_sample_shape(self):
         from mpl_toolkits.mplot3d import Axes3D
@@ -50,15 +59,20 @@ class AnalyzerForSpectrogram(QObject):
         Data=np.loadtxt(self.ProcessedDataFolder+self.SignalFileName)
         WavelengthArray=np.loadtxt(self.ProcessedDataFolder+self.WavelengthFileName)
         Positions=np.loadtxt(self.ProcessedDataFolder+self.PositionsFileName)
+        self.lambda_0=min(WavelengthArray)
         index=self.number_of_axis[axis_to_process]
         Positions=Positions[:,index]
         plt.figure()
-        plt.contourf(Positions,WavelengthArray,Data,200,cmap=self.Cmap)
+        plot=plt.contourf(Positions,WavelengthArray,Data,200,cmap=self.Cmap)
         plt.xlabel('Position, steps (2.5 um each)')
         plt.ylabel('Wavelength, nm')
-        ax2=(plt.gca()).twiny()
+        ax1=plt.gca()
+        ax2=ax1.twiny()
         ax2.set_xlabel('Distance, um')
         ax2.set_xlim([0,(np.max(Positions)-np.min(Positions))*2.5])
+        ax3=ax1.secondary_yaxis('right',functions=(self.forward, self.backward))
+        ax3.set_ylabel('Effective radius variation, nm')
+        cbar=plt.colorbar(plot,ax=ax3)
         plt.tight_layout()
     
     def plotSlice(self,position, MinimumPeakDepth,axis_to_process='Z'):

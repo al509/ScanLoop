@@ -29,7 +29,7 @@ print("Library loaded")
 os.chdir(OldPath)
 
 
-class Stages(QObject):
+class StandaStages(QObject):
     connected = pyqtSignal()
     stopped = pyqtSignal()
 #    StepSize={'X':10,'Y':10,'Z':10}
@@ -203,7 +203,7 @@ class Stages(QObject):
 
 
 if __name__ == "__main__":
-    stages=Stages()
+    stages=StandaStages()
     d=5
     stages.shiftOnArbitrary('X',d)
 

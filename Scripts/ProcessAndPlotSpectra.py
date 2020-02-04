@@ -222,6 +222,9 @@ class ProcessSpectra(QObject):
             ax2.set_xlim([0,StepSize*NumberOfPointsZ*2.5])
             plt.tight_layout()
             plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
+            Positions=[np.linspace(0, StepSize*NumberOfPointsZ,NumberOfPointsZ),np.linspace(0, StepSize*NumberOfPointsZ,NumberOfPointsZ),np.linspace(0, StepSize*NumberOfPointsZ,NumberOfPointsZ)]
+            Positions=np.transpose(Positions)
+            np.savetxt(self.ProcessedDataFolder+'Sp_Positions.txt', Positions)
 
         if self.file_naming_style=='new':
             plt.figure()

@@ -393,6 +393,26 @@
                 </property>
                </item>
               </widget>
+              <widget class="QComboBox" name="comboBox_Type_of_Stages">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>24</y>
+                 <width>113</width>
+                 <height>20</height>
+                </rect>
+               </property>
+               <item>
+                <property name="text">
+                 <string>3x Standa</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>2x Thorlabs</string>
+                </property>
+               </item>
+              </widget>
              </widget>
             </item>
            </layout>

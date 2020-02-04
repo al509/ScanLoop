@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__='15.10'
+__version__='16.0'
 
 import sys
 import numpy as np
@@ -20,7 +20,8 @@ from Hardware.Config import Config
 from Hardware.Interrogator import Interrogator
 from Hardware.YokogawaOSA import OSA_AQ6370
 from Hardware.KeysightOscilloscope import Scope
-from Hardware.MyStanda import Stages
+from Hardware.MyStanda import StandaStages
+from Hardware.MythorlabsStages import ThorlabsStages
 from Hardware.APEX_OSA import APEX_OSA_with_additional_features
 from Logger.Logger import Logger
 from Visualization.Painter import MyPainter
@@ -237,7 +238,10 @@ class MainWindow(ThreadedMainWindow):
         self.painter.TypeOfData='FromOSA'
 
     def connectStages(self):
-        self.stages=Stages()
+        if self.ui.comboBox_Type_of_OSA.currentText()=='3x Standa':
+            self.stages=StandaStages()
+        elif self.ui.comboBox_Type_of_OSA.currentText()=='2x Thorlabs':
+            self.stages=ThorlabsStages()
         if self.stages.IsConnected>0:
             print('Connected to stages')
             self.add_thread([self.stages])
