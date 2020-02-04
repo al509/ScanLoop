@@ -9,7 +9,7 @@ from PyQt5.QtCore import QObject,  pyqtSignal
 import sys
 import os
 import numpy as np
-import thorlabs_apt as apt
+import Hardware.thorlabs_apt as apt
 
 class ThorlabsStages(QObject):
     connected = pyqtSignal()
@@ -20,21 +20,26 @@ class ThorlabsStages(QObject):
 
     def __init__(self):
         super().__init__()
-        
-#       
+
+#
         self.Stage_key['Z'] = apt.Motor(90864301)
+        self.Stage_key['Z'].backlash_distance(0)
         self.Stage_key['X'] = apt.Motor(27255020)
+        self.Stage_key['X'].backlash_distance(0)
+        self.IsConnected=1
+        self.position['X']=self.get_position('X')
+        self.position['Z']=self.get_position('Z')
 
-        self.position['X']=self.get_position(self.Stage_key['X'])
-        self.position['Z']=self.get_position(self.Stage_key['Z'])
 
- 
-    def get_position(self, motor):
-        return motor.position
+    def get_position(self, key):
+        #for the sage of uniformity, distance is shown in steps 2.5 um each
+        motor=self.Stage_key[key]
+        return round(motor.position*1e3/2.5)
 
     def shiftOnArbitrary(self, key:str, distance:int):
+        #for the sage of uniformity, distance is shown in steps 2.5 um each
         device=self.Stage_key[key]
-        device.move_by(distance, True)
+        device.move_by(distance*2.5e-3, True)
 #        if (result>-1):
         self.position[key]=self.get_position(key)
         self.stopped.emit()
@@ -53,7 +58,7 @@ class ThorlabsStages(QObject):
 
 if __name__ == "__main__":
     stages=ThorlabsStages()
-    d=5
+    d=0.5
     stages.shiftOnArbitrary('X',d)
 
     del stages
