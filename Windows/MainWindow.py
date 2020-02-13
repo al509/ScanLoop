@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__='16.0'
+__version__='16.1'
 
 import sys
 import numpy as np
@@ -20,8 +20,6 @@ from Hardware.Config import Config
 from Hardware.Interrogator import Interrogator
 from Hardware.YokogawaOSA import OSA_AQ6370
 from Hardware.KeysightOscilloscope import Scope
-from Hardware.MyStanda import StandaStages
-from Hardware.MythorlabsStages import ThorlabsStages
 from Hardware.APEX_OSA import APEX_OSA_with_additional_features
 from Logger.Logger import Logger
 from Visualization.Painter import MyPainter
@@ -141,13 +139,13 @@ class MainWindow(ThreadedMainWindow):
                                                                                         axis=self.ui.comboBox_axis_to_plot_along.currentText()))
         self.ui.pushButton_plotSampleShape_arb_data.clicked.connect(lambda: self.plotSampleShape(DirName=self.Folder,
                                                                                         axis=self.ui.comboBox_axis_to_plot_along_arb_data.currentText()))
-        
+
         self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(self.choose_folder_for_analyzer)
-        
+
         self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(self.analyzer.plot_sample_shape)
-        
+
         self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot2D())
-        
+
         self.ui.pushButton_analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plotSlice(int(self.ui.lineEdit_slice_position.text()),
                                                                                                float(self.ui.lineEdit_analyzer_resonance_level.text()),
                                                                                                self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
@@ -238,10 +236,15 @@ class MainWindow(ThreadedMainWindow):
         self.painter.TypeOfData='FromOSA'
 
     def connectStages(self):
-        if self.ui.comboBox_Type_of_OSA.currentText()=='3x Standa':
+        if self.ui.comboBox_Type_of_Stages.currentText()=='3x Standa':
+            from Hardware.MyStanda import StandaStages
             self.stages=StandaStages()
-        elif self.ui.comboBox_Type_of_OSA.currentText()=='2x Thorlabs':
+        elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs':
+            from Hardware.MyThorlabsStages import ThorlabsStages
             self.stages=ThorlabsStages()
+            self.ui.pushButton_MovePlusY.setEnabled(False)
+            self.ui.pushButton_MoveMinusY.setEnabled(False)
+
         if self.stages.IsConnected>0:
             print('Connected to stages')
             self.add_thread([self.stages])
@@ -300,7 +303,7 @@ class MainWindow(ThreadedMainWindow):
         self.Z_0=(self.stages.position['Z'])
         self.logger.save_zero_position(self.X_0,self.Y_0,self.Z_0)
         self.updatePositions()
-        
+
     '''
     Interface logic
     '''
@@ -580,7 +583,7 @@ class MainWindow(ThreadedMainWindow):
 
         self.ui.comboBox_axis_to_plot_along.setCurrentIndex(int(Dict['axis_to_plot_along']))
         self.ui.comboBox_TD_channel_to_plot.setCurrentIndex(int(Dict['Channel_TD_to_plot']))
-        
+
         self.ui.comboBox_axis_to_analyze_along_arb_data.setCurrentIndex(int(Dict['analyzer_axis_to_plot_along']))
         self.ui.lineEdit_analyzer_wavelength_min.setText('{:.2f}'.format(Dict['analyzer_min_wavelength']))
         self.ui.lineEdit_analyzer_wavelength_max.setText('{:.2f}'.format(Dict['analyzer_max_wavelength']))
@@ -634,7 +637,7 @@ class MainWindow(ThreadedMainWindow):
                            channel_number=self.ui.comboBox_TD_channel_to_plot_arb_data.currentIndex())
         Thread.quit()
 #            fname = QtWidgets.QFileDialog().getOpenFileName()[0]
-        
+
     def choose_folder_for_analyzer(self):
         ProcessedDataFolder= str(QFileDialog.getExistingDirectory(self, "Select Directory"))
         self.analyzer.ProcessedDataFolder=ProcessedDataFolder
@@ -661,7 +664,7 @@ class MainWindow(ThreadedMainWindow):
             del self.scanningProcess
             print('Scanning object is deleted')
         except:
-            pass  
+            pass
         try:
             del self.ProcessSpectra
             print('Processing is deleted')
