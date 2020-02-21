@@ -1,5 +1,6 @@
 import numpy as np
 import json
+import sys,os
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -9,11 +10,12 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 class Logger(QObject):
     updated = pyqtSignal()
-    ZeroPositionFileName='ZeroPosition.txt'
-    SpectralDataFolder='SpectralData\\'
-    TDFolder='TimeDomainData\\'
-    ParametersFileName='Parameters.txt'
-
+    path=os.getcwd()
+    ZeroPositionFileName=path+'\\ZeroPosition.txt'
+    SpectralDataFolder=path+'\\SpectralData\\'
+    TDFolder=path+'\\TimeDomainData\\'
+    ParametersFileName=path+'\\Parameters.txt'
+    
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -22,6 +24,7 @@ class Logger(QObject):
         self.wavelengths = None
         self.positions = list()
         self.file=None
+        
 
 
 
