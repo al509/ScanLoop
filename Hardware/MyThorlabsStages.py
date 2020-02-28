@@ -24,11 +24,16 @@ class ThorlabsStages(QObject):
 #
         self.Stage_key['Z'] = apt.Motor(90864301)
         self.Stage_key['Z'].backlash_distance(0)
+        self.Stage_key['X'].set_move_home_parameters(2, 1, 2.0, 0.0001)
+        self.Stage_key['Z'].move_home(False)
         self.Stage_key['X'] = apt.Motor(27255020)
         self.Stage_key['X'].backlash_distance(0)
-        self.IsConnected=1
+        self.Stage_key['X'].set_velocity_parameters(0, 1, 2.4)
+        self.Stage_key['X'].set_move_home_parameters(2, 1, 2.0, 0.0001)
+        self.Stage_key['X'].move_home(True)
         self.position['X']=self.get_position('X')
         self.position['Z']=self.get_position('Z')
+        self.IsConnected=1
 
 
     def get_position(self, key):
