@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__='16.1'
+
 
 import sys
 import numpy as np
@@ -87,12 +87,12 @@ class MainWindow(ThreadedMainWindow):
     '''
     Initialization
     '''
-    def __init__(self, parent=None):
+    def __init__(self, parent=None,version='0.0'):
         super().__init__(parent)
         # GUI
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.setWindowTitle("ScanLoop V."+__version__)
+        self.setWindowTitle("ScanLoop V."+version)
         self.logger = Logger(parent=None)
         self.add_thread([self.logger])
         self.analyzer=AnalyzerForSpectrogram.AnalyzerForSpectrogram()

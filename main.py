@@ -1,9 +1,10 @@
 """
- V.16.1
- 13.02.2020
+ 11.03.2020
 """
 
 # -*- coding: utf-8 -*-
+
+__version__='16.1.2'
 
 import sys
 if 'init_modules' in globals(  ):
@@ -24,7 +25,7 @@ def main():
         app = QtWidgets.QApplication(sys.argv)
     else:
         app = QtWidgets.QApplication.instance()
-    main = MainWindow()
+    main = MainWindow(version=__version__)
     main.show()
 
     return main

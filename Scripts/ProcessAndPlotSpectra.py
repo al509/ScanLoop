@@ -105,6 +105,7 @@ class ProcessSpectra(QObject):
     def plot_sample_shape(self,DirName,axis_to_plot_along):
         from mpl_toolkits.mplot3d import Axes3D
         FileList=os.listdir(DirName)
+        if '.gitignore' in FileList:FileList.remove('.gitignore')
         FileList=sorted(FileList,key=lambda s:self.get_position_from_file_name(s,axis=axis_to_plot_along))
         StructuredFileList,Positions=self.Create2DListOfFiles(FileList,axis=axis_to_plot_along)
         Positions=np.array(Positions)

@@ -132,13 +132,15 @@ class ProcessAndPlotTD(QObject):
 
         plt.figure()
         Positions_at_given_axis=np.array([s[self.number_of_axis[self.axis_to_plot_along]] for s in Positions])
-        plt.contourf(Positions_at_given_axis,TimeArray,SignalArray,200,cmap='RdBu_r')
+        Img=plt.contourf(Positions_at_given_axis,TimeArray,SignalArray,200,cmap='RdBu_r')
         plt.xlabel('Position, steps (2.5 um each)')
         plt.ylabel('Time,s')
-        ax2=(plt.gca()).twiny()
+        ax1=plt.gca()
+        ax2=(ax1).twiny()
         ax2.set_xlabel('Distance, um')
         ax2.set_xlim([0,(np.max(Positions_at_given_axis)-np.min(Positions_at_given_axis))*2.5])
         time2=time.time()
+        cbar=plt.colorbar(Img,ax=ax1)
         plt.savefig(self.ProcessedDataFolder+'Scanned TD')
         print('Time used =', time2-time1 ,' s')
 
