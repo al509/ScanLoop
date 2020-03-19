@@ -641,9 +641,9 @@ class MainWindow(ThreadedMainWindow):
     def choose_folder_for_analyzer(self):
         ProcessedDataFolder= str(QFileDialog.getExistingDirectory(self, "Select Directory"))
         self.analyzer.ProcessedDataFolder=ProcessedDataFolder
-        self.analyzer.SignalFileName=ProcessedDataFolder+'\\SpectraArray.txt'
-        self.analyzer.WavelengthFileName=ProcessedDataFolder+'\\WavelengthArray.txt'
-        self.analyzer.PositionsFileName=ProcessedDataFolder+'\\Sp_Positions.txt'
+        self.analyzer.SignalFileName='\\SpectraArray.txt'
+        self.analyzer.WavelengthFileName='\\WavelengthArray.txt'
+        self.analyzer.PositionsFileName='\\Sp_Positions.txt'
         self.ui.label_analyzer_folder.setText(self.analyzer.ProcessedDataFolder)
 
 
