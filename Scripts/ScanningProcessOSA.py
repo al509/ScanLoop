@@ -44,12 +44,13 @@ class ScanningProcess(QObject):
     S_addPosition_and_FilePrefix=pyqtSignal(str) #signal to initiate saving current position of the stages and current file index to file "Positions.txt"
     S_finished=pyqtSignal()  # signal to finish
     
+    minimumPeakHight=1
 
     def __init__(self,
                  OSA:QObject,
                  Stages:QObject,
                  scanstep:int,seekcontactstep:int,backstep:int,seekcontactvalue:float,ScanningType:int,SqueezeSpanWhileSearchingContact:bool,
-                 CurrentFileIndex:int,StopFileIndex:int,numberofscans:int,searchcontact:bool):
+                 CurrentFileIndex:int,StopFileIndex:int,numberofscans:int,searchcontact:bool,followPeak:bool):
         super().__init__()
         self.OSA=OSA # add Optical Spectral Analyzer
         self.FullSpan=self.OSA._Span
@@ -66,6 +67,9 @@ class ScanningProcess(QObject):
         self.SqueezeSpanWhileSearchingContact=SqueezeSpanWhileSearchingContact
         self.NumberOfScans=numberofscans
         self.searchcontact=searchcontact
+        self.followPeak=followPeak
+        
+        
 
     def set_ScanningType(self,ScanningType:int): # set axis depending on choice in MainWindow
         if ScanningType==0:
@@ -176,6 +180,10 @@ class ScanningProcess(QObject):
                 if not self.is_running: break
             
             #update indexes in MainWindow and save positions into "Positions.txt"
+            
+            if self.followPeak and max(spectrum)-min(spectrum)>self.minimumPeakHight:
+                self.OSA.SetCenter(wavelengthdata(np.argmin(spectrum)))
+                
 
 
             ## Loosing contact between the taper and the sample
@@ -220,4 +228,4 @@ class ScanningProcess(QObject):
 
 if __name__ == "__main__":
 
-       ScanningProcess=ScanningProcess(None,None,1,1,1,1,1,1,1,1,1)
+       ScanningProcess=ScanningProcess(None,None,1,1,1,1,1,1,1,1,1,1,1)

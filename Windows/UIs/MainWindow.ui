@@ -1087,7 +1087,17 @@
              <string>Scanning</string>
             </property>
             <layout class="QGridLayout" name="gridLayout_5">
-             <item row="11" column="0" colspan="4">
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_4">
+               <property name="text">
+                <string>Scanning step</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="10" column="0" colspan="4">
               <widget class="QPushButton" name="pushButton_Scanning">
                <property name="font">
                 <font>
@@ -1103,13 +1113,73 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_4">
+             <item row="1" column="1">
+              <widget class="QLabel" name="label_5">
                <property name="text">
-                <string>Scanning step</string>
+                <string>Searching step</string>
+               </property>
+               <property name="scaledContents">
+                <bool>false</bool>
                </property>
                <property name="wordWrap">
                 <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="1">
+              <widget class="QLineEdit" name="lineEdit_CurrentFile">
+               <property name="text">
+                <string>1</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="lineEdit_SearchingStep">
+               <property name="text">
+                <string>30</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="0">
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>from _ </string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLineEdit" name="lineEdit_ScanningStep">
+               <property name="text">
+                <string>30</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>Level to recognize contact</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="3">
+              <widget class="QLineEdit" name="lineEdit_LevelToDetectContact">
+               <property name="text">
+                <string>-35</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -1137,116 +1207,6 @@
                </item>
               </widget>
              </item>
-             <item row="7" column="3">
-              <widget class="QLineEdit" name="lineEdit_StopFile">
-               <property name="text">
-                <string>100</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="0">
-              <widget class="QLabel" name="label_3">
-               <property name="text">
-                <string>#sweeps</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="2">
-              <widget class="QCheckBox" name="checkBox_searchContact">
-               <property name="toolTip">
-                <string>Search contact at each scanning point</string>
-               </property>
-               <property name="text">
-                <string>Search contact</string>
-               </property>
-              </widget>
-             </item>
-             <item row="7" column="2">
-              <widget class="QLabel" name="label_2">
-               <property name="text">
-                <string>to</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>Searching step</string>
-               </property>
-               <property name="scaledContents">
-                <bool>false</bool>
-               </property>
-               <property name="wordWrap">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QLineEdit" name="lineEdit_SearchingStep">
-               <property name="text">
-                <string>30</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="7" column="1">
-              <widget class="QLineEdit" name="lineEdit_CurrentFile">
-               <property name="text">
-                <string>1</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLineEdit" name="lineEdit_ScanningStep">
-               <property name="text">
-                <string>30</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="1">
-              <widget class="QLineEdit" name="lineEdit_numberOfScans">
-               <property name="text">
-                <string>1</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="7" column="0">
-              <widget class="QLabel" name="label_8">
-               <property name="text">
-                <string>from _ </string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="3">
-              <widget class="QCheckBox" name="checkBox_SqueezeSpan">
-               <property name="toolTip">
-                <string>Squeeze Span while search contact</string>
-               </property>
-               <property name="text">
-                <string>Squeeze Span</string>
-               </property>
-               <property name="iconSize">
-                <size>
-                 <width>1</width>
-                 <height>1</height>
-                </size>
-               </property>
-              </widget>
-             </item>
              <item row="1" column="2">
               <widget class="QLabel" name="label_6">
                <property name="text">
@@ -1257,13 +1217,20 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="3">
-              <widget class="QLabel" name="label_7">
+             <item row="6" column="3">
+              <widget class="QLineEdit" name="lineEdit_StopFile">
                <property name="text">
-                <string>Level to recognize contact</string>
+                <string>100</string>
                </property>
-               <property name="wordWrap">
-                <bool>true</bool>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="2">
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>to</string>
                </property>
               </widget>
              </item>
@@ -1277,15 +1244,66 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="3">
-              <widget class="QLineEdit" name="lineEdit_LevelToDetectContact">
-               <property name="text">
-                <string>-35</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
+             <item row="3" column="0" colspan="4">
+              <layout class="QHBoxLayout" name="horizontalLayout_2">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout">
+                 <item>
+                  <widget class="QLabel" name="label_3">
+                   <property name="text">
+                    <string>#sweeps</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="lineEdit_numberOfScans">
+                   <property name="text">
+                    <string>1</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkBox_followPeak">
+                 <property name="toolTip">
+                  <string>Search contact at each scanning point</string>
+                 </property>
+                 <property name="text">
+                  <string>Follow peak</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkBox_searchContact">
+                 <property name="toolTip">
+                  <string>Search contact at each scanning point</string>
+                 </property>
+                 <property name="text">
+                  <string>Search contact</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkBox_SqueezeSpan">
+                 <property name="toolTip">
+                  <string>Squeeze Span while search contact</string>
+                 </property>
+                 <property name="text">
+                  <string>Squeeze Span</string>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>1</width>
+                   <height>1</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
             </layout>
            </widget>

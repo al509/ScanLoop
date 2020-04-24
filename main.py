@@ -4,7 +4,7 @@
 
 # -*- coding: utf-8 -*-
 
-__version__='16.1.3'
+__version__='16.2'
 
 import sys
 if 'init_modules' in globals(  ):
