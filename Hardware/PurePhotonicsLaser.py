@@ -1,5 +1,5 @@
 import serial
-import ITLA
+from Hardware import ITLA
 import numpy as np
 
 def nmToDGHz(nm : float):
@@ -15,8 +15,9 @@ class Laser(serial.Serial):
              bytesize=serial.EIGHTBITS,
              timeout = 0.4)
         ITLA.ITLAConnect(COMPort)
-    
-        
+        self.maximum_tuning=199 # in pm
+
+
     def setOn(self):
         return ITLA.ITLA(self, ITLA.REG_Resena, 8, ITLA.WRITE)
     def setOff(self):
@@ -30,16 +31,16 @@ class Laser(serial.Serial):
                 'Whisper':2}
         Command=ModeKeys[ModeKey]
         return ITLA.ITLA(self, ITLA.REG_Mode, Command, ITLA.WRITE)
-    
-    def setWaveLength(self, nm: float): # in nm, accuracy: 0.001 nm
+
+    def setWavelength(self, nm: float): # in nm, accuracy: 0.001 nm
         freq = nmToDGHz(nm)
         THz = freq // 10000
         dGHz = freq % 10000
         ITLA.ITLA(self, ITLA.REG_Fcf1, THz, ITLA.WRITE)
         ITLA.ITLA(self, ITLA.REG_Fcf2, dGHz, ITLA.WRITE)
         return
-    
-    def fineTune(self, pm: int): # in pm, accuracy : 0.01 pm
+
+    def fineTuning(self, pm: int): # in pm, accuracy : 0.01 pm
         C = 299792458
         THz = ITLA.ITLA(self, ITLA.REG_Lf1, 0, ITLA.READ)
         dGHz = ITLA.ITLA(self, ITLA.REG_Lf2, 0, ITLA.READ)
@@ -47,12 +48,13 @@ class Laser(serial.Serial):
         df = -1 * C * pm / (l1 * (l1 + pm))
         dfe = df * (10 ** (6))
         return ITLA.ITLA(self, ITLA.REG_Ftf, np.uint16(dfe), ITLA.WRITE)
-   
 
-        
-        
-        
-    
-        
-            
-    
+
+
+
+if __name__=='__main__':
+    laser=Laser('COM8')
+    del laser
+
+
+

@@ -46,6 +46,7 @@ class ThreadedMainWindow(QMainWindow):
         self.stages=None
         self.OSA=None
         self.scope=None
+        self.laser=None
 
     def add_thread(self, objects):
         """
@@ -84,6 +85,7 @@ class MainWindow(ThreadedMainWindow):
     force_stage_move = pyqtSignal(str,int)
     force_scope_acquire = pyqtSignal()
     force_scanning_process=pyqtSignal()
+    force_laser_scanning_process=pyqtSignal()
     '''
     Initialization
     '''
@@ -93,45 +95,52 @@ class MainWindow(ThreadedMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.setWindowTitle("ScanLoop V."+version)
-        self.logger = Logger(parent=None)
-        self.add_thread([self.logger])
-        self.analyzer=AnalyzerForSpectrogram.AnalyzerForSpectrogram()
-        self.add_thread([self.analyzer])
 
+        self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
+
+
+        # Stages interface
         self.ui.pushButton_StagesConnect.pressed.connect(self.connectStages)
-        self.ui.pushButton_OSA_connect.pressed.connect(self.connectOSA)
-
         self.X_0,self.Y_0,self.Z_0=[0,0,0]
 
-
-
-        self.ui.pushButton_processSpectralData.pressed.connect(self.on_Push_Button_ProcessSpectra)
-        self.ui.pushButton_processTDData.pressed.connect(self.on_Push_Button_ProcessTD)
-
+        # OSA interface
+        self.ui.pushButton_OSA_connect.pressed.connect(self.connectOSA)
         self.ui.pushButton_OSA_Acquire.pressed.connect(self.on_pushButton_acquireSpectrum_pressed)
-        self.ui.pushButton_save_data.pressed.connect(self.on_pushButton_save_data)
         self.ui.pushButton_OSA_AcquireAll.pressed.connect(self.on_pushButton_AcquireAllSpectra_pressed)
         self.ui.pushButton_OSA_AcquireRep.clicked[bool].connect(self.on_pushButton_acquireSpectrumRep_pressed)
-#        self.ui.pushButton_OSA_AcquireRepAll.clicked[bool].connect(self.on_pushButton_AcquireAllSpectraRep_pressed)
 
-
-        self.ui.pushButton_scope_single.pressed.connect(self.on_pushButton_scope_single_measurement_pressed)
+        # scope interface
         self.ui.pushButton_scope_connect.pressed.connect(self.connectScope)
+        self.ui.pushButton_scope_single.pressed.connect(self.on_pushButton_scope_single_measurement_pressed)
         self.ui.pushButton_scope_repeat.clicked[bool].connect(self.on_pushButton_scope_repeat__pressed)
 
+        # painter and drawing interface
+        self.painter = MyPainter(self.ui.groupBox_spectrum)
+        self.add_thread([self.painter])
         self.ui.CheckBox_FreezeSpectrum.stateChanged.connect(self.on_stateChangeOfFreezeSpectrumBox)
         self.ui.CheckBox_ApplyFFTFilter.stateChanged.connect(self.on_stateChangeOfApplyFFTBox)
         self.ui.checkBox_HighRes.stateChanged.connect(self.on_stateChangeOfIsHighResolution)
         self.ui.pushButton_getRange.pressed.connect(self.on_pushButton_getRange)
-        self.painter = MyPainter(self.ui.groupBox_spectrum)
-        self.add_thread([self.painter])
-
         self.ui.EditLine_StartWavelength.textChanged[str].connect(lambda S: self.OSA.change_range(start_wavelength=float(S)) if (isfloat(S) and float(S)>1500 and float(S)<1600) else 0)
         self.ui.EditLine_StopWavelength.textChanged[str].connect(lambda S: self.OSA.change_range(stop_wavelength=float(S)) if (isfloat(S) and float(S)>1500 and float(S)<1600) else 0)
+
+        # saving interface
+        self.logger = Logger(parent=None)
+        self.add_thread([self.logger])
         self.ui.pushButton_SaveParameters.pressed.connect(self.saveParametersToFile)
         self.ui.pushButton_LoadParameters.pressed.connect(self.loadParametersFromFile)
-        self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
+        self.ui.pushButton_save_data.pressed.connect(self.on_pushButton_save_data)
 
+        #scanning process
+        self.ui.pushButton_Scanning.clicked[bool].connect(self.on_pushButton_Scanning_pressed)
+
+        # processing
+        self.ui.pushButton_processSpectralData.pressed.connect(self.on_Push_Button_ProcessSpectra)
+        self.ui.pushButton_processTDData.pressed.connect(self.on_Push_Button_ProcessTD)
+
+        # analyzer logic
+        self.analyzer=AnalyzerForSpectrogram.AnalyzerForSpectrogram()
+        self.add_thread([self.analyzer])
         self.ui.pushButton_process_arb_spectral_data.clicked.connect(self.process_arb_spectral_data_clicked)
         self.ui.pushButton_process_arb_TD_data.clicked.connect(self.process_arb_TD_data_clicked)
         self.ui.pushButton_choose_folder_to_process.clicked.connect(self.choose_folder_to_process)
@@ -139,13 +148,9 @@ class MainWindow(ThreadedMainWindow):
                                                                                         axis=self.ui.comboBox_axis_to_plot_along.currentText()))
         self.ui.pushButton_plotSampleShape_arb_data.clicked.connect(lambda: self.plotSampleShape(DirName=self.Folder,
                                                                                         axis=self.ui.comboBox_axis_to_plot_along_arb_data.currentText()))
-
         self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(self.choose_folder_for_analyzer)
-
         self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(self.analyzer.plot_sample_shape)
-
         self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot2D())
-
         self.ui.pushButton_analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plotSlice(int(self.ui.lineEdit_slice_position.text()),
                                                                                                float(self.ui.lineEdit_analyzer_resonance_level.text()),
                                                                                                self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
@@ -153,6 +158,12 @@ class MainWindow(ThreadedMainWindow):
                                                                                                 float(self.ui.lineEdit_analyzer_wavelength_min.text()),
                                                                                                 float(self.ui.lineEdit_analyzer_wavelength_max.text()),
                                                                                                 self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
+        ## laser
+        self.ui.pushButton_laser_connect.clicked.connect(self.connect_laser)
+        self.ui.pushButton_laser_On.clicked[bool].connect(self.on_pushButton_laser_On)
+        self.ui.comboBox_laser_mode.currentIndexChanged.connect(self.change_laser_mode)
+        self.ui.lineEdit_laser_fine_tune.textChanged.connect(self.laser_fine_tuning)
+        self.ui.pushButton_scanning_laser_wavelength.clicked[bool].connect(self.laser_sweeping)
 
     def connectScope(self):
         self.scope=Scope(Consts.Scope.HOST)
@@ -189,9 +200,6 @@ class MainWindow(ThreadedMainWindow):
             timeout_long = 100
             self.OSA=OSA_AQ6370(None,HOST, PORT, timeout_long,timeout_short)
 #            self.OSA.received_spectra.connect(self.painter.set_spectra)
-
-
-
         elif self.ui.comboBox_Type_of_OSA.currentText()=='Astro interrogator':
             cfg = Config("config_interrogator.json")
             self.repeatmode=False
@@ -264,12 +272,68 @@ class MainWindow(ThreadedMainWindow):
 
             self.enableScanningProcess()
 
+    def connect_laser(self):
+        COMPort='COM'+self.ui.lineEdit_laser_COMport.text()
+        from Hardware.PurePhotonicsLaser import Laser
+        try:
+            self.laser=Laser(COMPort)
+            self.laser.fineTuning(0)
+            print('Laser has been connected')
+    #            self.add_thread([self.laser])
+        except:
+            print('Connection to laser failed. Check the COM port number')
+
+
+    def on_pushButton_laser_On(self,pressed:bool):
+        if pressed:
+            self.ui.pushButton_scanning_laser_wavelength.setEnabled(False)
+            self.laser.setPower(float(self.ui.lineEdit_laser_power.text()))
+            self.laser.setWavelength(float(self.ui.lineEdit_laser_lambda.text()))
+            self.laser.setOn()
+            self.ui.comboBox_laser_mode.setEnabled(True)
+            self.ui.lineEdit_laser_fine_tune.setEnabled(True)
+        else:
+            self.laser.setOff()
+            self.ui.pushButton_scanning_laser_wavelength.setEnabled(True)
+            self.ui.comboBox_laser_mode.setEnabled(False)
+            self.ui.lineEdit_laser_fine_tune.setEnabled(False)
+
+    def change_laser_mode(self):
+        self.laser.setMode(self.ui.comboBox_laser_mode.currentText())
+
+    def laser_fine_tuning(self):
+        self.laser.fineTuning(float(self.ui.lineEdit_laser_fine_tune.text()))
+
+    def laser_sweeping(self,pressed:bool):
+        if pressed:
+            self.ui.pushButton_laser_On.setEnabled(False)
+            from Scripts.ScanningProcessLaser import LaserScanningProcess
+            self.laser_scanning_process=LaserScanningProcess(OSA=self.OSA,
+                                                        laser=self.laser,
+                                                        laser_power=float(self.ui.lineEdit_laser_power.text()),
+                                                        scanstep=float(self.ui.lineEdit_laser_lambda_step.text()),
+                                                        wavelength_start=float(self.ui.lineEdit_laser_lambda_min.text()),
+                                                        wavelength_stop=float(self.ui.lineEdit_laser_lambda_max.text()))
+            self.add_thread([self.laser_scanning_process])
+            self.laser_scanning_process.S_updateCurrentWavelength.connect(lambda S:self.ui.label_current_laser_wavelength.setText(S))
+            self.force_laser_scanning_process.connect(self.laser_scanning_process.run)
+            self.laser_scanning_process.S_saveData.connect(lambda Data,prefix: self.logger.save_data(Data,prefix,0,0,0,'FromOSA'))
+            print('Start laser sweeping')
+            self.laser_scanning_process.S_finished.connect(self.ui.pushButton_scanning_laser_wavelength.toggle)
+            self.laser_scanning_process.S_finished.connect(lambda : self.laser_sweeping(False))
+            self.force_laser_scanning_process.emit()
+
+        else:
+            self.ui.pushButton_laser_On.setEnabled(True)
+            self.laser_scanning_process.is_running=False
+            del self.laser_scanning_process
+
+
 
     @pyqtSlotWExceptions()
     def enableScanningProcess(self):
         if (self.ui.groupBox_stand.isEnabled() and self.ui.tabWidget_instruments.isEnabled()):
             self.ui.groupBox_Scanning.setEnabled(True)
-            self.ui.pushButton_Scanning.clicked[bool].connect(self.on_pushButton_Scanning_pressed)
             self.ui.tabWidget_instruments.setCurrentIndex(0)
 
 
@@ -425,7 +489,6 @@ class MainWindow(ThreadedMainWindow):
             self.ui.groupBox_stand.setEnabled(True)
 
 
-
     def on_pushButton_save_data(self):
         if self.stages is not None:
             X=self.stages.position['X']-self.X_0
@@ -511,6 +574,9 @@ class MainWindow(ThreadedMainWindow):
                            channel_number=self.ui.comboBox_TD_channel_to_plot.currentIndex())
         Thread.quit()
 
+
+
+
     def plotSampleShape(self,DirName,axis):
         from Scripts.ProcessAndPlotSpectra import ProcessSpectra
         self.ProcessSpectra=ProcessSpectra()
@@ -574,7 +640,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.lineEdit_StopFile.setText(str(Dict['StopFile']))
         self.ui.EditLine_FilterPointsToCut.setText(str(Dict['FFTPointsToCut']))
         self.ui.EditLine_FilterLowFreqEdge.setText(str(Dict['FFTLowerEdge']))
-        self.ui.EditLine_FilterHighFreqEdge.setText(str(Dict['FFTHigherEdge']))
+        self.ui.EditLine_FilterHighFreqEdge.l(str(Dict['FFTHigherEdge']))
         self.ui.CheckBox_ApplyFFTFilter.setChecked(Dict['ApplyFFT']=='True')
         self.ui.checkBox_SqueezeSpan.setChecked(Dict['SqueezeSpan?']=='True')
         self.ui.checkBox_searchContact.setChecked(Dict['SearchingContact?']=='True')
@@ -625,7 +691,7 @@ class MainWindow(ThreadedMainWindow):
                                 Shifting=self.ui.checkBox_IsShiftingWhileProcessingArbData.isChecked(),DirName=self.Folder,
                                 axis_to_plot_along=self.ui.comboBox_axis_to_plot_along_arb_data.currentText())
         Thread.quit()
-#            fname = QtWidgets.QFileDialog().getOpenFileName()[0]
+
 
 
 
@@ -661,6 +727,9 @@ class MainWindow(ThreadedMainWindow):
         print('Logger is deleted')
         del self.analyzer
         print('Analyzer is deleted')
+        self.laser.setOff()
+        del self.laser
+        print('laser is deleted')
         try:
             del self.scanningProcess
             print('Scanning object is deleted')

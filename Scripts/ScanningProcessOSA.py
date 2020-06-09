@@ -182,7 +182,7 @@ class ScanningProcess(QObject):
             #update indexes in MainWindow and save positions into "Positions.txt"
             
             if self.followPeak and max(spectrum)-min(spectrum)>self.minimumPeakHight:
-                self.OSA.SetCenter(wavelengthdata(np.argmin(spectrum)))
+                self.OSA.SetCenter(wavelengthdata[np.argmin(spectrum)])
                 
 
 
