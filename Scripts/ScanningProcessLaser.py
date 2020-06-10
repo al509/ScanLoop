@@ -58,7 +58,7 @@ class LaserScanningProcess(QObject):
             wavelengthdata, spectrum=self.OSA.acquire_spectrum()
             time.sleep(0.05)
             Data=np.stack((wavelengthdata, spectrum),axis=1)
-            self.S_saveData.emit(Data,'w='+str(self.wavelength)) # save spectrum to file
+            self.S_saveData.emit(Data,'W='+str(self.wavelength)) # save spectrum to file
             if not self.is_running:
                 self.laser.setOff()
                 break

@@ -23,7 +23,7 @@ class ProcessSpectra(QObject):
     axis_to_plot_along='X'
     number_of_axis={'X':0,'Y':1,'Z':2,'W':3}
     AccuracyOfWavelength=0.008 # in nm. Maximum expected shift to define the correlation window
-    
+    type_of_data='bin'
     Cmap='jet'
 #
     def define_file_naming_style(self,FileName): # legacy code
@@ -46,15 +46,18 @@ class ProcessSpectra(QObject):
             a=s.find(' ')
             s=s[0:a]
             return float(s)
-        with open(file, "rb") as f:
-            min_wavelength = extract_wavelength_from_line(f.readline())        # Read the first line.
-            f.seek(-2, os.SEEK_END)     # Jump to the second last byte.
-            while f.read(1) != b"\n":   # Until EOL is found...
-                f.seek(-2, os.SEEK_CUR) # ...jump back the read byte plus one more.
-            max_wavelength = extract_wavelength_from_line(f.readline())         # Read last line.
-        f.close()
-        return min_wavelength,max_wavelength
-
+        if self.type_of_data=='txt':
+            with open(file, "rb") as f:
+                min_wavelength = extract_wavelength_from_line(f.readline())        # Read the first line.
+                f.seek(-2, os.SEEK_END)     # Jump to the second last byte.
+                while f.read(1) != b"\n":   # Until EOL is found...
+                    f.seek(-2, os.SEEK_CUR) # ...jump back the read byte plus one more.
+                max_wavelength = extract_wavelength_from_line(f.readline())         # Read last line.
+            f.close()
+            return min_wavelength,max_wavelength
+        else:
+            Data=pickle.load(open(file,"rb"))
+            return Data[0,0],Data[-1,0]
 
     def get_position_from_file_name(self,string,axis): # extract postitions of the contact from the file name
         if self.file_naming_style=='old':
@@ -124,6 +127,7 @@ class ProcessSpectra(QObject):
 
 
     def run(self,StepSize,Averaging:bool,Shifting:bool,DirName,axis_to_plot_along='X',type_of_data='bin'):
+        self.type_of_data=type_of_data
         self.axis_to_plot_along=axis_to_plot_along
         AccuracyOfWavelength=self.AccuracyOfWavelength
         time1=time.time()
@@ -133,7 +137,6 @@ class ProcessSpectra(QObject):
         """
         group files at each point
         """
-        print(axis_to_plot_along)
         FileList=sorted(FileList,key=lambda s:self.get_position_from_file_name(s,axis=axis_to_plot_along))
         StructuredFileList,Positions=self.Create2DListOfFiles(FileList,axis=axis_to_plot_along)
         NumberOfPointsZ=len(StructuredFileList)
@@ -144,7 +147,7 @@ class ProcessSpectra(QObject):
         """
         MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(DirName+ '\\' +FileList[0])
         if type_of_data=='bin':
-            Data = pickle.load(open(DirName+ '\\' +FileList[0], "rb"))
+            Data = pickle.load(open(DirName+ '\\' +FileList[0], "rb"))[:,0]
         elif type_of_data=='txt':
             Data=np.genfromtxt(DirName+ '\\' +FileList[0],skip_header=self.skip_Header)[:,0]
         WavelengthStep=np.max(np.diff(Data))
@@ -174,7 +177,7 @@ class ProcessSpectra(QObject):
             for jj, FileName in enumerate(FileNameListAtPoint):
                 try:
                     if type_of_data=='bin':
-                        Data = pickle.load(open(FileName, "rb"))
+                        Data = pickle.load(open(DirName+ '\\' +FileName, "rb"))
                     elif type_of_data=='txt':
                         Data = np.genfromtxt(DirName+ '\\' +FileName,skip_header=self.skip_Header)
                 except UnicodeDecodeError:
@@ -261,4 +264,4 @@ if __name__ == "__main__":
 #    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
 #                                     axis_to_plot_along='Z')
 
-    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False,DirName='SpectralData',axis_to_plot_along='Z')
+    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False,DirName='SpectralData',axis_to_plot_along='W',type_of_data='bin')
