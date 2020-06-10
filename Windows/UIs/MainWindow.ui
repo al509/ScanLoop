@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1280</width>
-    <height>874</height>
+    <width>1199</width>
+    <height>870</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1256</width>
-         <height>799</height>
+         <width>1179</width>
+         <height>809</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -263,7 +263,7 @@
           </widget>
          </widget>
         </item>
-        <item row="0" column="1">
+        <item row="0" column="1" rowspan="2">
          <widget class="QToolBox" name="File_work">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -289,7 +289,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>596</height>
+             <height>683</height>
             </rect>
            </property>
            <attribute name="label">
@@ -452,7 +452,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>596</height>
+             <height>683</height>
             </rect>
            </property>
            <attribute name="label">
@@ -465,7 +465,7 @@
             <property name="geometry">
              <rect>
               <x>10</x>
-              <y>230</y>
+              <y>220</y>
               <width>291</width>
               <height>121</height>
              </rect>
@@ -662,7 +662,7 @@
               <x>9</x>
               <y>0</y>
               <width>291</width>
-              <height>221</height>
+              <height>211</height>
              </rect>
             </property>
             <property name="title">
@@ -891,8 +891,8 @@
            <widget class="QGroupBox" name="groupBox_save_data">
             <property name="geometry">
              <rect>
-              <x>9</x>
-              <y>560</y>
+              <x>10</x>
+              <y>550</y>
               <width>291</width>
               <height>141</height>
              </rect>
@@ -1024,8 +1024,8 @@
               <rect>
                <x>100</x>
                <y>110</y>
-               <width>37</width>
-               <height>22</height>
+               <width>32</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1060,12 +1060,15 @@
               <rect>
                <x>100</x>
                <y>80</y>
-               <width>38</width>
-               <height>22</height>
+               <width>36</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
               <string>Choose channel to plot</string>
+             </property>
+             <property name="currentIndex">
+              <number>2</number>
              </property>
              <property name="sizeAdjustPolicy">
               <enum>QComboBox::AdjustToContents</enum>
@@ -1083,6 +1086,11 @@
              <item>
               <property name="text">
                <string>Z</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>W</string>
               </property>
              </item>
             </widget>
@@ -1106,8 +1114,8 @@
             </property>
             <property name="geometry">
              <rect>
-              <x>9</x>
-              <y>350</y>
+              <x>10</x>
+              <y>340</y>
               <width>291</width>
               <height>211</height>
              </rect>
@@ -1165,16 +1173,6 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="1">
-              <widget class="QLineEdit" name="lineEdit_SearchingStep">
-               <property name="text">
-                <string>30</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
              <item row="6" column="0">
               <widget class="QLabel" name="label_8">
                <property name="text">
@@ -1182,8 +1180,8 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="0">
-              <widget class="QLineEdit" name="lineEdit_ScanningStep">
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="lineEdit_SearchingStep">
                <property name="text">
                 <string>30</string>
                </property>
@@ -1202,10 +1200,10 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="3">
-              <widget class="QLineEdit" name="lineEdit_LevelToDetectContact">
+             <item row="2" column="0">
+              <widget class="QLineEdit" name="lineEdit_ScanningStep">
                <property name="text">
-                <string>-35</string>
+                <string>30</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1234,43 +1232,6 @@
                  <string>Along X, get contact along Z</string>
                 </property>
                </item>
-              </widget>
-             </item>
-             <item row="1" column="2">
-              <widget class="QLabel" name="label_6">
-               <property name="text">
-                <string>Losing contact step</string>
-               </property>
-               <property name="wordWrap">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="6" column="3">
-              <widget class="QLineEdit" name="lineEdit_StopFile">
-               <property name="text">
-                <string>100</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="6" column="2">
-              <widget class="QLabel" name="label_2">
-               <property name="text">
-                <string>to</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="2">
-              <widget class="QLineEdit" name="lineEdit_BackStep">
-               <property name="text">
-                <string>50</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
               </widget>
              </item>
              <item row="3" column="0" colspan="4">
@@ -1334,6 +1295,53 @@
                </item>
               </layout>
              </item>
+             <item row="2" column="3">
+              <widget class="QLineEdit" name="lineEdit_LevelToDetectContact">
+               <property name="text">
+                <string>-35</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="3">
+              <widget class="QLineEdit" name="lineEdit_StopFile">
+               <property name="text">
+                <string>100</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="2">
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>to</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>Losing contact step</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QLineEdit" name="lineEdit_BackStep">
+               <property name="text">
+                <string>50</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </widget>
@@ -1343,7 +1351,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>596</height>
+             <height>683</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1667,7 +1675,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>596</height>
+             <height>683</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1713,16 +1721,6 @@
               <widget class="QPushButton" name="pushButton_process_arb_spectral_data">
                <property name="text">
                 <string>Process spectra from raw data</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2" colspan="3">
-              <widget class="QLabel" name="label_folder_to_process_files">
-               <property name="text">
-                <string>none</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -1816,6 +1814,11 @@
                  <string>Z</string>
                 </property>
                </item>
+               <item>
+                <property name="text">
+                 <string>W</string>
+                </property>
+               </item>
               </widget>
              </item>
              <item row="4" column="3">
@@ -1823,6 +1826,30 @@
                <property name="text">
                 <string>Plot sample shape</string>
                </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLabel" name="label_folder_to_process_files">
+               <property name="text">
+                <string>none</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3">
+              <widget class="QComboBox" name="comboBox_type_of_data">
+               <item>
+                <property name="text">
+                 <string>bin</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>txt</string>
+                </property>
+               </item>
               </widget>
              </item>
             </layout>
@@ -2018,8 +2045,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>38</width>
-                <height>22</height>
+                <width>33</width>
+                <height>20</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -2098,8 +2125,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1280</width>
-     <height>26</height>
+     <width>1199</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>

@@ -1,6 +1,7 @@
 import numpy as np
 import json
 import sys,os
+import pickle
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -24,7 +25,7 @@ class Logger(QObject):
         self.wavelengths = None
         self.positions = list()
         self.file=None
-        
+        self.saving_file_type='bin'
 
 
 
@@ -33,8 +34,13 @@ class Logger(QObject):
             FilePrefix=self.TDFolder+'TD_'+name
         elif SourceOfData=='FromOSA':
             FilePrefix=self.SpectralDataFolder+'Sp_'+name
-        FileName=FilePrefix+'_X={}_Y={}_Z={}_'.format(X,Y,Z)+'.txt'
-        np.savetxt(FileName, Data)
+        FileName=FilePrefix+'_X={}_Y={}_Z={}_'.format(X,Y,Z)
+        if self.saving_file_type=='txt':
+            np.savetxt(FileName+'.txt', Data)
+        elif self.saving_file_type=='bin':
+            f = open(FileName+'.pkl',"wb")
+            pickle.dump(Data,f)
+            f.close()
         print('\nData saved\n')
 
     def SaveParameters(self, Dict):

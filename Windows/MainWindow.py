@@ -689,7 +689,8 @@ class MainWindow(ThreadedMainWindow):
             StepSize=float(self.ui.lineEdit_ScanningStep.text())
         self.ProcessSpectra.run(StepSize=StepSize,Averaging=self.ui.checkBox_IsAveragingWhileProcessingArbData.isChecked(),
                                 Shifting=self.ui.checkBox_IsShiftingWhileProcessingArbData.isChecked(),DirName=self.Folder,
-                                axis_to_plot_along=self.ui.comboBox_axis_to_plot_along_arb_data.currentText())
+                                axis_to_plot_along=self.ui.comboBox_axis_to_plot_along_arb_data.currentText(),
+                                type_of_data=self.ui.comboBox_type_of_data.currentText())
         Thread.quit()
 
 

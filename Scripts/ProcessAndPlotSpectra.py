@@ -1,5 +1,5 @@
 """
-Version Nov 13 2019
+Version 10.06.2020
 """
 import os
 import numpy as np
@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import time
 from scipy import interpolate
 from PyQt5.QtCore import QObject
+import pickle
 
 
 class ProcessSpectra(QObject):
@@ -20,7 +21,7 @@ class ProcessSpectra(QObject):
     MinimumPeakDistance=500 ## For peak searching
     file_naming_style='new'
     axis_to_plot_along='X'
-    number_of_axis={'X':0,'Y':1,'Z':2}
+    number_of_axis={'X':0,'Y':1,'Z':2,'W':3}
     AccuracyOfWavelength=0.008 # in nm. Maximum expected shift to define the correlation window
     
     Cmap='jet'
@@ -66,6 +67,8 @@ class ProcessSpectra(QObject):
                 return int(self.find_between(string,'Y=','_Z'))
             if axis=='Z':
                 return int(self.find_between(string,'Z=','_.'))
+            if axis=='W':
+                return float(self.find_between(string,'W=','_'))
 
     def Create2DListOfFiles(self,FileList,axis='X'):  #Find all files which acqured at the same point
         NewFileList=[]
@@ -90,7 +93,8 @@ class ProcessSpectra(QObject):
                 NewFileList.append(Temp)
                 Positions.append([self.get_position_from_file_name(Name,axis='X'),
                                   self.get_position_from_file_name(Name,axis='Y'),
-                                  self.get_position_from_file_name(Name,axis='Z')])
+                                  self.get_position_from_file_name(Name,axis='Z'),
+                                  self.get_position_from_file_name(Name,axis='W')])
                 FileList=[T for T in FileList if not (T in Temp)]
             return NewFileList,Positions
 
@@ -119,7 +123,7 @@ class ProcessSpectra(QObject):
         plt.gca().invert_xaxis()
 
 
-    def run(self,StepSize,Averaging:bool,Shifting:bool,DirName,axis_to_plot_along='X'):
+    def run(self,StepSize,Averaging:bool,Shifting:bool,DirName,axis_to_plot_along='X',type_of_data='bin'):
         self.axis_to_plot_along=axis_to_plot_along
         AccuracyOfWavelength=self.AccuracyOfWavelength
         time1=time.time()
@@ -129,6 +133,7 @@ class ProcessSpectra(QObject):
         """
         group files at each point
         """
+        print(axis_to_plot_along)
         FileList=sorted(FileList,key=lambda s:self.get_position_from_file_name(s,axis=axis_to_plot_along))
         StructuredFileList,Positions=self.Create2DListOfFiles(FileList,axis=axis_to_plot_along)
         NumberOfPointsZ=len(StructuredFileList)
@@ -138,7 +143,10 @@ class ProcessSpectra(QObject):
         Create main wavelength array
         """
         MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(DirName+ '\\' +FileList[0])
-        Data=np.genfromtxt(DirName+ '\\' +FileList[0],skip_header=self.skip_Header)[:,0]
+        if type_of_data=='bin':
+            Data = pickle.load(open(DirName+ '\\' +FileList[0], "rb"))
+        elif type_of_data=='txt':
+            Data=np.genfromtxt(DirName+ '\\' +FileList[0],skip_header=self.skip_Header)[:,0]
         WavelengthStep=np.max(np.diff(Data))
         for File in FileList:
             try:
@@ -165,7 +173,10 @@ class ProcessSpectra(QObject):
             print(FileNameListAtPoint[0])
             for jj, FileName in enumerate(FileNameListAtPoint):
                 try:
-                    Data = np.genfromtxt(DirName+ '\\' +FileName,skip_header=self.skip_Header)
+                    if type_of_data=='bin':
+                        Data = pickle.load(open(FileName, "rb"))
+                    elif type_of_data=='txt':
+                        Data = np.genfromtxt(DirName+ '\\' +FileName,skip_header=self.skip_Header)
                 except UnicodeDecodeError:
                     print('Error while getting data from file {}'.format(FileName))
                 SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(Data[:,1],Data[:,0],MainWavelengths)
@@ -231,11 +242,14 @@ class ProcessSpectra(QObject):
             plt.figure()
             Positions_at_given_axis=np.array([s[self.number_of_axis[self.axis_to_plot_along]] for s in Positions])
             plt.contourf(Positions_at_given_axis,MainWavelengths,SignalArray,200,cmap=self.Cmap)
-            plt.xlabel('Position, steps (2.5 um each)')
             plt.ylabel('Wavelength, nm')
-            ax2=(plt.gca()).twiny()
-            ax2.set_xlabel('Distance, um')
-            ax2.set_xlim([0, (np.max(Positions_at_given_axis)-np.min(Positions_at_given_axis))*2.5])
+            if self.axis_to_plot_along!='W':
+                plt.xlabel('Position, steps (2.5 um each)')
+                ax2=(plt.gca()).twiny()
+                ax2.set_xlabel('Distance, um')
+                ax2.set_xlim([0, (np.max(Positions_at_given_axis)-np.min(Positions_at_given_axis))*2.5])
+            else:
+                plt.xlabel('Wavelength,nm')
             plt.tight_layout()
             plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
             time2=time.time()
