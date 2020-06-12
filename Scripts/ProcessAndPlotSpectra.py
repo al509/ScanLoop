@@ -71,7 +71,11 @@ class ProcessSpectra(QObject):
             if axis=='Z':
                 return int(self.find_between(string,'Z=','_.'))
             if axis=='W':
-                return float(self.find_between(string,'W=','_'))
+                try:
+                    a=float(self.find_between(string,'W=','_'))
+                except:
+                    a=0
+                return a
 
     def Create2DListOfFiles(self,FileList,axis='X'):  #Find all files which acqured at the same point
         NewFileList=[]
