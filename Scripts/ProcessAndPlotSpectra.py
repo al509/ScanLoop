@@ -21,7 +21,7 @@ class ProcessSpectra(QObject):
     MinimumPeakDistance=500 ## For peak searching
     file_naming_style='new'
     axis_to_plot_along='X'
-    number_of_axis={'X':0,'Y':1,'Z':2,'W':3}
+    number_of_axis={'X':0,'Y':1,'Z':2,'W':3,'p':4}
     AccuracyOfWavelength=0.008 # in nm. Maximum expected shift to define the correlation window
     type_of_data='bin'
     Cmap='jet'
@@ -76,6 +76,12 @@ class ProcessSpectra(QObject):
                 except:
                     a=0
                 return a
+            if axis=='p':
+                try:
+                    a=int(self.find_between(string,'p=','_'))
+                except:
+                    a=0
+                return a
 
     def Create2DListOfFiles(self,FileList,axis='X'):  #Find all files which acqured at the same point
         NewFileList=[]
@@ -101,7 +107,8 @@ class ProcessSpectra(QObject):
                 Positions.append([self.get_position_from_file_name(Name,axis='X'),
                                   self.get_position_from_file_name(Name,axis='Y'),
                                   self.get_position_from_file_name(Name,axis='Z'),
-                                  self.get_position_from_file_name(Name,axis='W')])
+                                  self.get_position_from_file_name(Name,axis='W'),
+                                  self.get_position_from_file_name(Name,axis='p')])
                 FileList=[T for T in FileList if not (T in Temp)]
             return NewFileList,Positions
 
@@ -268,4 +275,4 @@ if __name__ == "__main__":
 #    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
 #                                     axis_to_plot_along='Z')
 
-    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False,DirName='SpectralData',axis_to_plot_along='W',type_of_data='bin')
+    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False,DirName='SpectralData',axis_to_plot_along='p',type_of_data='bin')

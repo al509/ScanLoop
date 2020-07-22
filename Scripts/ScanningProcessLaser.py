@@ -69,7 +69,10 @@ class LaserScanningProcess(QObject):
                 time.sleep(self.short_pause)
             else:
                 tuning=0
+                self.laser.setOff()
                 self.laser.setWavelength(self.wavelength)
+                self.laser.fineTuning(0)
+                self.laser.setOn()
                 time.sleep(self.long_pause)
             self.S_updateCurrentWavelength.emit(str(self.wavelength))
 

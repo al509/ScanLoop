@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1179</width>
-         <height>809</height>
+         <width>1175</width>
+         <height>795</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -289,7 +289,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>683</height>
+             <height>649</height>
             </rect>
            </property>
            <attribute name="label">
@@ -452,7 +452,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>683</height>
+             <height>649</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1024,8 +1024,8 @@
               <rect>
                <x>100</x>
                <y>110</y>
-               <width>32</width>
-               <height>20</height>
+               <width>37</width>
+               <height>22</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1060,12 +1060,15 @@
               <rect>
                <x>100</x>
                <y>80</y>
-               <width>36</width>
-               <height>20</height>
+               <width>42</width>
+               <height>22</height>
               </rect>
              </property>
              <property name="toolTip">
               <string>Choose channel to plot</string>
+             </property>
+             <property name="currentText">
+              <string>Z</string>
              </property>
              <property name="currentIndex">
               <number>2</number>
@@ -1091,6 +1094,11 @@
              <item>
               <property name="text">
                <string>W</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>p</string>
               </property>
              </item>
             </widget>
@@ -1351,7 +1359,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>683</height>
+             <height>649</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1675,7 +1683,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>683</height>
+             <height>649</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1794,7 +1802,7 @@
                 <string>Choose channel to plot</string>
                </property>
                <property name="currentIndex">
-                <number>2</number>
+                <number>0</number>
                </property>
                <property name="sizeAdjustPolicy">
                 <enum>QComboBox::AdjustToContents</enum>
@@ -1817,6 +1825,11 @@
                <item>
                 <property name="text">
                  <string>W</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>p</string>
                 </property>
                </item>
               </widget>
@@ -2045,8 +2058,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>33</width>
-                <height>20</height>
+                <width>38</width>
+                <height>22</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -2126,7 +2139,7 @@
      <x>0</x>
      <y>0</y>
      <width>1199</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>
