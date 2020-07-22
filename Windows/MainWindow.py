@@ -132,6 +132,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_save_data.pressed.connect(self.on_pushButton_save_data)
 
         #scanning process
+        self.ui.checkBox_searchContact.stateChanged.connect(self.on_stateSearchContact)
         self.ui.pushButton_Scanning.clicked[bool].connect(self.on_pushButton_Scanning_pressed)
 
         # processing
@@ -335,6 +336,8 @@ class MainWindow(ThreadedMainWindow):
         if (self.ui.groupBox_stand.isEnabled() and self.ui.tabWidget_instruments.isEnabled()):
             self.ui.groupBox_Scanning.setEnabled(True)
             self.ui.tabWidget_instruments.setCurrentIndex(0)
+            self.ui.lineEdit_BackStep.setEnabled(False)
+            self.ui.lineEdit_LevelToDetectContact.setEnabled(False)
 
 
     @pyqtSlotWExceptions()
@@ -429,6 +432,14 @@ class MainWindow(ThreadedMainWindow):
 #            self.ui.pushButton_OSA_Acquire.setEnabled(True)
 #            self.ui.pushButton_OSA_AcquireRep.setEnabled(True)
 #            self.ui.pushButton_Scanning.setEnabled(True)
+
+    def on_stateSearchContact(self):
+        if self.ui.checkBox_searchContact.isChecked():
+            self.ui.lineEdit_BackStep.setEnabled(True)
+            self.ui.lineEdit_LevelToDetectContact.setEnabled(True)
+        else:
+            self.ui.lineEdit_BackStep.setEnabled(False)
+            self.ui.lineEdit_LevelToDetectContact.setEnabled(False)
 
 
     def on_pushButton_Scanning_pressed(self,pressed:bool):
