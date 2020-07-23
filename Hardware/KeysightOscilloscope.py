@@ -226,6 +226,7 @@ class Scope(QObject):
                 channel_numbers.append(enum+1)
         X=self.get_x_data()
         self.received_data.emit(X,Y,channel_numbers)
+        
         return X,Y,channel_numbers
         
                 
