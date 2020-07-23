@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1175</width>
-         <height>795</height>
+         <width>1179</width>
+         <height>809</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -289,7 +289,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>649</height>
+             <height>683</height>
             </rect>
            </property>
            <attribute name="label">
@@ -452,7 +452,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>649</height>
+             <height>683</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1024,8 +1024,8 @@
               <rect>
                <x>100</x>
                <y>110</y>
-               <width>37</width>
-               <height>22</height>
+               <width>32</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1060,8 +1060,8 @@
               <rect>
                <x>100</x>
                <y>80</y>
-               <width>42</width>
-               <height>22</height>
+               <width>36</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1359,7 +1359,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>649</height>
+             <height>683</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1683,7 +1683,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>649</height>
+             <height>683</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2058,8 +2058,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>38</width>
-                <height>22</height>
+                <width>33</width>
+                <height>20</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -2139,7 +2139,7 @@
      <x>0</x>
      <y>0</y>
      <width>1199</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

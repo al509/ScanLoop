@@ -24,7 +24,7 @@ class ThorlabsStages(QObject):
 #
         self.Stage_key['Z'] = apt.Motor(90864301)
         self.Stage_key['Z'].backlash_distance(0)
-        self.Stage_key['X'].set_move_home_parameters(2, 1, 2.0, 0.0001)
+        self.Stage_key['Z'].set_move_home_parameters(2, 1, 2.0, 0.0001)
         self.Stage_key['Z'].move_home(False)
         self.Stage_key['X'] = apt.Motor(27255020)
         self.Stage_key['X'].backlash_distance(0)
