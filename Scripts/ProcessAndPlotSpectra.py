@@ -11,7 +11,10 @@ import pickle
 
 
 class ProcessSpectra(QObject):
-    ProcessedDataFolder='ProcessedData\\'
+    
+    def __init__(self, path_to_main): 
+        QObject.__init__(self)
+        self.ProcessedDataFolder=path_to_main+'\\ProcessedData\\'
     skip_Header=3
     LowFreqEdge=0.000 ##For FFT filter. Set <0 to avoid
     HighFreqEdge=30 ##For FFT filter. Set >1 to avoid
@@ -120,9 +123,9 @@ class ProcessSpectra(QObject):
         Output=f(XNewarray)
         return Output
 
-    def plot_sample_shape(self,DirName,axis_to_plot_along):
+    def plot_sample_shape(self,Source_DirName,axis_to_plot_along):
         from mpl_toolkits.mplot3d import Axes3D
-        FileList=os.listdir(DirName)
+        FileList=os.listdir(Source_DirName)
         if '.gitignore' in FileList:FileList.remove('.gitignore')
         FileList=sorted(FileList,key=lambda s:self.get_position_from_file_name(s,axis=axis_to_plot_along))
         StructuredFileList,Positions=self.Create2DListOfFiles(FileList,axis=axis_to_plot_along)
@@ -137,12 +140,12 @@ class ProcessSpectra(QObject):
         plt.gca().invert_xaxis()
 
 
-    def run(self,StepSize,Averaging:bool,Shifting:bool,DirName,axis_to_plot_along='X',type_of_data='bin'):
+    def run(self,StepSize,Averaging:bool,Shifting:bool,Source_DirName,axis_to_plot_along='X',type_of_data='bin'):
         self.type_of_data=type_of_data
         self.axis_to_plot_along=axis_to_plot_along
         AccuracyOfWavelength=self.AccuracyOfWavelength
         time1=time.time()
-        FileList=os.listdir(DirName)
+        FileList=os.listdir(Source_DirName)
         if '.gitignore' in FileList:FileList.remove('.gitignore')
         self.define_file_naming_style(FileList[0])
         """
@@ -152,19 +155,19 @@ class ProcessSpectra(QObject):
         StructuredFileList,Positions=self.Create2DListOfFiles(FileList,axis=axis_to_plot_along)
         NumberOfPointsZ=len(StructuredFileList)
         #Data = np.loadtxt(DirName+ '\\Signal' + '\\' +FileList[0])
-        print(DirName+ '\\' +FileList[0])
+        print(Source_DirName+ FileList[0])
         """
         Create main wavelength array
         """
-        MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(DirName+ '\\' +FileList[0])
+        MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(Source_DirName +FileList[0])
         if type_of_data=='bin':
-            Data = pickle.load(open(DirName+ '\\' +FileList[0], "rb"))[:,0]
+            Data = pickle.load(open(Source_DirName +FileList[0], "rb"))[:,0]
         elif type_of_data=='txt':
-            Data=np.genfromtxt(DirName+ '\\' +FileList[0],skip_header=self.skip_Header)[:,0]
+            Data=np.genfromtxt(Source_DirName +FileList[0],skip_header=self.skip_Header)[:,0]
         WavelengthStep=np.max(np.diff(Data))
         for File in FileList:
             try:
-                minw,maxw=self.get_min_max_wavelengths_from_file(DirName+ '\\' +File)
+                minw,maxw=self.get_min_max_wavelengths_from_file(Source_DirName +File)
             except UnicodeDecodeError:
                 print('Error while getting wavelengths from file {}'.format(File))
             
@@ -188,9 +191,9 @@ class ProcessSpectra(QObject):
             for jj, FileName in enumerate(FileNameListAtPoint):
                 try:
                     if type_of_data=='bin':
-                        Data = pickle.load(open(DirName+ '\\' +FileName, "rb"))
+                        Data = pickle.load(open(Source_DirName +FileName, "rb"))
                     elif type_of_data=='txt':
-                        Data = np.genfromtxt(DirName+ '\\' +FileName,skip_header=self.skip_Header)
+                        Data = np.genfromtxt(Source_DirName +FileName,skip_header=self.skip_Header)
                 except UnicodeDecodeError:
                     print('Error while getting data from file {}'.format(FileName))
                 SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(Data[:,1],Data[:,0],MainWavelengths)

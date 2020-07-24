@@ -91,6 +91,7 @@ class MainWindow(ThreadedMainWindow):
     '''
     def __init__(self, parent=None,version='0.0'):
         super().__init__(parent)
+        self.path_to_main=os.getcwd()
         # GUI
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -568,10 +569,10 @@ class MainWindow(ThreadedMainWindow):
 
     def on_Push_Button_ProcessSpectra(self):
         from Scripts.ProcessAndPlotSpectra import ProcessSpectra
-        self.ProcessSpectra=ProcessSpectra()
+        self.ProcessSpectra=ProcessSpectra(self.path_to_main)
         Thread=self.add_thread([self.ProcessSpectra])
         self.ProcessSpectra.run(StepSize=float(self.ui.lineEdit_ScanningStep.text()),Averaging=self.ui.checkBox_IsAveragingWhileProcessing.isChecked(),
-                                Shifting=self.ui.checkBox_IsShiftingWhileProcessing.isChecked(),DirName='SpectralData',
+                                Shifting=self.ui.checkBox_IsShiftingWhileProcessing.isChecked(),Source_DirName=self.path_to_main+'\\SpectralData\\',
                                 axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText())
         Thread.quit()
 
@@ -651,7 +652,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.lineEdit_StopFile.setText(str(Dict['StopFile']))
         self.ui.EditLine_FilterPointsToCut.setText(str(Dict['FFTPointsToCut']))
         self.ui.EditLine_FilterLowFreqEdge.setText(str(Dict['FFTLowerEdge']))
-        self.ui.EditLine_FilterHighFreqEdge.l(str(Dict['FFTHigherEdge']))
+        self.ui.EditLine_FilterHighFreqEdge.setText(str(Dict['FFTHigherEdge']))
         self.ui.CheckBox_ApplyFFTFilter.setChecked(Dict['ApplyFFT']=='True')
         self.ui.checkBox_SqueezeSpan.setChecked(Dict['SqueezeSpan?']=='True')
         self.ui.checkBox_searchContact.setChecked(Dict['SearchingContact?']=='True')
@@ -741,6 +742,7 @@ class MainWindow(ThreadedMainWindow):
         print('Analyzer is deleted')
         self.laser.setOff()
         del self.laser
+        
         print('laser is deleted')
         try:
             del self.scanningProcess
