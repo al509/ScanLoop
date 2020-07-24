@@ -271,8 +271,14 @@ class MainWindow(ThreadedMainWindow):
             self.stages.stopped.connect(self.updatePositions)
             self.ui.groupBox_stand.setEnabled(True)
             self.ui.pushButton_StagesConnect.setEnabled(False)
-
+            self.ui.pushButton_zeroing_stages.pressed.connect(self.on_pushBatton_pushButton_zeroing_stages)
+            
             self.enableScanningProcess()
+            
+    def on_pushBatton_pushButton_zeroing_stages(self):
+        self.stages.Stage_key['X'].move_home(True)
+        self.stages.Stage_key['Z'].set_move_home_parameters(2, 1, 2.0, 0.0001)
+        self.stages.Stage_key['Z'].move_home(False)
 
     def connect_laser(self):
         COMPort='COM'+self.ui.lineEdit_laser_COMport.text()
