@@ -1991,7 +1991,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>Folder to analyze</string>
+              <string>File to analyze</string>
              </property>
             </widget>
             <widget class="QLabel" name="label_analyzer_folder">

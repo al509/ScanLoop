@@ -862,7 +862,7 @@ class Ui_MainWindow(object):
         self.lineEdit_analyzer_wavelength_min.setText(_translate("MainWindow", "1550"))
         self.label_15.setText(_translate("MainWindow", "Wavelengths: min, max"))
         self.lineEdit_analyzer_wavelength_max.setText(_translate("MainWindow", "1551"))
-        self.pushButton_analyzer_choose_file_spectrogram.setText(_translate("MainWindow", "Folder to analyze"))
+        self.pushButton_analyzer_choose_file_spectrogram.setText(_translate("MainWindow", "File to analyze"))
         self.label_analyzer_folder.setText(_translate("MainWindow", "none"))
         self.pushButton_analyzer_plot2D.setText(_translate("MainWindow", "Plot 2D"))
         self.pushButton_analyzer_plotSampleShape.setText(_translate("MainWindow", "Plot sample shape"))
