@@ -230,11 +230,15 @@ class ProcessSpectra(QObject):
                     If shifting and averaging are OFF, just take the first spectrum from the bundle correpsonding to a measuring point
                 """
                 SignalArray[:,ii]=SmallSignalArray[:,0]
-
-        np.savetxt(self.ProcessedDataFolder+'SpectraArray.txt',SignalArray)
-        np.savetxt(self.ProcessedDataFolder+'WavelengthArray.txt', MainWavelengths)
-        np.savetxt(self.ProcessedDataFolder+'Sp_Positions.txt', Positions)
-
+                
+        f=open(self.ProcessedDataFolder+'Processed Data.pkl','wb')
+        D={}
+        D['axis']=axis_to_plot_along
+        D['Positions']=Positions
+        D['Wavelengths']=MainWavelengths
+        D['Signal']=SignalArray
+        pickle.dump(D,f)
+        f.close()
 
         if self.file_naming_style=='old': # legacy code
             plt.figure()
@@ -258,7 +262,9 @@ class ProcessSpectra(QObject):
         if self.file_naming_style=='new':
             plt.figure()
             Positions_at_given_axis=np.array([s[self.number_of_axis[self.axis_to_plot_along]] for s in Positions])
+            print(len(Positions_at_given_axis),len(MainWavelengths),np.shape(SignalArray))
             plt.contourf(Positions_at_given_axis,MainWavelengths,SignalArray,200,cmap=self.Cmap)
+#            plt.gca().pcolorfast(Positions_at_given_axis,MainWavelengths,SignalArray)
             plt.ylabel('Wavelength, nm')
             if self.axis_to_plot_along!='W':
                 plt.xlabel('Position, steps (2.5 um each)')
@@ -274,8 +280,8 @@ class ProcessSpectra(QObject):
 
 if __name__ == "__main__":
     os.chdir('..')
-    ProcessSpectra=ProcessSpectra()
+    ProcessSpectra=ProcessSpectra('SpectralData')
 #    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
 #                                     axis_to_plot_along='Z')
 
-    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False,DirName='SpectralData',axis_to_plot_along='p',type_of_data='bin')
+    ProcessSpectra.run(StepSize=20,Shifting=False, Averaging=False,axis_to_plot_along='p',type_of_data='bin')

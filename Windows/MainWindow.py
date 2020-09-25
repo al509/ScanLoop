@@ -141,7 +141,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_processTDData.pressed.connect(self.on_Push_Button_ProcessTD)
 
         # analyzer logic
-        self.analyzer=AnalyzerForSpectrogram.AnalyzerForSpectrogram()
+        self.analyzer=AnalyzerForSpectrogram.AnalyzerForSpectrogram(os.getcwd()+'\\ProcessedData\\Processed Data.pkl')
         self.add_thread([self.analyzer])
         self.ui.pushButton_process_arb_spectral_data.clicked.connect(self.process_arb_spectral_data_clicked)
         self.ui.pushButton_process_arb_TD_data.clicked.connect(self.process_arb_TD_data_clicked)
@@ -160,6 +160,8 @@ class MainWindow(ThreadedMainWindow):
                                                                                                 float(self.ui.lineEdit_analyzer_wavelength_min.text()),
                                                                                                 float(self.ui.lineEdit_analyzer_wavelength_max.text()),
                                                                                                 self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
+        self.ui.pushButton_analyzer_save_cropped_data.clicked.connect(self.analyzer.save_cropped_data)
+        
         ## laser
         self.ui.pushButton_laser_connect.clicked.connect(self.connect_laser)
         self.ui.pushButton_laser_On.clicked[bool].connect(self.on_pushButton_laser_On)
@@ -694,19 +696,19 @@ class MainWindow(ThreadedMainWindow):
 
 
     def choose_folder_to_process(self):
-        self.Folder = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
-        self.ui.label_folder_to_process_files.setText(self.Folder)
+        self.Folder = str(QFileDialog.getExistingDirectory(self, "Select Directory"))+'\\'
+        self.ui.label_folder_to_process_files.setText(self.Folder+'\\')
 
     def process_arb_spectral_data_clicked(self):
         from Scripts.ProcessAndPlotSpectra import ProcessSpectra
-        self.ProcessSpectra=ProcessSpectra()
+        self.ProcessSpectra=ProcessSpectra(os.getcwd())
         Thread=self.add_thread([self.ProcessSpectra])
         try:
             StepSize=int(self.Folder[self.Folder.index('Step=')+len('Step='):len(self.Folder)])
         except ValueError:
             StepSize=float(self.ui.lineEdit_ScanningStep.text())
         self.ProcessSpectra.run(StepSize=StepSize,Averaging=self.ui.checkBox_IsAveragingWhileProcessingArbData.isChecked(),
-                                Shifting=self.ui.checkBox_IsShiftingWhileProcessingArbData.isChecked(),DirName=self.Folder,
+                                Shifting=self.ui.checkBox_IsShiftingWhileProcessingArbData.isChecked(),Source_DirName=self.Folder,
                                 axis_to_plot_along=self.ui.comboBox_axis_to_plot_along_arb_data.currentText(),
                                 type_of_data=self.ui.comboBox_type_of_data.currentText())
         Thread.quit()
@@ -725,12 +727,10 @@ class MainWindow(ThreadedMainWindow):
 #            fname = QtWidgets.QFileDialog().getOpenFileName()[0]
 
     def choose_folder_for_analyzer(self):
-        ProcessedDataFolder= str(QFileDialog.getExistingDirectory(self, "Select Directory"))
-        self.analyzer.ProcessedDataFolder=ProcessedDataFolder
-        self.analyzer.SignalFileName='\\SpectraArray.txt'
-        self.analyzer.WavelengthFileName='\\WavelengthArray.txt'
-        self.analyzer.PositionsFileName='\\Sp_Positions.txt'
-        self.ui.label_analyzer_folder.setText(self.analyzer.ProcessedDataFolder)
+        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]        
+        self.analyzer.FilePath=DataFilePath
+        self.analyzer.Data=None
+        self.ui.label_analyzer_folder.setText(self.analyzer.FilePath)
 
 
     def closeEvent(self, event):
