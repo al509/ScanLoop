@@ -26,6 +26,7 @@ from Visualization.Painter import MyPainter
 from Utils.PyQtUtils import pyqtSlotWExceptions
 from Windows.UIs.MainWindowUI import Ui_MainWindow
 from Scripts import AnalyzerForSpectrogram
+from Scripts import ProcessAndPlotSpectra
 
 
 def isfloat(value):
@@ -137,6 +138,8 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_Scanning.clicked[bool].connect(self.on_pushButton_Scanning_pressed)
 
         # processing
+        self.processSpectra=ProcessAndPlotSpectra.ProcessSpectra(self.path_to_main)
+        self.add_thread([self.processSpectra])
         self.ui.pushButton_processSpectralData.pressed.connect(self.on_Push_Button_ProcessSpectra)
         self.ui.pushButton_processTDData.pressed.connect(self.on_Push_Button_ProcessTD)
 
@@ -576,14 +579,9 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_Push_Button_ProcessSpectra(self):
-        from Scripts.ProcessAndPlotSpectra import ProcessSpectra
-        self.ProcessSpectra=ProcessSpectra(self.path_to_main)
-        Thread=self.add_thread([self.ProcessSpectra])
-        self.ProcessSpectra.run(StepSize=float(self.ui.lineEdit_ScanningStep.text()),Averaging=self.ui.checkBox_IsAveragingWhileProcessing.isChecked(),
-                                Shifting=self.ui.checkBox_IsShiftingWhileProcessing.isChecked(),Source_DirName=self.path_to_main+'\\SpectralData\\',
+        self.processSpectra.run(StepSize=float(self.ui.lineEdit_ScanningStep.text()),Averaging=self.ui.checkBox_IsAveragingWhileProcessing.isChecked(),
+                                Shifting=self.ui.checkBox_IsShiftingWhileProcessing.isChecked(),
                                 axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText())
-        Thread.quit()
-
 
     def on_Push_Button_ProcessTD(self):
         from Scripts.ProcessAndPlotTD import ProcessAndPlotTD
@@ -598,12 +596,8 @@ class MainWindow(ThreadedMainWindow):
 
 
     def plotSampleShape(self,DirName,axis):
-        from Scripts.ProcessAndPlotSpectra import ProcessSpectra
-        self.ProcessSpectra=ProcessSpectra()
-        Thread=self.add_thread([self.ProcessSpectra])
-        self.ProcessSpectra.plot_sample_shape(DirName=DirName,
-                                                       axis_to_plot_along=axis)
-        Thread.quit()
+        self.processSpectra.plot_sample_shape(axis_to_plot_along=axis)
+        
 
     def saveParametersToFile(self):
         Dict={}
@@ -696,22 +690,21 @@ class MainWindow(ThreadedMainWindow):
 
 
     def choose_folder_to_process(self):
-        self.Folder = str(QFileDialog.getExistingDirectory(self, "Select Directory"))+'\\'
-        self.ui.label_folder_to_process_files.setText(self.Folder+'\\')
+        self.processSpectra.Source_DirName = str(QFileDialog.getExistingDirectory(self, "Select Directory"))+'\\'
+        self.processSpectra.ProcessedDataFolder=os.path.dirname(os.path.dirname(self.processSpectra.Source_DirName))+'\\'
+        self.ui.label_folder_to_process_files.setText(self.processSpectra.Source_DirName+'\\')
 
     def process_arb_spectral_data_clicked(self):
-        from Scripts.ProcessAndPlotSpectra import ProcessSpectra
-        self.ProcessSpectra=ProcessSpectra(os.getcwd())
-        Thread=self.add_thread([self.ProcessSpectra])
+        Folder=self.processSpectra.Source_DirName
         try:
-            StepSize=int(self.Folder[self.Folder.index('Step=')+len('Step='):len(self.Folder)])
+            StepSize=int(Folder[Folder.index('Step=')+len('Step='):len(Folder)])
         except ValueError:
             StepSize=float(self.ui.lineEdit_ScanningStep.text())
-        self.ProcessSpectra.run(StepSize=StepSize,Averaging=self.ui.checkBox_IsAveragingWhileProcessingArbData.isChecked(),
-                                Shifting=self.ui.checkBox_IsShiftingWhileProcessingArbData.isChecked(),Source_DirName=self.Folder,
+        self.processSpectra.run(StepSize=StepSize,Averaging=self.ui.checkBox_IsAveragingWhileProcessingArbData.isChecked(),
+                                Shifting=self.ui.checkBox_IsShiftingWhileProcessingArbData.isChecked(),
                                 axis_to_plot_along=self.ui.comboBox_axis_to_plot_along_arb_data.currentText(),
                                 type_of_data=self.ui.comboBox_type_of_data.currentText())
-        Thread.quit()
+
 
 
 
@@ -746,20 +739,20 @@ class MainWindow(ThreadedMainWindow):
         print('Logger is deleted')
         del self.analyzer
         print('Analyzer is deleted')
-        self.laser.setOff()
-        del self.laser
-        
-        print('laser is deleted')
+        try:
+            self.laser.setOff()
+            del self.laser
+            print('laser is deleted')
+        except:
+            pass
         try:
             del self.scanningProcess
             print('Scanning object is deleted')
         except:
             pass
-        try:
-            del self.ProcessSpectra
-            print('Processing is deleted')
-        except:
-            pass
+        del self.processSpectra
+        print('Processing is deleted')
+        
 #            print('exception while closing')
         super(QMainWindow, self).closeEvent(event)
 #
