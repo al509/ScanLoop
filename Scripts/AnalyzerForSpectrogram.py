@@ -115,7 +115,7 @@ class AnalyzerForSpectrogram(QObject):
         ax2.set_xlim([np.min(Positions)*2.5,np.max(Positions)*2.5])
         ax3=ax1.secondary_yaxis('right',functions=(self.forward, self.backward))
         ax3.set_ylabel('Effective radius variation, nm')
-        cbar=plt.colorbar(plot,ax=ax3)
+        plt.colorbar(plot,ax=ax3)
         plt.tight_layout()
         self.axis_of_2D_plot=ax1
         
@@ -148,7 +148,9 @@ class AnalyzerForSpectrogram(QObject):
         WavelengthArray=self.WavelengthArray
         Positions=self.Positions[:,self.number_of_axis[self.axis]]
         
-        
+        PeakWavelengthArray=[]
+        LineWidthArray=[]
+        Pos=[]
         for Zind, Z in enumerate(range(0,Number_of_positions)):
             print(Z,Zind)
             peakind=detect_peaks(self.Data[:,Zind],MinimumPeakDepth , self.MinimumPeakDistance, valley=True, show=False)
@@ -157,31 +159,30 @@ class AnalyzerForSpectrogram(QObject):
         #    peakind2=np.argsort(-Data[peakind1,Zind])
             if len(NewPeakind)>self.IndexOfPeakOfInterest:
                 try:
-                    LineWidthArray[Zind]=self.CalculateLinewidth(WavelengthArray,self.Data[:,Zind],NewPeakind[self.IndexOfPeakOfInterest],self.AreaToSearch)
+                    LineWidthArray.append(self.CalculateLinewidth(WavelengthArray,self.Data[:,Zind],NewPeakind[self.IndexOfPeakOfInterest],self.AreaToSearch))
                 except:
                     print('Error while deriving Linewidth')
                     LineWidthArray[Zind]=0
-                PeakWavelengthArray[Zind]=WavelengthArray[NewPeakind[self.IndexOfPeakOfInterest]]
+                PeakWavelengthArray.append(WavelengthArray[NewPeakind[self.IndexOfPeakOfInterest]])
                 PeakWavelengthMatrix[NewPeakind[self.IndexOfPeakOfInterest],Zind]=-self.Data[NewPeakind[self.IndexOfPeakOfInterest],Zind]
-            else:
-                PeakWavelengthArray[Zind]=np.nan
-                LineWidthArray[Zind]=np.nan
+                Pos.append(Positions[Zind])
+        
         
         path,FileName = os.path.split(self.FilePath)
         NewFileName=path+'\\'+FileName.split('.pkl')[0]+'_ERV.txt'
-        np.savetxt(NewFileName,np.transpose(np.stack((Positions,PeakWavelengthArray,LineWidthArray))))
+        np.savetxt(NewFileName,np.transpose(np.stack((np.array(Pos),np.array(PeakWavelengthArray),np.array(LineWidthArray)))))
         
         time2=time.time()
         print('Time used =', time2-time1 ,' s')
         plt.figure()
         plt.clf()
-        plt.plot(Positions,LineWidthArray)
+        plt.plot(Pos,LineWidthArray)
         plt.xlabel('Step Number')
         plt.ylabel('Linewidth, nm')
         plt.tight_layout()
         plt.figure()
         plt.clf()
-        plt.plot(Positions,PeakWavelengthArray,'.')
+        plt.plot(Pos,PeakWavelengthArray,'.')
         plt.xlabel('Step Number')
         plt.ylabel('Wavelength, nm')
         plt.tight_layout()
@@ -193,9 +194,10 @@ class AnalyzerForSpectrogram(QObject):
         
 if __name__ == "__main__":
     os.chdir('..')
-    Analyzer=AnalyzerForSpectrogram(os.getcwd()+'\\ProcessedData\\Processed Data.pkl')
+    analyzer=AnalyzerForSpectrogram(os.getcwd()+'\\ProcessedData\\Processed_spectrogram_cropped.pkl')
 
 #    AnalyzerForSpectrogram.plotSlice(100)
-    Analyzer.plot2D()
-    Analyzer.save_cropped_data()
+    analyzer.plot2D()
+    analyzer.extractERV(18,15,2000)
+#    Analyzer.save_cropped_data()
     
