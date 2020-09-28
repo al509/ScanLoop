@@ -144,7 +144,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_processTDData.pressed.connect(self.on_Push_Button_ProcessTD)
 
         # analyzer logic
-        self.analyzer=AnalyzerForSpectrogram.AnalyzerForSpectrogram(os.getcwd()+'\\ProcessedData\\Processed Data.pkl')
+        self.analyzer=AnalyzerForSpectrogram.AnalyzerForSpectrogram(os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl')
         self.add_thread([self.analyzer])
         self.ui.pushButton_process_arb_spectral_data.clicked.connect(self.process_arb_spectral_data_clicked)
         self.ui.pushButton_process_arb_TD_data.clicked.connect(self.process_arb_TD_data_clicked)
@@ -579,6 +579,8 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_Push_Button_ProcessSpectra(self):
+        self.processSpectra.ProcessedDataFolder=self.path_to_main+'\\ProcessedData\\'
+        self.processSpectra.Source_DirName=self.path_to_main+'\\SpectralData\\'
         self.processSpectra.run(StepSize=float(self.ui.lineEdit_ScanningStep.text()),Averaging=self.ui.checkBox_IsAveragingWhileProcessing.isChecked(),
                                 Shifting=self.ui.checkBox_IsShiftingWhileProcessing.isChecked(),
                                 axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText())

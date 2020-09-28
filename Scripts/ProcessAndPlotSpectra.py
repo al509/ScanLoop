@@ -251,10 +251,10 @@ class ProcessSpectra(QObject):
 
             plt.show()
             plt.colorbar()
-            plt.xlabel('Position, steps (2.5 um each)')
+            plt.xlabel(r'Position, steps (2.5 $\mu$m each)')
             plt.ylabel('Wavelength, nm')
             ax2=(plt.gca()).twiny()
-            ax2.set_xlabel('Distance, um')
+            ax2.set_xlabel(r'Distance, $\mu$m')
             ax2.set_xlim([0,StepSize*NumberOfPointsZ*2.5])
             plt.tight_layout()
             plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
@@ -265,14 +265,17 @@ class ProcessSpectra(QObject):
         if self.file_naming_style=='new':
             plt.figure()
             Positions_at_given_axis=np.array([s[self.number_of_axis[self.axis_to_plot_along]] for s in Positions])
+#            try:
+#                plt.pcolorfast(Positions_at_given_axis,MainWavelengths,SignalArray,cmap=self.Cmap)
+#            except:
             plt.contourf(Positions_at_given_axis,MainWavelengths,SignalArray,200,cmap=self.Cmap)
 #            plt.gca().pcolorfast(Positions_at_given_axis,MainWavelengths,SignalArray)
             plt.ylabel('Wavelength, nm')
             if self.axis_to_plot_along!='W':
-                plt.xlabel('Position, steps (2.5 um each)')
+                plt.xlabel(r'Position, steps (2.5 $\mu$m each)')
                 ax2=(plt.gca()).twiny()
-                ax2.set_xlabel('Distance, um')
-                ax2.set_xlim([0, (np.max(Positions_at_given_axis)-np.min(Positions_at_given_axis))*2.5])
+                ax2.set_xlabel(r'Distance, $\mu$m')
+                ax2.set_xlim([np.min(Positions_at_given_axis)*2.5, np.max(Positions_at_given_axis)*2.5])
             else:
                 plt.xlabel('Wavelength,nm')
             plt.tight_layout()

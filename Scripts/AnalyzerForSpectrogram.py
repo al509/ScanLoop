@@ -22,7 +22,6 @@ class AnalyzerForSpectrogram(QObject):
         self.MinimumPeakDistance=10  ## For peak searching 
         self.IndexOfPeakOfInterest=0 ## Zero is for deepest peak within the range, one is for next after deepest etc
         self.AreaToSearch=200 # This is to calculate peak linewidth
-        self.SignalFileName='Processed Data.pkl'
         self.number_of_axis={'X':0,'Y':1,'Z':2,'W':3,'p':4}
         self.Cmap='jet'
     
@@ -113,7 +112,7 @@ class AnalyzerForSpectrogram(QObject):
         ax1=plt.gca()
         ax2=ax1.twiny()
         ax2.set_xlabel('Distance, um')
-        ax2.set_xlim([0,(np.max(Positions)-np.min(Positions))*2.5])
+        ax2.set_xlim([np.min(Positions)*2.5,np.max(Positions)*2.5])
         ax3=ax1.secondary_yaxis('right',functions=(self.forward, self.backward))
         ax3.set_ylabel('Effective radius variation, nm')
         cbar=plt.colorbar(plot,ax=ax3)
