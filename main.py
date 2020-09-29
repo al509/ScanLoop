@@ -1,5 +1,5 @@
 """
- 24.07.2020
+ 29.09.2020
 """
 
 # -*- coding: utf-8 -*-
@@ -16,10 +16,10 @@ else:
     # first run: find out which modules were initially loaded
     init_modules = sys.modules.keys(  )
 
-from PyQt5 import QtWidgets 
+from PyQt5 import QtWidgets
 from Windows.MainWindow import MainWindow
 
-       
+
 def main():
     if not QtWidgets.QApplication.instance():
         app = QtWidgets.QApplication(sys.argv)
@@ -30,7 +30,7 @@ def main():
 
     return main
 
-    
-if __name__ == '__main__':         
+
+if __name__ == '__main__':
 
     m = main()

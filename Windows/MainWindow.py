@@ -164,7 +164,7 @@ class MainWindow(ThreadedMainWindow):
                                                                                                 float(self.ui.lineEdit_analyzer_wavelength_max.text()),
                                                                                                 self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
         self.ui.pushButton_analyzer_save_cropped_data.clicked.connect(self.analyzer.save_cropped_data)
-        
+
         ## laser
         self.ui.pushButton_laser_connect.clicked.connect(self.connect_laser)
         self.ui.pushButton_laser_On.clicked[bool].connect(self.on_pushButton_laser_On)
@@ -277,9 +277,9 @@ class MainWindow(ThreadedMainWindow):
             self.ui.groupBox_stand.setEnabled(True)
             self.ui.pushButton_StagesConnect.setEnabled(False)
             self.ui.pushButton_zeroing_stages.pressed.connect(self.on_pushBatton_pushButton_zeroing_stages)
-            
+
             self.enableScanningProcess()
-            
+
     def on_pushBatton_pushButton_zeroing_stages(self):
         self.stages.Stage_key['X'].move_home(True)
         self.stages.Stage_key['Z'].set_move_home_parameters(2, 1, 2.0, 0.0001)
@@ -470,7 +470,7 @@ class MainWindow(ThreadedMainWindow):
                                                      numberofscans=int(self.ui.lineEdit_numberOfScans.text()),
                                                      searchcontact=self.ui.checkBox_searchContact.isChecked(),
                                                      followPeak=self.ui.checkBox_followPeak.isChecked(),
-                                                     saveDifference=self.ui.checkBox_saveDifference.isChecked()))
+                                                     saveDifference=self.ui.checkBox_saveDifference.isChecked())
                 self.scanningProcess.S_saveData.connect(lambda Data,prefix: self.logger.save_data(Data,prefix,
                                                                                                   self.stages.position['X']-self.X_0,
                                                                                                   self.stages.position['Y']-self.Y_0,
@@ -600,7 +600,7 @@ class MainWindow(ThreadedMainWindow):
 
     def plotSampleShape(self,DirName,axis):
         self.processSpectra.plot_sample_shape(axis_to_plot_along=axis)
-        
+
 
     def saveParametersToFile(self):
         Dict={}
@@ -723,7 +723,7 @@ class MainWindow(ThreadedMainWindow):
 #            fname = QtWidgets.QFileDialog().getOpenFileName()[0]
 
     def choose_folder_for_analyzer(self):
-        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]        
+        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]
         self.analyzer.FilePath=DataFilePath
         self.analyzer.Data=None
         self.ui.label_analyzer_folder.setText(self.analyzer.FilePath)
@@ -755,7 +755,7 @@ class MainWindow(ThreadedMainWindow):
             pass
         del self.processSpectra
         print('Processing is deleted')
-        
+
 #            print('exception while closing')
         super(QMainWindow, self).closeEvent(event)
 #
