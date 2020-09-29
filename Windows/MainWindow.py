@@ -469,7 +469,8 @@ class MainWindow(ThreadedMainWindow):
                                                      StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
                                                      numberofscans=int(self.ui.lineEdit_numberOfScans.text()),
                                                      searchcontact=self.ui.checkBox_searchContact.isChecked(),
-                                                     followPeak=self.ui.checkBox_followPeak.isChecked())
+                                                     followPeak=self.ui.checkBox_followPeak.isChecked(),
+                                                     saveDifference=self.ui.checkBox_saveDifference.isChecked()))
                 self.scanningProcess.S_saveData.connect(lambda Data,prefix: self.logger.save_data(Data,prefix,
                                                                                                   self.stages.position['X']-self.X_0,
                                                                                                   self.stages.position['Y']-self.Y_0,

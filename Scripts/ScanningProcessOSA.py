@@ -50,7 +50,8 @@ class ScanningProcess(QObject):
                  OSA:QObject,
                  Stages:QObject,
                  scanstep:int,seekcontactstep:int,backstep:int,seekcontactvalue:float,ScanningType:int,SqueezeSpanWhileSearchingContact:bool,
-                 CurrentFileIndex:int,StopFileIndex:int,numberofscans:int,searchcontact:bool,followPeak:bool):
+                 CurrentFileIndex:int,StopFileIndex:int,numberofscans:int,searchcontact:bool,followPeak:bool,
+                 saveDifference:bool):
         super().__init__()
         self.OSA=OSA # add Optical Spectral Analyzer
         self.FullSpan=self.OSA._Span
@@ -68,7 +69,7 @@ class ScanningProcess(QObject):
         self.NumberOfScans=numberofscans
         self.searchcontact=searchcontact
         self.followPeak=followPeak
-        
+        self.saveDifference=saveDifference
         
 
     def set_ScanningType(self,ScanningType:int): # set axis depending on choice in MainWindow
@@ -155,6 +156,9 @@ class ScanningProcess(QObject):
         self.is_running=True 
        
         ### main loop
+        if self.saveDifference:
+            background_signal=self.OSA.acquire_spectrum()
+            
         if self.SqueezeSpanWhileSearchingContact:  ## to speed up the process of the getting contact, the very narrow span of OSA can be set 
             self.set_OSA_to_Searching_Contact_State()  
         while self.is_running and self.CurrentFileIndex<self.StopFileIndex+1:
@@ -173,6 +177,8 @@ class ScanningProcess(QObject):
                 print('saving sweep # ', jj+1)
                 wavelengthdata, spectrum=self.OSA.acquire_spectrum()
                 time.sleep(0.05)
+                if self.saveDifference:
+                    spectrum-=background_signal
                 Data=np.stack((wavelengthdata, spectrum),axis=1)
                 self.S_saveData.emit(Data,'p='+str(self.CurrentFileIndex)+'_j='+str(jj)) # save spectrum to file
                 if self.IsHighRes: #if true and high resolution of OSA is used, spectra have to be saved on OSA hardDrive to preserve full resolution
