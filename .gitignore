@@ -1,3 +1,5 @@
 /ProcessedData
 /SpectralData
 /TimeDomainData
+*.pyc
+*.pyc

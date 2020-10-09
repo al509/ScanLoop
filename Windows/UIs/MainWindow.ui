@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1179</width>
-         <height>831</height>
+         <width>1175</width>
+         <height>817</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -289,7 +289,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>705</height>
+             <height>671</height>
             </rect>
            </property>
            <attribute name="label">
@@ -465,7 +465,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>705</height>
+             <height>671</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1055,8 +1055,8 @@
               <rect>
                <x>100</x>
                <y>110</y>
-               <width>32</width>
-               <height>20</height>
+               <width>37</width>
+               <height>22</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1091,8 +1091,8 @@
               <rect>
                <x>100</x>
                <y>80</y>
-               <width>36</width>
-               <height>20</height>
+               <width>42</width>
+               <height>22</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1454,26 +1454,16 @@
               </size>
              </property>
             </widget>
-            <widget class="QWidget" name="">
-             <layout class="QHBoxLayout" name="horizontalLayout">
-              <item>
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>#sweeps</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="lineEdit_numberOfScans">
-                <property name="text">
-                 <string>1</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
+            <widget class="QWidget" name="layoutWidget">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>124</width>
+               <height>30</height>
+              </rect>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout"/>
             </widget>
             <widget class="QCheckBox" name="checkBox_followPeak">
              <property name="geometry">
@@ -1491,6 +1481,35 @@
               <string>Follow peak</string>
              </property>
             </widget>
+            <widget class="QLineEdit" name="lineEdit_numberOfScans">
+             <property name="geometry">
+              <rect>
+               <x>42</x>
+               <y>120</y>
+               <width>31</width>
+               <height>22</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>1</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_3">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>117</y>
+               <width>31</width>
+               <height>28</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>#sweeps</string>
+             </property>
+            </widget>
            </widget>
           </widget>
           <widget class="QWidget" name="page_6">
@@ -1498,8 +1517,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>705</height>
+             <width>100</width>
+             <height>30</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1822,8 +1841,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>705</height>
+             <width>100</width>
+             <height>30</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2201,8 +2220,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>33</width>
-                <height>20</height>
+                <width>38</width>
+                <height>22</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -2295,7 +2314,7 @@
      <x>0</x>
      <y>0</y>
      <width>1199</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>
