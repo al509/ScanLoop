@@ -13,6 +13,7 @@ import time
 from PyQt5.QtCore import QObject
 from Scripts.detect_peaks import detect_peaks
 import pickle
+from scipy.signal import find_peaks
 
 class AnalyzerForSpectrogram(QObject):
     
@@ -132,9 +133,11 @@ class AnalyzerForSpectrogram(QObject):
         plt.clf()
         plt.plot(self.WavelengthArray,SignalData)
         plt.title('Position=' + str(Positions[i])+ ' steps along axis '+axis_to_process) 
-        peakind2=detect_peaks(SignalData, MinimumPeakDepth, self.MinimumPeakDistance, valley=True, show=False)
+        peakind2,_=find_peaks(abs(SignalData-np.mean(SignalData)),height=MinimumPeakDepth , distance=(self.MinimumPeakDistance))
         plt.plot(self.WavelengthArray[peakind2], SignalData[peakind2], '.')
         plt.tight_layout()
+        plt.figure()
+        
         
     def extractERV(self,MinimumPeakDepth,MinWavelength,MaxWavelength,axis_to_process='Z'):
         time1=time.time()
@@ -153,7 +156,7 @@ class AnalyzerForSpectrogram(QObject):
         Pos=[]
         for Zind, Z in enumerate(range(0,Number_of_positions)):
             print(Z,Zind)
-            peakind=detect_peaks(self.Data[:,Zind],MinimumPeakDepth , self.MinimumPeakDistance, valley=True, show=False)
+            peakind,_=find_peaks(abs(self.Data[:,Zind]-np.mean(self.Data[:,Zind])),prominence=MinimumPeakDepth , distance=(self.MinimumPeakDistance))
             NewPeakind=np.extract((WavelengthArray[peakind]>MinWavelength) & (WavelengthArray[peakind]<MaxWavelength),peakind)
             NewPeakind=NewPeakind[np.argsort(-WavelengthArray[NewPeakind])] ##sort in wavelength decreasing
         #    peakind2=np.argsort(-Data[peakind1,Zind])
