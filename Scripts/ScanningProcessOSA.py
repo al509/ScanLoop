@@ -154,14 +154,12 @@ class ScanningProcess(QObject):
     def run(self):
         time.sleep(0.05)
         self.is_running=True
-        if self.saveDifference:
-            wavelengths_background,background_signal=self.OSA.acquire_spectrum()
         ### main loop
 
         if self.SqueezeSpanWhileSearchingContact:  ## to speed up the process of the getting contact, the very narrow span of OSA can be set
             self.set_OSA_to_Searching_Contact_State()
         while self.is_running and self.CurrentFileIndex<self.StopFileIndex+1:
-            if self.saveDifference and (self.CurrentFileIndex%10==9):
+            if self.saveDifference:
                 wavelengths_background,background_signal=self.OSA.acquire_spectrum()
 
 

@@ -634,6 +634,7 @@ class MainWindow(ThreadedMainWindow):
         Dict['analyzer_min_wavelength']=float(self.ui.lineEdit_analyzer_wavelength_min.text())
         Dict['analyzer_max_wavelength']=float(self.ui.lineEdit_analyzer_wavelength_max.text())
         Dict['analyzer_resonance_level']=float(self.ui.lineEdit_analyzer_resonance_level.text())
+        Dict['save_difference?']=str(self.ui.checkBox_saveDifference.isChecked())
 
         self.logger.SaveParameters(Dict)
 
@@ -663,6 +664,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.checkBox_searchContact.setChecked(Dict['SearchingContact?']=='True')
         self.ui.checkBox_IsAveragingWhileProcessing.setChecked(Dict['AverageShapeWhileProcessing?']=='True')
         self.ui.checkBox_IsShiftingWhileProcessing.setChecked(Dict['ShiftingWhileProcessing?']=='True')
+        self.ui.checkBox_saveDifference.setChecked(Dict['save_difference?']=='True')
         self.ui.lineEdit_numberOfScans.setText(str(Dict['NumberOfScans']))
 
         self.ui.comboBox_axis_to_plot_along.setCurrentIndex(int(Dict['axis_to_plot_along']))

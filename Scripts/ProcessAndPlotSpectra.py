@@ -11,8 +11,8 @@ import pickle
 
 
 class ProcessSpectra(QObject):
-    
-    def __init__(self, path_to_main): 
+
+    def __init__(self, path_to_main):
         QObject.__init__(self)
         self.ProcessedDataFolder=path_to_main+'\\ProcessedData\\'
         self.Source_DirName=path_to_main+'\\SpectralData\\'
@@ -139,7 +139,7 @@ class ProcessSpectra(QObject):
         ax.set_zlabel('Y,steps')
         plt.gca().invert_zaxis()
         plt.gca().invert_xaxis()
-        
+
 
 
 
@@ -173,11 +173,11 @@ class ProcessSpectra(QObject):
                 minw,maxw=self.get_min_max_wavelengths_from_file(self.Source_DirName +File)
             except UnicodeDecodeError:
                 print('Error while getting wavelengths from file {}'.format(File))
-            
+
             if minw<MinWavelength:
                 MinWavelength=minw
             if maxw>MaxWavelength:
-                MaxWavelength=maxw        
+                MaxWavelength=maxw
         MainWavelengths=np.arange(MinWavelength,MaxWavelength,WavelengthStep)
         NumberOfWavelengthPoints=len(MainWavelengths)
         SignalArray=np.zeros((NumberOfWavelengthPoints,NumberOfPointsZ))
@@ -233,7 +233,7 @@ class ProcessSpectra(QObject):
                     If shifting and averaging are OFF, just take the first spectrum from the bundle correpsonding to a measuring point
                 """
                 SignalArray[:,ii]=SmallSignalArray[:,0]
-                
+
         f=open(self.ProcessedDataFolder+'Processed_spectrogram.pkl','wb')
         D={}
         D['axis']=axis_to_plot_along
@@ -278,6 +278,7 @@ class ProcessSpectra(QObject):
                 ax2.set_xlim([np.min(Positions_at_given_axis)*2.5, np.max(Positions_at_given_axis)*2.5])
             else:
                 plt.xlabel('Wavelength,nm')
+            plt.colorbar()
             plt.tight_layout()
             plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
             time2=time.time()
