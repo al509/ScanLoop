@@ -130,13 +130,11 @@ class AnalyzerForSpectrogram(QObject):
         i=np.argmin(abs(Positions-position))
         SignalData=self.Data[:,i]
         plt.figure()
-        plt.clf()
         plt.plot(self.WavelengthArray,SignalData)
         plt.title('Position=' + str(Positions[i])+ ' steps along axis '+axis_to_process) 
         peakind2,_=find_peaks(abs(SignalData-np.mean(SignalData)),height=MinimumPeakDepth , distance=(self.MinimumPeakDistance))
         plt.plot(self.WavelengthArray[peakind2], SignalData[peakind2], '.')
         plt.tight_layout()
-        plt.figure()
         
         
     def extractERV(self,MinimumPeakDepth,MinWavelength,MaxWavelength,axis_to_process='Z'):

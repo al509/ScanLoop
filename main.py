@@ -1,10 +1,10 @@
 """
- 09.10.2020
+ 29.10.2020
 """
 
 # -*- coding: utf-8 -*-
 
-__version__='18.1'
+__version__='18.1.2'
 
 import sys
 if 'init_modules' in globals(  ):
