@@ -212,11 +212,11 @@ class ProcessSpectra(QObject):
                         for kk, FileName in enumerate(FileNameListAtPoint):
                             if jj<kk:
                                 Temp=np.correlate(SmallSignalArray[int(AccuracyOfWavelength/WavelengthStep):-int(AccuracyOfWavelength/WavelengthStep),kk],SmallSignalArray[:,jj], mode='valid')/ \
-                                    np.sum(SmallSignalArray[int(AccuracyOfWavelength/WavelengthStep):-int(AccuracyOfWavelength/WavelengthStep),kk]**2)
+                                    np.sum(SmallSignalArray[int(AccuracyOfWavelength/WavelengthStep):-int(AccuracyOfWavelength/WavelengthStep),jj]**2)
                                 ShiftIndexesMatrix[jj,kk]=np.nanargmax(Temp)-np.floor(AccuracyOfWavelength/WavelengthStep)
                                 ShiftIndexesMatrix[kk,jj]=-ShiftIndexesMatrix[jj,kk]
                     ShiftArray=(np.mean(ShiftIndexesMatrix,1))
-
+                   
                 if Averaging:
                     """
                     Apply averaging across the spectra at one point
@@ -294,4 +294,4 @@ if __name__ == "__main__":
 #    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
 #                                     axis_to_plot_along='Z')
 
-    ProcessSpectra.run(StepSize=20,Shifting=True, Averaging=False,axis_to_plot_along='p',type_of_data='bin')
+    ProcessSpectra.run(StepSize=20,Shifting=True, Averaging=True,axis_to_plot_along='p',type_of_data='bin')
