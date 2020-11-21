@@ -287,8 +287,8 @@ class MainWindow(ThreadedMainWindow):
 
     def connect_laser(self):
         COMPort='COM'+self.ui.lineEdit_laser_COMport.text()
-        from Hardware.PurePhotonicsLaser import Laser
         try:
+            from Hardware.PurePhotonicsLaser import Laser
             self.laser=Laser(COMPort)
             self.laser.fineTuning(0)
             print('Laser has been connected')
