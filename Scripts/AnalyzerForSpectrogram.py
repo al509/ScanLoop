@@ -18,6 +18,7 @@ class AnalyzerForSpectrogram(QObject):
     
     def __init__(self, path:str):
         super().__init__(None)
+        self.single_spectrum_path=None
         self.FilePath=path
         self.MinimumPeakDistance=10  ## For peak searching 
         self.IndexOfPeakOfInterest=0 ## Zero is for deepest peak within the range, one is for next after deepest etc
@@ -67,7 +68,16 @@ class AnalyzerForSpectrogram(QObject):
         f.close()
         print('Cropped data saved to {}'.format(FileName))
 
+    def plot_single_spectrum_from_file(self):
+        with open(self.single_spectrum_path,'rb') as f:
+            print('loading data for analyzer from ',self.single_spectrum_path)
+            Data=(pickle.load(f))
+        plt.figure()
+        plt.plot(Data[:,0],Data[:,1])
+        plt.xlabel('Wavelength, nm')
+        plt.ylabel('Spectral power density')
         
+    
     
     def CalculateLinewidth(self,Xarray,Yarray,IndexOfMinimum,AreaToSearch):
         Ymin=Yarray[IndexOfMinimum]

@@ -153,6 +153,7 @@ class MainWindow(ThreadedMainWindow):
                                                                                         axis=self.ui.comboBox_axis_to_plot_along.currentText()))
         self.ui.pushButton_plotSampleShape_arb_data.clicked.connect(lambda: self.plotSampleShape(DirName=self.Folder,
                                                                                         axis=self.ui.comboBox_axis_to_plot_along_arb_data.currentText()))
+        self.ui.pushButton_analyzer_plot_single_spectrum_from_file.clicked.connect(self.plot_single_spectrum_from_file)
         self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(self.choose_folder_for_analyzer)
         self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(self.analyzer.plot_sample_shape)
         self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot2D())
@@ -723,6 +724,18 @@ class MainWindow(ThreadedMainWindow):
                            channel_number=self.ui.comboBox_TD_channel_to_plot_arb_data.currentIndex())
         Thread.quit()
 #            fname = QtWidgets.QFileDialog().getOpenFileName()[0]
+
+    def plot_single_spectrum_from_file(self):
+        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]
+        self.analyzer.single_spectrum_path=DataFilePath
+        self.analyzer.plot_single_spectrum_from_file()
+        self.ui.label_analyzer_single_spectrum_file.setText(self.analyzer.single_spectrum_path)
+
+    def choose_folder_for_analyzer(self):
+        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]
+        self.analyzer.FilePath=DataFilePath
+        self.analyzer.Data=None
+        self.ui.label_analyzer_folder.setText(self.analyzer.FilePath)
 
     def choose_folder_for_analyzer(self):
         DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]

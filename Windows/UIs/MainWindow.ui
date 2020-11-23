@@ -1459,7 +1459,7 @@
               <rect>
                <x>44</x>
                <y>117</y>
-               <width>31</width>
+               <width>56</width>
                <height>30</height>
               </rect>
              </property>
@@ -1512,8 +1512,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>100</width>
-             <height>30</height>
+             <width>300</width>
+             <height>705</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1836,8 +1836,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>100</width>
-             <height>30</height>
+             <width>300</width>
+             <height>705</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1847,7 +1847,7 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>20</y>
+              <y>100</y>
               <width>301</width>
               <height>189</height>
              </rect>
@@ -2028,7 +2028,7 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>230</y>
+              <y>310</y>
               <width>311</width>
               <height>261</height>
              </rect>
@@ -2291,6 +2291,48 @@
              </property>
              <property name="text">
               <string>Save cropped data</string>
+             </property>
+            </widget>
+           </widget>
+           <widget class="QGroupBox" name="groupBox_8">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>291</width>
+              <height>80</height>
+             </rect>
+            </property>
+            <property name="title">
+             <string>Single spectrum from file</string>
+            </property>
+            <widget class="QPushButton" name="pushButton_analyzer_plot_single_spectrum_from_file">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>30</y>
+               <width>100</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Choose  spectrum</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_analyzer_single_spectrum_file">
+             <property name="geometry">
+              <rect>
+               <x>150</x>
+               <y>30</y>
+               <width>121</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>none</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </widget>
