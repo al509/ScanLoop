@@ -5,6 +5,9 @@
 # -*- coding: utf-8 -*-
 
 __version__='18.2.0'
+from packaging import version
+from conda import __version__ as condaVersion
+
 
 import sys
 if 'init_modules' in globals(  ):
@@ -27,7 +30,8 @@ def main():
         app = QtWidgets.QApplication.instance()
     main = MainWindow(version=__version__)
     main.show()
-
+    if (version.parse(condaVersion) > version.parse("4.9.0")):
+        sys.exit(app.exec())
     return main
 
 
