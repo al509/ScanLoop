@@ -87,6 +87,7 @@ class MainWindow(ThreadedMainWindow):
     force_scope_acquire = pyqtSignal()
     force_scanning_process=pyqtSignal()
     force_laser_scanning_process=pyqtSignal()
+    force_laser_sweeping_process=pyqtSignal()
     '''
     Initialization
     '''
@@ -359,24 +360,21 @@ class MainWindow(ThreadedMainWindow):
                                                         scanstep=float(self.ui.lineEdit_laser_lambda_sweeping_step.text()),
                                                         wavelength_central=float(self.ui.lineEdit_laser_lambda_sweeping_central.text()),
                                                         max_detuning=float(self.ui.lineEdit_laser_sweeping_max_detuning.text()),
-                                                        delay=self.ui.lineEdit_laser_lambda_sweeping_delay.text())
+                                                        delay=float(self.ui.lineEdit_laser_lambda_sweeping_delay.text()))
+            print(float(self.ui.lineEdit_laser_lambda_sweeping_delay.text()))
             self.add_thread([self.laser_sweeping_process])
             self.laser_sweeping_process.S_updateCurrentWavelength.connect(lambda S:self.ui.label_current_scanning_laser_wavelength.setText(S))
-            self.force_laser_scanning_process.connect(self.laser_sweeping_process.run)
+            self.force_laser_sweeping_process.connect(self.laser_sweeping_process.run)
             print('Start laser sweeping')
             self.laser_sweeping_process.S_finished.connect(self.ui.pushButton_sweep_laser_wavelength.toggle)
             self.laser_sweeping_process.S_finished.connect(lambda : self.laser_sweeping(False))
-            self.ui.tabWidget_instruments.setEnabled(False)
-            self.ui.pushButton_Scanning.setEnabled(False)
             self.ui.pushButton_scan_laser_wavelength.setEnabled(False)
-            self.force_laser_scanning_process.emit()
+            self.force_laser_sweeping_process.emit()
 
         else:
             self.ui.pushButton_laser_On.setEnabled(True)
-            self.laser_sweeping_process.is_running=False
-            self.ui.tabWidget_instruments.setEnabled(True)
-            self.ui.pushButton_Scanning.setEnabled(True)
             self.ui.pushButton_scan_laser_wavelength.setEnabled(True)
+            self.laser_sweeping_process.is_running=False
             del self.laser_sweeping_process
             
             

@@ -112,7 +112,7 @@ class LaserSweepingProcess(QObject):
         self.delay=delay
 
         self.short_pause=0.005
-        self.long_pause=10
+        self.long_pause=4
         
         self.detuning_array=np.arange(-max_detuning,max_detuning,scanstep)
         
@@ -127,11 +127,11 @@ class LaserSweepingProcess(QObject):
         while self.is_running:
             if self.is_running:
                 for detuning in self.detuning_array:
-                    self.laser.fineTuning(detuning)
-                    time.sleep(self.delay)
-                    self.S_updateCurrentWavelength.emit(str(self.detuning))
                     if not self.is_running:
                         break
+                    self.laser.fineTuning(detuning)
+                    time.sleep(self.delay)
+                    self.S_updateCurrentWavelength.emit(str(self.wavelength_central+detuning*1e-3))
             else:
                 break           
         self.laser.setOff()
