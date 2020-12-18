@@ -53,7 +53,7 @@ class LaserScanningProcess(QObject):
         self.laser.setOn()
         time.sleep(self.long_pause)
         tuning=0
-        while self.is_running and self.wavelength<self.wavelength_stop:
+        while self.is_running and (self.wavelength-self.wavelength_stop)*np.sign(self.step)<0:
             print(self.wavelength)
             wavelengthdata, spectrum=self.OSA.acquire_spectrum()
             time.sleep(0.05)
@@ -76,7 +76,7 @@ class LaserScanningProcess(QObject):
                 time.sleep(self.long_pause)
             self.S_updateCurrentWavelength.emit(str(self.wavelength))
 
-            if self.is_running and self.wavelength>self.wavelength_stop:
+            if self.is_running and (self.wavelength-self.wavelength_stop)*np.sign(self.step)>0:
                 self.is_running=False
                 print('\nScanning finished\n')
                 self.laser.setOff()
