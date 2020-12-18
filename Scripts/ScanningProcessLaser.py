@@ -85,6 +85,61 @@ class LaserScanningProcess(QObject):
 
     def __del__(self):
         print('Closing scanning object...')
+        
+        
+        
+class LaserSweepingProcess(QObject):
+    is_running=False  ## Variable is "True" during scanning process. Pushing on "scanning" button in main window sets is_running True and start scanning process.
+
+    S_updateCurrentWavelength=pyqtSignal(str) #signal to initiate update the index of the current file in lineEdit_CurrentFile of main window
+    S_saveData=pyqtSignal(object,str) #signal to initiate saving measured spectrum to a file
+    S_finished=pyqtSignal()  # signal to finish
+
+
+    def __init__(self,
+                 laser:QObject,
+                 laser_power:float,
+                 scanstep:float,
+                 wavelength_central:float,
+                 max_detuning:float,
+                 delay: float):
+        super().__init__()
+        self.step=scanstep
+        self.wavelength_central=wavelength_central
+        self.max_detuning=max_detuning
+        self.laser=laser
+        self.Power=laser_power
+        self.delay=delay
+
+        self.short_pause=0.005
+        self.long_pause=10
+        
+        self.detuning_array=np.arange(-max_detuning,max_detuning,scanstep)
+        
+    def run(self):
+        self.is_running=True
+        self.laser.setPower(self.Power)
+        self.laser.setMode('Whisper')
+        self.laser.setWavelength(self.wavelength_central)
+        self.laser.setOn()
+        time.sleep(self.long_pause)
+       
+        while self.is_running:
+            if self.is_running:
+                for detuning in self.detuning_array:
+                    self.laser.fineTuning(detuning)
+                    time.sleep(self.delay)
+                    self.S_updateCurrentWavelength.emit(str(self.detuning))
+                    if not self.is_running:
+                        break
+            else:
+                break           
+        self.laser.setOff()
+        self.S_finished.emit()
+        
+
+    def __del__(self):
+        print('Closing scanning object...')
 
 if __name__ == "__main__":
 

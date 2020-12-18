@@ -4,7 +4,7 @@
 
 # -*- coding: utf-8 -*-
 
-__version__='18.2.1'
+__version__='18.2.2'
 from packaging import version
 from conda import __version__ as condaVersion
 

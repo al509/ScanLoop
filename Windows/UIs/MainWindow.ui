@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1199</width>
-    <height>892</height>
+    <width>1115</width>
+    <height>684</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1179</width>
-         <height>831</height>
+         <width>1078</width>
+         <height>624</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -288,8 +288,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>705</height>
+             <width>298</width>
+             <height>498</height>
             </rect>
            </property>
            <attribute name="label">
@@ -464,8 +464,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>705</height>
+             <width>298</width>
+             <height>498</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1454,28 +1454,6 @@
               </size>
              </property>
             </widget>
-            <widget class="QWidget" name="layoutWidget">
-             <property name="geometry">
-              <rect>
-               <x>44</x>
-               <y>117</y>
-               <width>56</width>
-               <height>30</height>
-              </rect>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout">
-              <item>
-               <widget class="QLineEdit" name="lineEdit_numberOfScans">
-                <property name="text">
-                 <string>1</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
             <widget class="QCheckBox" name="checkBox_followPeak">
              <property name="geometry">
               <rect>
@@ -1505,6 +1483,22 @@
               <string>#sweeps</string>
              </property>
             </widget>
+            <widget class="QLineEdit" name="lineEdit_numberOfScans">
+             <property name="geometry">
+              <rect>
+               <x>45</x>
+               <y>122</y>
+               <width>31</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>1</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
            </widget>
           </widget>
           <widget class="QWidget" name="page_6">
@@ -1512,8 +1506,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>705</height>
+             <width>298</width>
+             <height>498</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1531,7 +1525,7 @@
             <property name="title">
              <string>Scanning wavelength and save data</string>
             </property>
-            <widget class="QLineEdit" name="lineEdit_laser_lambda_min">
+            <widget class="QLineEdit" name="lineEdit_laser_lambda_scanning_min">
              <property name="geometry">
               <rect>
                <x>30</x>
@@ -1547,7 +1541,7 @@
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
-            <widget class="QLineEdit" name="lineEdit_laser_lambda_max">
+            <widget class="QLineEdit" name="lineEdit_laser_lambda_scanning_max">
              <property name="geometry">
               <rect>
                <x>110</x>
@@ -1589,7 +1583,7 @@
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;λ&lt;span style=&quot; vertical-align:sub;&quot;&gt;max&lt;/span&gt;, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
-            <widget class="QLineEdit" name="lineEdit_laser_lambda_step">
+            <widget class="QLineEdit" name="lineEdit_laser_lambda_scanning_step">
              <property name="geometry">
               <rect>
                <x>210</x>
@@ -1618,7 +1612,7 @@
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;dλ, pm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton_scanning_laser_wavelength">
+            <widget class="QPushButton" name="pushButton_scan_laser_wavelength">
              <property name="geometry">
               <rect>
                <x>200</x>
@@ -1647,7 +1641,7 @@
               <string>Current wavelength</string>
              </property>
             </widget>
-            <widget class="QLabel" name="label_current_laser_wavelength">
+            <widget class="QLabel" name="label_current_scanning_laser_wavelength">
              <property name="geometry">
               <rect>
                <x>10</x>
@@ -1830,14 +1824,185 @@
              </property>
             </widget>
            </widget>
+           <widget class="QGroupBox" name="groupBox_10">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>350</y>
+              <width>291</width>
+              <height>141</height>
+             </rect>
+            </property>
+            <property name="title">
+             <string>Sweeping wavelength fast</string>
+            </property>
+            <widget class="QLineEdit" name="lineEdit_laser_lambda_sweeping_central">
+             <property name="geometry">
+              <rect>
+               <x>30</x>
+               <y>50</y>
+               <width>61</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>1550</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QLineEdit" name="lineEdit_laser_sweeping_max_detuning">
+             <property name="geometry">
+              <rect>
+               <x>110</x>
+               <y>50</y>
+               <width>61</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>100</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_26">
+             <property name="geometry">
+              <rect>
+               <x>36</x>
+               <y>22</y>
+               <width>61</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;λ&lt;span style=&quot; vertical-align:sub;&quot;&gt;central&lt;/span&gt;, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_27">
+             <property name="geometry">
+              <rect>
+               <x>130</x>
+               <y>22</y>
+               <width>47</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Dλ, pm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+            </widget>
+            <widget class="QLineEdit" name="lineEdit_laser_lambda_sweeping_step">
+             <property name="geometry">
+              <rect>
+               <x>180</x>
+               <y>50</y>
+               <width>41</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>1</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_28">
+             <property name="geometry">
+              <rect>
+               <x>185</x>
+               <y>23</y>
+               <width>47</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;dλ, pm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_sweep_laser_wavelength">
+             <property name="geometry">
+              <rect>
+               <x>200</x>
+               <y>90</y>
+               <width>75</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Sweeping</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_29">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>90</y>
+               <width>121</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Current wavelength</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_current_sweeping_laser_wavelength">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>110</y>
+               <width>71</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>1550</string>
+             </property>
+            </widget>
+            <widget class="QLineEdit" name="lineEdit_laser_lambda_sweeping_delay">
+             <property name="geometry">
+              <rect>
+               <x>230</x>
+               <y>50</y>
+               <width>41</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>0</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_30">
+             <property name="geometry">
+              <rect>
+               <x>230</x>
+               <y>23</y>
+               <width>47</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;delay, s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+            </widget>
+           </widget>
           </widget>
           <widget class="QWidget" name="page_3">
            <property name="geometry">
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>705</height>
+             <width>298</width>
+             <height>498</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2350,7 +2515,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1199</width>
+     <width>1115</width>
      <height>21</height>
     </rect>
    </property>
