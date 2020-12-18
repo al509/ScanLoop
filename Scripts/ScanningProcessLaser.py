@@ -43,7 +43,7 @@ class LaserScanningProcess(QObject):
         self.Power=laser_power
 
         self.short_pause=0.5
-        self.long_pause=10
+        self.long_pause=4
 
     def run(self):
         self.is_running=True
