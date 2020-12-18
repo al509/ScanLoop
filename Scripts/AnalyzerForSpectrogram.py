@@ -117,15 +117,21 @@ class AnalyzerForSpectrogram(QObject):
         plt.figure()
         plot=plt.contourf(Positions,self.WavelengthArray,self.Data,200,cmap=self.Cmap)
 #        plot=plt.gca().pcolorfast(Positions,WavelengthArray)
-        plt.xlabel('Position, steps (2.5 um each)')
-        plt.ylabel('Wavelength, nm')
         ax1=plt.gca()
-        ax2=ax1.twiny()
-        ax2.set_xlabel('Distance, um')
-        ax2.set_xlim([np.min(Positions)*2.5,np.max(Positions)*2.5])
-        ax3=ax1.secondary_yaxis('right',functions=(self.forward, self.backward))
-        ax3.set_ylabel('Effective radius variation, nm')
-        plt.colorbar(plot,ax=ax3)
+        if self.axis=='W':
+            plt.xlabel('Wavelength,nm')
+            plt.colorbar(plot,ax=ax1)
+        else:
+            plt.xlabel('Position, steps (2.5 um each)')
+            ax2=ax1.twiny()
+            ax2.set_xlabel('Distance, um')
+            ax2.set_xlim([np.min(Positions)*2.5,np.max(Positions)*2.5])
+            ax3=ax1.secondary_yaxis('right',functions=(self.forward, self.backward))
+            ax3.set_ylabel('Effective radius variation, nm')
+            plt.colorbar(plot,ax=ax3)
+        
+        plt.ylabel('Wavelength, nm')
+        
         plt.tight_layout()
         self.axis_of_2D_plot=ax1
         

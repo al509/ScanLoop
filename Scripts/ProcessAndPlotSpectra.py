@@ -236,7 +236,13 @@ class ProcessSpectra(QObject):
                 """
                 SignalArray[:,ii]=SmallSignalArray[:,0]
 
-        f=open(self.ProcessedDataFolder+'Processed_spectrogram.pkl','wb')
+        if self.axis_to_plot_along=='W':
+            f_name='Processed_spectra_VS_wavelength.pkl'     
+        elif self.axis_to_plot_along=='p':
+            f_name='Processed_spectrogram_at_spot.pkl'     
+        else:
+            f_name='Processed_spectrogram.pkl'     
+        f=open(self.ProcessedDataFolder+f_name,'wb')
         D={}
         D['axis']=axis_to_plot_along
         D['Positions']=Positions
@@ -273,13 +279,15 @@ class ProcessSpectra(QObject):
             plt.contourf(Positions_at_given_axis,MainWavelengths,SignalArray,200,cmap=self.Cmap)
 #            plt.gca().pcolorfast(Positions_at_given_axis,MainWavelengths,SignalArray)
             plt.ylabel('Wavelength, nm')
-            if self.axis_to_plot_along!='W':
+            if self.axis_to_plot_along=='W':
+                plt.xlabel('Wavelength,nm')
+            else:
                 plt.xlabel(r'Position, steps (2.5 $\mu$m each)')
                 ax2=(plt.gca()).twiny()
                 ax2.set_xlabel(r'Distance, $\mu$m')
                 ax2.set_xlim([np.min(Positions_at_given_axis)*2.5, np.max(Positions_at_given_axis)*2.5])
-            else:
-                plt.xlabel('Wavelength,nm')
+            
+                
             plt.colorbar()
             plt.tight_layout()
             plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')

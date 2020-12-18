@@ -1,10 +1,10 @@
 """
- 23.11.2020
+ 18.12.2020
 """
 
 # -*- coding: utf-8 -*-
 
-__version__='18.2.0'
+__version__='18.2.1'
 from packaging import version
 from conda import __version__ as condaVersion
 

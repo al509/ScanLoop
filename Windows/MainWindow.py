@@ -157,7 +157,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(self.choose_folder_for_analyzer)
         self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(self.analyzer.plot_sample_shape)
         self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot2D())
-        self.ui.pushButton_analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plotSlice(int(self.ui.lineEdit_slice_position.text()),
+        self.ui.pushButton_analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plotSlice(float(self.ui.lineEdit_slice_position.text()),
                                                                                                float(self.ui.lineEdit_analyzer_resonance_level.text()),
                                                                                                self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
         self.ui.pushButton_analyzer_extractERV.clicked.connect(lambda: self.analyzer.extractERV(float(self.ui.lineEdit_analyzer_resonance_level.text()),
