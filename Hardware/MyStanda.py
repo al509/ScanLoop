@@ -21,7 +21,7 @@ except ImportError as err:
 except OSError as err:
     print ("Can't load libximc library. Please add all shared libraries to the appropriate places (next to pyximc.py on Windows). It is decribed in detailes in developers' documentation.")
     exit()
-#def command_move(device_id, Position, uPosition)
+
 # variable 'lib' points to a loaded library
 # note that ximc uses stdcall on win
 
@@ -59,65 +59,71 @@ class StandaStages(QObject):
             result = self.lib.get_enumerate_device_controller_name(devenum, dev_ind, byref(controller_name))
             if result == Result.Ok:
                 print("Enumerated device #{} name (port name): ".format(dev_ind) + repr(enum_name) + ". Friendly name: " + repr(controller_name.ControllerName) + ".")
+                if 'Axis 1' in str(controller_name.ControllerName):
+                    open_name_X = self.lib.get_device_name(devenum, dev_ind)
+                elif 'Axis 2' in str(controller_name.ControllerName):
+                    open_name_Z = self.lib.get_device_name(devenum, dev_ind)
+                elif 'Axis 3' in str(controller_name.ControllerName):
+                    open_name_Y = self.lib.get_device_name(devenum, dev_ind)
 
-        open_name = None
-        if len(sys.argv) > 1:
-            open_name = sys.argv[1]
-        elif dev_count > 0: 
-            open_name = self.lib.get_device_name(devenum, 0)
-            open_name_1 = self.lib.get_device_name(devenum, 1)
-            open_name_2 = self.lib.get_device_name(devenum, 2)
-        elif sys.version_info >= (3,0):
-            # use URI for virtual device when there is new urllib python3 API
-            tempdir = tempfile.gettempdir() + "/testdevice.bin"
-            if os.altsep:
-                tempdir = tempdir.replace(os.sep, os.altsep)
+        # open_name = None
+        # if len(sys.argv) > 1:
+        #     open_name = sys.argv[1]
+        # elif dev_count > 0: 
+        #     open_name = self.lib.get_device_name(devenum, 0)
+        #     open_name_1 = self.lib.get_device_name(devenum, 1)
+        #     open_name_2 = self.lib.get_device_name(devenum, 2)
+        # elif sys.version_info >= (3,0):
+        #     # use URI for virtual device when there is new urllib python3 API
+        #     tempdir = tempfile.gettempdir() + "/testdevice.bin"
+        #     if os.altsep:
+        #         tempdir = tempdir.replace(os.sep, os.altsep)
 
-            tempdir1 = tempfile.gettempdir() + "/testdevice1.bin"
-            if os.altsep:
-                tempdir1 = tempdir1.replace(os.sep, os.altsep)
+        #     tempdir1 = tempfile.gettempdir() + "/testdevice1.bin"
+        #     if os.altsep:
+        #         tempdir1 = tempdir1.replace(os.sep, os.altsep)
 
-            tempdir2 = tempfile.gettempdir() + "/testdevice2.bin"
-            if os.altsep:
-                tempdir2 = tempdir2.replace(os.sep, os.altsep)
-            # urlparse build wrong path if scheme is not file
-            uri = urllib.parse.urlunparse(urllib.parse.ParseResult(scheme="file", \
-                    netloc=None, path=tempdir, params=None, query=None, fragment=None))
-            open_name = re.sub(r'^file', 'xi-emu', uri).encode()
+        #     tempdir2 = tempfile.gettempdir() + "/testdevice2.bin"
+        #     if os.altsep:
+        #         tempdir2 = tempdir2.replace(os.sep, os.altsep)
+        #     # urlparse build wrong path if scheme is not file
+        #     uri = urllib.parse.urlunparse(urllib.parse.ParseResult(scheme="file", \
+        #             netloc=None, path=tempdir, params=None, query=None, fragment=None))
+        #     open_name = re.sub(r'^file', 'xi-emu', uri).encode()
 
-            uri1 = urllib.parse.urlunparse(urllib.parse.ParseResult(scheme="file", \
-                    netloc=None, path=tempdir1, params=None, query=None, fragment=None))
-            open_name_1 = re.sub(r'^file', 'xi-emu', uri1).encode()
+        #     uri1 = urllib.parse.urlunparse(urllib.parse.ParseResult(scheme="file", \
+        #             netloc=None, path=tempdir1, params=None, query=None, fragment=None))
+        #     open_name_1 = re.sub(r'^file', 'xi-emu', uri1).encode()
 
-            uri2 = urllib.parse.urlunparse(urllib.parse.ParseResult(scheme="file", \
-                    netloc=None, path=tempdir2, params=None, query=None, fragment=None))
-            open_name_2 = re.sub(r'^file', 'xi-emu', uri2).encode()
+        #     uri2 = urllib.parse.urlunparse(urllib.parse.ParseResult(scheme="file", \
+        #             netloc=None, path=tempdir2, params=None, query=None, fragment=None))
+        #     open_name_2 = re.sub(r'^file', 'xi-emu', uri2).encode()
 
-        if not open_name:
+        if not open_name_X:
             exit(1)
-        if not open_name_1:
+        if not open_name_Z:
             exit(1)
-        if not open_name_2:
+        if not open_name_Y:
             exit(1)
 
-        if type(open_name) is str:
-            open_name = open_name.encode()
-        if type(open_name_1) is str:
-            open_name_1 = open_name_1.encode()
-        if type(open_name_2) is str:
-            open_name_2 = open_name_2.encode()
+        # if type(open_name) is str:
+        #     open_name = open_name.encode()
+        # if type(open_name_1) is str:
+        #     open_name_1 = open_name_1.encode()
+        # if type(open_name_2) is str:
+        #     open_name_2 = open_name_2.encode()
 
-        print("\nOpen device " + repr(open_name))
-        self.Stage_key['X'] = self.lib.open_device(open_name)
+        print("\nOpen device " + repr(open_name_X))
+        self.Stage_key['X'] = self.lib.open_device(open_name_X)
 #        print("Device id: " + repr(Stage_X))
 
-        print("\nOpen device " + repr(open_name_1))
-        self.Stage_key['Z'] = self.lib.open_device(open_name_1)
+        print("\nOpen device " + repr(open_name_Z))
+        self.Stage_key['Z'] = self.lib.open_device(open_name_Z)
 #        print("Device id_1: " + repr(Stage_Z))
 
 
-        print("\nOpen device " + repr(open_name_2))
-        self.Stage_key['Y'] = self.lib.open_device(open_name_2)
+        print("\nOpen device " + repr(open_name_Y))
+        self.Stage_key['Y'] = self.lib.open_device(open_name_Y)
 #        print("Device id_2: " + repr(Stage_Y))
         self.position['X']=self.get_position(self.Stage_key['X'])
         self.position['Y']=self.get_position(self.Stage_key['Y'])
@@ -212,9 +218,3 @@ if __name__ == "__main__":
 #################################### CLOSE CONNECTION #######################################
 
 
-
-#plt.grid(True)
-#plt.plot(Data[1], Data[0])
-#plt.xlabel("Wavelength (nm)")
-#plt.ylabel("Power (dBm)")
-#plt.show()
