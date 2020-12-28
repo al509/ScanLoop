@@ -63,7 +63,7 @@ class StandaStages(QObject):
         open_name = None
         if len(sys.argv) > 1:
             open_name = sys.argv[1]
-        elif dev_count > 0:
+        elif dev_count > 0: 
             open_name = self.lib.get_device_name(devenum, 0)
             open_name_1 = self.lib.get_device_name(devenum, 1)
             open_name_2 = self.lib.get_device_name(devenum, 2)
@@ -205,7 +205,7 @@ class StandaStages(QObject):
 if __name__ == "__main__":
     stages=StandaStages()
     d=5
-    stages.shiftOnArbitrary('X',d)
+    # stages.shiftOnArbitrary('X',d)
 
     del stages
 
