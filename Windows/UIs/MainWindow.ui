@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1091</width>
-         <height>653</height>
+         <width>1095</width>
+         <height>667</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -289,7 +289,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>507</height>
+             <height>541</height>
             </rect>
            </property>
            <attribute name="label">
@@ -379,7 +379,7 @@
                </property>
                <item>
                 <property name="text">
-                 <string>ApEx</string>
+                 <string>APEX</string>
                 </property>
                </item>
                <item>
@@ -455,6 +455,42 @@
                 <string>Zeroing</string>
                </property>
               </widget>
+              <widget class="QLabel" name="label_29">
+               <property name="geometry">
+                <rect>
+                 <x>20</x>
+                 <y>170</y>
+                 <width>81</width>
+                 <height>21</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>APEX mode</string>
+               </property>
+              </widget>
+              <widget class="QComboBox" name="comboBox_APEX_mode">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="geometry">
+                <rect>
+                 <x>110</x>
+                 <y>170</y>
+                 <width>91</width>
+                 <height>21</height>
+                </rect>
+               </property>
+               <item>
+                <property name="text">
+                 <string>OSA</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Tracking generator</string>
+                </property>
+               </item>
+              </widget>
              </widget>
             </item>
            </layout>
@@ -464,8 +500,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>28</height>
+             <width>300</width>
+             <height>541</height>
             </rect>
            </property>
            <attribute name="label">
@@ -571,13 +607,6 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
-               <widget class="QPushButton" name="pushButton_OSA_AcquireAll">
-                <property name="text">
-                 <string>Single All</string>
-                </property>
-               </widget>
-              </item>
               <item row="2" column="1">
                <widget class="QCheckBox" name="checkBox_HighRes">
                 <property name="text">
@@ -585,6 +614,13 @@
                 </property>
                 <property name="checkable">
                  <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QPushButton" name="pushButton_OSA_AcquireAll">
+                <property name="text">
+                 <string>Single All</string>
                 </property>
                </widget>
               </item>
@@ -1055,8 +1091,8 @@
               <rect>
                <x>100</x>
                <y>110</y>
-               <width>37</width>
-               <height>22</height>
+               <width>32</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1091,8 +1127,8 @@
               <rect>
                <x>100</x>
                <y>80</y>
-               <width>42</width>
-               <height>22</height>
+               <width>36</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1507,7 +1543,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>507</height>
+             <height>541</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1975,8 +2011,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>28</height>
+             <width>300</width>
+             <height>541</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2354,8 +2390,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>38</width>
-                <height>22</height>
+                <width>33</width>
+                <height>20</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -2490,7 +2526,7 @@
      <x>0</x>
      <y>0</y>
      <width>1115</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

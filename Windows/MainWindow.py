@@ -102,22 +102,31 @@ class MainWindow(ThreadedMainWindow):
         self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
 
 
-        # Stages interface
+# =============================================================================
+#         Stages interface
+# =============================================================================
         self.ui.pushButton_StagesConnect.pressed.connect(self.connectStages)
         self.X_0,self.Y_0,self.Z_0=[0,0,0]
 
-        # OSA interface
+# =============================================================================
+#         # OSA interface
+# =============================================================================
         self.ui.pushButton_OSA_connect.pressed.connect(self.connectOSA)
         self.ui.pushButton_OSA_Acquire.pressed.connect(self.on_pushButton_acquireSpectrum_pressed)
         self.ui.pushButton_OSA_AcquireAll.pressed.connect(self.on_pushButton_AcquireAllSpectra_pressed)
         self.ui.pushButton_OSA_AcquireRep.clicked[bool].connect(self.on_pushButton_acquireSpectrumRep_pressed)
+        self.ui.comboBox_APEX_mode.currentIndexChanged[int].connect(lambda x: self.OSA.SetMode(x+3))
 
-        # scope interface
+# =============================================================================
+#         # scope interface
+# =============================================================================
         self.ui.pushButton_scope_connect.pressed.connect(self.connectScope)
         self.ui.pushButton_scope_single.pressed.connect(self.on_pushButton_scope_single_measurement_pressed)
         self.ui.pushButton_scope_repeat.clicked[bool].connect(self.on_pushButton_scope_repeat__pressed)
 
-        # painter and drawing interface
+# =============================================================================
+#         # painter and drawing interface
+# =============================================================================
         self.painter = MyPainter(self.ui.groupBox_spectrum)
         self.add_thread([self.painter])
         self.ui.CheckBox_FreezeSpectrum.stateChanged.connect(self.on_stateChangeOfFreezeSpectrumBox)
@@ -127,24 +136,32 @@ class MainWindow(ThreadedMainWindow):
         self.ui.EditLine_StartWavelength.textChanged[str].connect(lambda S: self.OSA.change_range(start_wavelength=float(S)) if (isfloat(S) and float(S)>1500 and float(S)<1600) else 0)
         self.ui.EditLine_StopWavelength.textChanged[str].connect(lambda S: self.OSA.change_range(stop_wavelength=float(S)) if (isfloat(S) and float(S)>1500 and float(S)<1600) else 0)
 
-        # saving interface
+# =============================================================================
+#         saving interface
+# =============================================================================
         self.logger = Logger(parent=None)
         self.add_thread([self.logger])
         self.ui.pushButton_SaveParameters.pressed.connect(self.saveParametersToFile)
         self.ui.pushButton_LoadParameters.pressed.connect(self.loadParametersFromFile)
         self.ui.pushButton_save_data.pressed.connect(self.on_pushButton_save_data)
 
-        #scanning process
+# =============================================================================
+#         #scanning process
+# =============================================================================
         self.ui.checkBox_searchContact.stateChanged.connect(self.on_stateSearchContact)
         self.ui.pushButton_Scanning.clicked[bool].connect(self.on_pushButton_Scanning_pressed)
 
-        # processing
+# =============================================================================
+#         # processing
+# =============================================================================
         self.processSpectra=ProcessAndPlotSpectra.ProcessSpectra(self.path_to_main)
         self.add_thread([self.processSpectra])
         self.ui.pushButton_processSpectralData.pressed.connect(self.on_Push_Button_ProcessSpectra)
         self.ui.pushButton_processTDData.pressed.connect(self.on_Push_Button_ProcessTD)
 
-        # analyzer logic
+# =============================================================================
+#         # analyzer logic
+# =============================================================================
         self.analyzer=AnalyzerForSpectrogram.AnalyzerForSpectrogram(os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl')
         self.add_thread([self.analyzer])
         self.ui.pushButton_process_arb_spectral_data.clicked.connect(self.process_arb_spectral_data_clicked)
@@ -167,7 +184,9 @@ class MainWindow(ThreadedMainWindow):
                                                                                                 self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
         self.ui.pushButton_analyzer_save_cropped_data.clicked.connect(self.analyzer.save_cropped_data)
 
-        ## laser
+# =============================================================================
+#         Pure Photonics Tunable laser
+# =============================================================================
         self.ui.pushButton_laser_connect.clicked.connect(self.connect_laser)
         self.ui.pushButton_laser_On.clicked[bool].connect(self.on_pushButton_laser_On)
         self.ui.comboBox_laser_mode.currentIndexChanged.connect(self.change_laser_mode)
@@ -231,9 +250,12 @@ class MainWindow(ThreadedMainWindow):
 #            self.OSA.renew_config.connect(self.painter.set_config)
 
 
-        elif self.ui.comboBox_Type_of_OSA.currentText()=='ApEx':
+        elif self.ui.comboBox_Type_of_OSA.currentText()=='APEX':
             self.OSA = APEX_OSA_with_additional_features(Consts.APEX.HOST)
             self.ui.checkBox_HighRes.setChecked(self.OSA.IsHighRes)
+            self.ui.comboBox_APEX_mode.setEnabled(True)
+            self.ui.comboBox_APEX_mode.setCurrentIndex(self.OSA.GetMode()-3)
+            
         self.add_thread([self.OSA])
 #        self.OSA.received_spectra.connect(self.painter.set_spectra)
         self.OSA.received_spectrum.connect(self.painter.set_data)

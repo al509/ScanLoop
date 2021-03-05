@@ -82,6 +82,9 @@ class APEX_OSA_with_additional_features(OSA,QObject):
  
 
 
-if '__name__'=='__main__':
+if __name__=='__main__':
+    print(1)
     OSA = APEX_OSA_with_additional_features('10.2.60.25')
-    print(OSA.GetMode())
+    a=OSA.GetMode()
+    OSA.ListModes()
+    print(a)

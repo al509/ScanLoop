@@ -79,10 +79,23 @@ class AnalyzerForSpectrogram(QObject):
         
     
     
-    def CalculateLinewidth(self,Xarray,Yarray,IndexOfMinimum,AreaToSearch):
+    def CalculateLinewidth_1(self,Xarray,Yarray,IndexOfMinimum,AreaToSearch):
         Ymin=Yarray[IndexOfMinimum]
         NewYarray=Yarray[IndexOfMinimum-AreaToSearch:IndexOfMinimum+AreaToSearch]
         Edges=np.argsort(abs(NewYarray-(Ymin+3)))
+        if len(Edges)>6:
+            LineWidths=np.diff(Xarray[Edges[0:5]])
+            return np.max(LineWidths)
+        
+        else:
+            return 0
+        
+    def CalculateLinewidth_2(self,Xarray,Yarray,IndexOfMinimum,AreaToSearch):
+        Ymin=Yarray[IndexOfMinimum]
+        NewYarray=Yarray[IndexOfMinimum-AreaToSearch:IndexOfMinimum+AreaToSearch]
+        NewYarray=10**(NewYarray/10)
+        Ymax=max(NewYarray)
+        Edges=np.argsort(abs(NewYarray-(Ymin+Ymax)/2))
         if len(Edges)>6:
             LineWidths=np.diff(Xarray[Edges[0:5]])
             return np.max(LineWidths)
@@ -175,7 +188,7 @@ class AnalyzerForSpectrogram(QObject):
         #    peakind2=np.argsort(-Data[peakind1,Zind])
             if len(NewPeakind)>self.IndexOfPeakOfInterest:
                 try:
-                    LineWidthArray.append(self.CalculateLinewidth(WavelengthArray,self.Data[:,Zind],NewPeakind[self.IndexOfPeakOfInterest],self.AreaToSearch))
+                    LineWidthArray.append(self.CalculateLinewidth_2(WavelengthArray,self.Data[:,Zind],NewPeakind[self.IndexOfPeakOfInterest],self.AreaToSearch))
                 except:
                     print('Error while deriving Linewidth')
                     LineWidthArray[Zind]=0
