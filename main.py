@@ -9,7 +9,7 @@ import sys
 from packaging import version
 from conda import __version__ as condaVersion
 from PyQt5 import QtWidgets
-from Windows.MainWindow import MainWindow
+from Windows.main_window import MainWindow
 
 
 
