@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
-
-import sys
-import numpy as np
 import os
+import numpy as np
 
 from PyQt5.QtCore import pyqtSignal, QThread
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
@@ -824,14 +822,6 @@ class MainWindow(ThreadedMainWindow):
         self.analyzer.FilePath=DataFilePath
         self.analyzer.Data=None
         self.ui.label_analyzer_folder.setText(self.analyzer.FilePath)
-
-    def choose_folder_for_analyzer(self):
-        DataFilePath= str(QFileDialog.getOpenFileName(
-            self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]
-        self.analyzer.FilePath=DataFilePath
-        self.analyzer.Data=None
-        self.ui.label_analyzer_folder.setText(self.analyzer.FilePath)
-
 
     def closeEvent(self, event):
 #         here you can terminate your threads and do other stuff
