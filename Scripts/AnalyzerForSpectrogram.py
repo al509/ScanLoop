@@ -191,7 +191,7 @@ class AnalyzerForSpectrogram(QObject):
                     LineWidthArray.append(self.CalculateLinewidth_2(WavelengthArray,self.Data[:,Zind],NewPeakind[self.IndexOfPeakOfInterest],self.AreaToSearch))
                 except:
                     print('Error while deriving Linewidth')
-                    LineWidthArray[Zind]=0
+                    LineWidthArray.append(0)
                 PeakWavelengthArray.append(WavelengthArray[NewPeakind[self.IndexOfPeakOfInterest]])
                 PeakWavelengthMatrix[NewPeakind[self.IndexOfPeakOfInterest],Zind]=-self.Data[NewPeakind[self.IndexOfPeakOfInterest],Zind]
                 Pos.append(Positions[Zind])
