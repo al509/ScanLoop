@@ -5,3 +5,5 @@
 *.pyc
 ZeroPosition.txt
 *.pyc
+.pylint.d/main1.stats
+*.stats
