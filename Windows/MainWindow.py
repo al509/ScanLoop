@@ -19,6 +19,7 @@ from Common.Consts import Consts
 from Hardware.Config import Config
 from Hardware.Interrogator import Interrogator
 from Hardware.YokogawaOSA import OSA_AQ6370
+from Hardware.ova5000 import Luna
 from Hardware.KeysightOscilloscope import Scope
 from Hardware.APEX_OSA import APEX_OSA_with_additional_features
 from Logger.Logger import Logger
@@ -222,6 +223,8 @@ class MainWindow(ThreadedMainWindow):
 
 
     def connectOSA(self):
+        if self.ui.comboBox_Type_of_OSA.currentText()=='Luna':
+            self.OSA=Luna()
         if self.ui.comboBox_Type_of_OSA.currentText()=='Yokogawa':
             HOST = Consts.Yokogawa.HOST
             PORT = 10001

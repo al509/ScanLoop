@@ -60,37 +60,6 @@
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="2" colspan="2">
-         <widget class="QGroupBox" name="groupBox_spectrum">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-            <horstretch>2</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>550</width>
-            <height>550</height>
-           </size>
-          </property>
-          <property name="sizeIncrement">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="baseSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>Graph</string>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="2">
          <widget class="QGroupBox" name="groupBox_9">
           <property name="sizePolicy">
@@ -384,12 +353,17 @@
                </item>
                <item>
                 <property name="text">
-                 <string>Astro interrogator</string>
+                 <string>Luna</string>
                 </property>
                </item>
                <item>
                 <property name="text">
                  <string>Yokogawa</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Astro interrogator</string>
                 </property>
                </item>
               </widget>
@@ -500,8 +474,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>541</height>
+             <width>100</width>
+             <height>30</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1542,8 +1516,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>541</height>
+             <width>100</width>
+             <height>30</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2011,8 +1985,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>541</height>
+             <width>100</width>
+             <height>30</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2512,6 +2486,37 @@
             </widget>
            </widget>
           </widget>
+         </widget>
+        </item>
+        <item row="0" column="2" colspan="2">
+         <widget class="QGroupBox" name="groupBox_spectrum">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>2</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>550</width>
+            <height>550</height>
+           </size>
+          </property>
+          <property name="sizeIncrement">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>Graph</string>
+          </property>
          </widget>
         </item>
        </layout>

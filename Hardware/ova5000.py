@@ -59,8 +59,11 @@ class Luna:
         return None
 
     ########## Methods for integrate into scanloop ##########
-    def acqire_data(self, x_mode, y_mode):
-        '''Scan data and return it tuple of two numpy arrays'''
+    def acqire_spectrum(self, x_mode=0, y_mode=0):
+        ''' 
+        Scan data and return it tuple of two numpy arrays;
+        y_mode=0 for insertion losses
+        '''
         self.send_auto("SCAN")
         while self.send_auto("SYST:RDY?")[0] != '1':
             pass
