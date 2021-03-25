@@ -302,4 +302,4 @@ if __name__ == "__main__":
 #    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
 #                                     axis_to_plot_along='Z')
 
-    ProcessSpectra.run(StepSize=20,Shifting=True, Averaging=True,axis_to_plot_along='p',type_of_data='bin')
+    ProcessSpectra.run(StepSize=20,Shifting=True, Averaging=True,axis_to_plot_along='Z',type_of_data='bin')

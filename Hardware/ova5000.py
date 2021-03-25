@@ -1,6 +1,7 @@
 '''The module describing the OVA5000 device'''
 import socket
 import time
+from PyQt5.QtCore import QObject,pyqtSignal
 import numpy as np
 
 RESPONSE_TIMEOUT = 2 # seconds
@@ -8,20 +9,26 @@ RESPONSE_TIMEOUT = 2 # seconds
 BUFSIZE = 4096 # bytes
 
 
-class Luna:
+class Luna(QObject):
     '''The class for controlling the OVA5000'''
     class ResponseError(Exception):
         '''Exception that is thrown when where are response from a command or no
            response from query'''
     class ScanError(Exception):
         '''Exception that is thrown whrn there is a scan error'''
-
+    received_spectrum = pyqtSignal(np.ndarray,list,list)
 
     def __init__(self, host='localhost', port=1):
+        QObject.__init__(self)
         '''Setup a remote connection for OVA5000'''
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(RESPONSE_TIMEOUT)
         self.sock.connect((host, port))
+        self._Span = 2.55
+        self._Center = 1550
+        self._StartWavelength=self._Center-self._Span/2
+        self._StopWavelength=self._Center+self._Span/2
+
 
     def recvall(self):
         '''Recieve all symbols from server'''
@@ -59,7 +66,7 @@ class Luna:
         return None
 
     ########## Methods for integrate into scanloop ##########
-    def acqire_spectrum(self, x_mode=0, y_mode=0):
+    def acquire_spectrum(self, x_mode=0, y_mode=0):
         ''' 
         Scan data and return it tuple of two numpy arrays;
         y_mode=0 for insertion losses
@@ -71,16 +78,23 @@ class Luna:
             raise self.ScanError(self.send_auto("SYST:ERRD?"))
         x_raw = self.send_auto("FETC:XAXI? " + str(x_mode))
         y_raw = self.send_auto("FETC:MEAS? " + str(y_mode))
-        x_final = x_raw[:-2].split('\r')
-        y_final = y_raw[:-2].split('\r')
-        return np.array(x_final, np.float64), np.array(y_final, np.float64)
+        x_final = np.array(x_raw[:-2].split('\r'),np.float64)
+        y_final = np.array(y_raw[:-2].split('\r'),np.float64)
+        self.received_spectrum.emit(x_final,list([y_final]),[0])
+        return x_final, y_final
 
-    def set_range(self, start_wavelength, end_wavelength):
+    def change_range(self, start_wavelength=None, stop_wavelength=None):
         '''Set the wavelength range'''
-        center = (start_wavelength + end_wavelength)/2
-        rng =  (end_wavelength - start_wavelength)
-        self.send_auto("CONF:CWL "+ str(center))
-        self.send_auto("CONF:RANG " + str(rng))
+        if start_wavelength is None:
+            start_wavelength=self._StartWavelength
+        if stop_wavelength is None:
+            stop_wavelength=self._StopWavelength
+        self._Center = (start_wavelength + stop_wavelength)/2
+        self._Span =  (stop_wavelength - start_wavelength)
+        self._StartWavelength=start_wavelength
+        self._StopWavelength=stop_wavelength
+        self.send_auto("CONF:CWL "+ str(self._Center))
+        self.send_auto("CONF:RANG " + str(self._Span))
         
     #############################################
 
