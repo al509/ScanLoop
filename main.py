@@ -21,8 +21,8 @@ def main():
         app = QtWidgets.QApplication.instance()
     main_app = MainWindow(version=__version__)
     main_app.show()
-    if version.parse(condaVersion) > version.parse("4.9.0"):
-        sys.exit(app.exec())
+    # Uncomment only if application doesn't finish properly 
+    #sys.exit(app.exec())
     return main_app
 
 
