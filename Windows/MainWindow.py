@@ -367,6 +367,9 @@ class MainWindow(ThreadedMainWindow):
                 scanstep=float(self.ui.lineEdit_laser_lambda_scanning_step.text()),
                 wavelength_start=float(self.ui.lineEdit_laser_lambda_scanning_min.text()),
                 wavelength_stop=float(self.ui.lineEdit_laser_lambda_scanning_max.text()))
+            self.laser_scanning_process.S_saveSpectrumToOSA.connect(
+                    lambda FilePrefix: self.OSA.SaveToFile(
+                        'D:'+'Sp_'+FilePrefix, TraceNumber=1, Type="txt"))
             self.add_thread([self.laser_scanning_process])
             self.laser_scanning_process.S_updateCurrentWavelength.connect(
                 lambda S:self.ui.label_current_scanning_laser_wavelength.setText(S))

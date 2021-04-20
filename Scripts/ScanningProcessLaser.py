@@ -25,7 +25,7 @@ class LaserScanningProcess(QObject):
     S_updateCurrentWavelength=pyqtSignal(str) #signal to initiate update the index of the current file in lineEdit_CurrentFile of main window
     S_saveData=pyqtSignal(object,str) #signal to initiate saving measured spectrum to a file
     S_finished=pyqtSignal()  # signal to finish
-
+    S_saveSpectrumToOSA=pyqtSignal(str)
 
     def __init__(self,
                  OSA:QObject,
@@ -59,6 +59,8 @@ class LaserScanningProcess(QObject):
             time.sleep(0.05)
             Data=np.stack((wavelengthdata, spectrum),axis=1)
             self.S_saveData.emit(Data,'W='+str(self.wavelength)) # save spectrum to file
+            if self.OSA.IsHighRes: #if true and high resolution of OSA is used, spectra have to be saved on OSA hardDrive to preserve full resolution
+                    self.S_saveSpectrumToOSA.emit('W='+str(self.wavelength))
             if not self.is_running:
                 self.laser.setOff()
                 break

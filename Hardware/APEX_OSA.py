@@ -38,7 +38,7 @@ class APEX_OSA_with_additional_features(OSA,QObject):
 
         self.SetAutoPointNumberSelection(True)
  
-        if abs(self.GetXResolution()-4e-5)<1e-6:
+        if self.GetXResolution()<1e-3:
             self.SetNPoints(int((self._StopWavelength-self._StartWavelength)/self.__SamplingRateForHighRes))
             self.IsHighRes=True
         else:
