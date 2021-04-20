@@ -184,8 +184,6 @@ class ScanningProcess(QObject):
                 else:
                     Data=np.stack((wavelengthdata, spectrum),axis=1)
                 self.S_saveData.emit(Data,'p='+str(self.CurrentFileIndex)+'_j='+str(jj)) # save spectrum to file
-                if self.IsHighRes: #if true and high resolution of OSA is used, spectra have to be saved on OSA hardDrive to preserve full resolution
-                    self.S_saveSpectrumToOSA.emit('p='+str(self.CurrentFileIndex)+'_j='+str(jj))
                 if not self.is_running: break
 
             #update indexes in MainWindow and save positions into "Positions.txt"

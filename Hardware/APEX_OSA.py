@@ -14,6 +14,7 @@ import time
 
 from Hardware.PyApex.AP2XXX import AP2XXX
 from Hardware.PyApex.AP2XXX.osa import OSA
+from Common.Consts import Consts
 
 
 class APEX_OSA_with_additional_features(OSA,QObject):
@@ -50,9 +51,15 @@ class APEX_OSA_with_additional_features(OSA,QObject):
         a=time.time()
         self.Run(Type='single')
         print('Time elapsed for a single scan is ', time.time()-a)
-        temp= (np.array(self.GetData()))
-        self.spectrum=temp[0,::-1]
-        self.wavelengtharray=temp[1,::-1]
+        if self.IsHighRes:
+            self.SaveToFile("D:temp", Type="txt")
+            temp = np.loadtxt('//' + Consts.APEX.HOST + '/d/temp_spectrum.txt', skiprows=3, dtype=np.float64)
+            self.spectrum=temp[:,1]
+            self.wavelengtharray=temp[:,0]
+        else:
+            temp= (np.array(self.GetData()))
+            self.spectrum=temp[0,::-1]
+            self.wavelengtharray=temp[1,::-1]
         self.received_spectrum.emit(self.wavelengtharray,list([self.spectrum]),[0])
         return self.wavelengtharray, self.spectrum
 
