@@ -614,9 +614,6 @@ class MainWindow(ThreadedMainWindow):
 
         FilePrefix=self.ui.EditLine_saveSpectrumName.text()
         self.logger.save_data(Data,FilePrefix,X,Y,Z,self.painter.TypeOfData)
-        if self.painter.TypeOfData=='FromOSA' and self.OSA.IsHighRes:
-                self.OSA.SaveToFile(
-                    'D:'+self.ui.EditLine_saveSpectrumName.text(),TraceNumber=1, Type="txt")
 
     def on_pushButton_getRange(self):
         Range=(self.painter.ax.get_xlim())
