@@ -16,6 +16,8 @@ from scipy.signal import find_peaks
 
 class AnalyzerForSpectrogram(QObject):
     
+    refractive_index=1.45
+    
     def __init__(self, path:str):
         super().__init__(None)
         self.single_spectrum_path=None
@@ -104,10 +106,10 @@ class AnalyzerForSpectrogram(QObject):
             return 0
         
     def forward(self,x):
-        return (x-self.lambda_0)/self.lambda_0*self.Radius
+        return (x-self.lambda_0)/self.lambda_0*self.Radius*refractive_index
     
     def backward(self,y):
-        return y/self.Radius*self.lambda_0+self.lambda_0
+        return y/self.Radius/refractive_index*self.lambda_0+self.lambda_0
         
     def plot_sample_shape(self):
         from mpl_toolkits.mplot3d import Axes3D
