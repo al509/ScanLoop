@@ -106,10 +106,10 @@ class AnalyzerForSpectrogram(QObject):
             return 0
         
     def forward(self,x):
-        return (x-self.lambda_0)/self.lambda_0*self.Radius*refractive_index
+        return (x-self.lambda_0)/self.lambda_0*self.Radius*self.refractive_index
     
     def backward(self,y):
-        return y/self.Radius/refractive_index*self.lambda_0+self.lambda_0
+        return y/self.Radius/self.refractive_index*self.lambda_0+self.lambda_0
         
     def plot_sample_shape(self):
         from mpl_toolkits.mplot3d import Axes3D

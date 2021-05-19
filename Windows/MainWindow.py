@@ -5,7 +5,7 @@ import os
 import numpy as np
 
 from PyQt5.QtCore import pyqtSignal, QThread
-from PyQt5.QtWidgets import QMainWindow, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog
 
 from Common.Consts import Consts
 from Hardware.Config import Config
@@ -315,7 +315,6 @@ class MainWindow(ThreadedMainWindow):
             self.force_stage_move[str,int].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
             self.stages.stopped.connect(self.updatePositions)
             self.ui.groupBox_stand.setEnabled(True)
-            self.ui.pushButton_StagesConnect.setEnabled(False)
             self.ui.pushButton_zeroing_stages.pressed.connect(
                 self.on_pushBatton_pushButton_zeroing_stages)
 
@@ -850,3 +849,19 @@ class MainWindow(ThreadedMainWindow):
         del self.processSpectra
         print('Processing is deleted')
         super(QMainWindow, self).closeEvent(event)
+
+
+# class CustomDialog(QDialog, Ui_Dialog):
+#     def __init__(self):
+#         super(CustomDialog, self).__init__()
+#         self.setupUi(self)
+#         # set initials values to widgets
+
+#     def getResults(self):
+#         if self.exec_() == QDialog.Accepted:
+#             # get all values
+#             val = self.some_widget.some_function()
+#             val2 = self.some_widget2.some_another_function()
+#             return val1, val2, ...
+#         else:
+#             return None
