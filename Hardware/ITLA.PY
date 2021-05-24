@@ -115,9 +115,9 @@ def Send_command(sercon,byte0,byte1,byte2,byte3):
 
 def Receive_response(sercon):
     global _error,queue
-    reftime=time.clock()
+    reftime= time.perf_counter()
     while sercon.inWaiting()<4:
-        if time.clock()>reftime+0.25:
+        if  time.perf_counter()>reftime+0.25:
             _error=ITLA_NRERROR
             return(0xFF,0xFF,0xFF,0xFF)
         time.sleep(0.0001)
@@ -141,9 +141,9 @@ def Receive_response(sercon):
 
 def Receive_simple_response(sercon):
     global _error,CoBrite
-    reftime=time.clock()
+    reftime= time.perf_counter()
     while sercon.inWaiting()<4:
-        if time.clock()>reftime+0.25:
+        if  time.perf_counter()>reftime+0.25:
             _error=ITLA_NRERROR
             return(0xFF,0xFF,0xFF,0xFF)
         time.sleep(0.0001)
@@ -154,7 +154,7 @@ def Receive_simple_response(sercon):
 
 def ITLAConnect(port,baudrate=9600):
     global CoBrite
-    reftime=time.clock()
+    reftime= time.perf_counter()
     connected=False
     try:
         conn = serial.Serial(port,baudrate , timeout=1)
