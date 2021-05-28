@@ -41,6 +41,7 @@ class ThreadedMainWindow(QMainWindow):
         self.OSA=None
         self.scope=None
         self.laser=None
+        self.powermeter=None
 
     def add_thread(self, objects):
         """
@@ -123,6 +124,11 @@ class MainWindow(ThreadedMainWindow):
             self.on_pushButton_scope_single_measurement_pressed)
         self.ui.pushButton_scope_repeat.clicked[bool].connect(
             self.on_pushButton_scope_repeat__pressed)
+        
+# =============================================================================
+#         powermeter interface
+# =============================================================================
+        self.ui.pushButton_powermeter_connect.pressed.connect(self.connect_powermeter)
 
 # =============================================================================
 #         # painter and drawing interface
@@ -209,7 +215,18 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_scan_laser_wavelength.clicked[bool].connect(self.laser_scanning)
         self.ui.pushButton_sweep_laser_wavelength.clicked[bool].connect(self.laser_sweeping)
 
+# =============================================================================
+#   interface methods
+# =============================================================================
     def connectScope(self):
+        '''
+        create connection to scope
+
+        Returns
+        -------
+        None.
+
+        '''
         self.scope=Scope(Consts.Scope.HOST)
         self.add_thread([self.scope])
         self.scope.received_data.connect(self.painter.set_data)
@@ -235,6 +252,14 @@ class MainWindow(ThreadedMainWindow):
 
 
     def connectOSA(self):
+        '''
+        set connection to OSA: Luna, Yokogawa, ApEx Technologies or Astro interrogator
+
+        Returns
+        -------
+        None.
+
+        '''
         if self.ui.comboBox_Type_of_OSA.currentText()=='Luna':
             self.OSA=Luna()
         if self.ui.comboBox_Type_of_OSA.currentText()=='Yokogawa':
@@ -285,6 +310,14 @@ class MainWindow(ThreadedMainWindow):
         self.painter.TypeOfData='FromOSA'
 
     def connectStages(self):
+        '''
+        set connection to either Thorlabs or Standa stages 
+
+        Returns
+        -------
+        None.
+
+        '''
         if self.ui.comboBox_Type_of_Stages.currentText()=='3x Standa':
             from Hardware.MyStanda import StandaStages
             self.stages=StandaStages()
@@ -321,11 +354,42 @@ class MainWindow(ThreadedMainWindow):
             self.enableScanningProcess()
 
     def on_pushBatton_pushButton_zeroing_stages(self):
+        '''
+        move stages to zero position
+
+        Returns
+        -------
+        None.
+
+        '''
         self.stages.Stage_key['X'].move_home(True)
         self.stages.Stage_key['Z'].set_move_home_parameters(2, 1, 2.0, 0.0001)
         self.stages.Stage_key['Z'].move_home(False)
+        
+    def connect_powermeter(self):
+        '''
+        set connection to powermeter Thorlabs
+
+        Returns
+        -------
+        None.
+
+        '''
+        try:
+            from Hardware import ThorlabsPM100
+            self.powermeter=ThorlabsPM100.PowerMeter(Consts.Powermeter.SERIAL_NUMBER)
+        except:
+            print('Connection to power meter failed')
 
     def connect_laser(self):
+        '''
+        set connection to Pure Photonics tunable laser
+
+        Returns
+        -------
+        None.
+
+        '''
         COMPort='COM'+self.ui.lineEdit_laser_COMport.text()
         try:
             from Hardware.PurePhotonicsLaser import Laser
@@ -338,6 +402,19 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_pushButton_laser_On(self,pressed:bool):
+        '''
+        switch tunable laser between ON and OFF state
+
+        Parameters
+        ----------
+        pressed : bool
+            DESCRIPTION. current state of the button
+
+        Returns
+        -------
+        None.
+
+        '''
         if pressed:
             self.ui.pushButton_scan_laser_wavelength.setEnabled(False)
             self.laser.setPower(float(self.ui.lineEdit_laser_power.text()))
@@ -352,29 +429,61 @@ class MainWindow(ThreadedMainWindow):
             self.ui.lineEdit_laser_fine_tune.setEnabled(False)
 
     def change_laser_mode(self):
+        '''
+        change between Whisper, Dittering, and No Dittering modes of Pure Photonics Laser
+
+        Returns
+        -------
+        None.
+
+        '''
         self.laser.setMode(self.ui.comboBox_laser_mode.currentText())
 
     def laser_fine_tuning(self):
+        '''
+        fine tune of the Pure Photonics laser for the spectral shift specified at 
+        lineEdit_laser_fine_tune
+
+        Returns
+        -------
+        None.
+
+        '''
         self.laser.fineTuning(float(self.ui.lineEdit_laser_fine_tune.text()))
 
     def laser_scanning(self,pressed:bool):
+        '''
+        run scan of the Pure Photonics laser wavelength and save data from either OSA or powermeter at each laser wavelength
+        Spectra are saved to 'SpectralData\\'
+        Power VS wavelength is saved to 'ProcessedData\\Power_from_powermeter_VS_laser_wavelength.txt' when scanning is stopped
+
+        Parameters
+        ----------
+        pressed : bool
+            DESCRIPTION. Current state of the scanning button
+
+        Returns
+        -------
+        None.
+
+        '''
         if pressed:
             self.ui.pushButton_laser_On.setEnabled(False)
             from Scripts.ScanningProcessLaser import LaserScanningProcess
             self.laser_scanning_process=LaserScanningProcess(OSA=self.OSA,
-                laser=self.laser, laser_power=float(self.ui.lineEdit_laser_power.text()),
+                laser=self.laser, powermeter=self.powermeter,
+                laser_power=float(self.ui.lineEdit_laser_power.text()),
                 scanstep=float(self.ui.lineEdit_laser_lambda_scanning_step.text()),
                 wavelength_start=float(self.ui.lineEdit_laser_lambda_scanning_min.text()),
                 wavelength_stop=float(self.ui.lineEdit_laser_lambda_scanning_max.text()))
-            self.laser_scanning_process.S_saveSpectrumToOSA.connect(
-                    lambda FilePrefix: self.OSA.SaveToFile(
-                        'D:'+'Sp_'+FilePrefix, TraceNumber=1, Type="txt"))
             self.add_thread([self.laser_scanning_process])
             self.laser_scanning_process.S_updateCurrentWavelength.connect(
                 lambda S:self.ui.label_current_scanning_laser_wavelength.setText(S))
             self.force_laser_scanning_process.connect(self.laser_scanning_process.run)
             self.laser_scanning_process.S_saveData.connect(
                 lambda Data,prefix: self.logger.save_data(Data,prefix,0,0,0,'FromOSA'))
+            self.laser_scanning_process.S_add_powers_to_file.connect(
+                lambda PowerVSWavelength: np.savetxt('ProcessedData\\Power_from_powermeter_VS_laser_wavelength.txt',PowerVSWavelength))
             print('Start laser scanning')
             self.laser_scanning_process.S_finished.connect(
                 self.ui.pushButton_scan_laser_wavelength.toggle)
@@ -393,6 +502,19 @@ class MainWindow(ThreadedMainWindow):
             del self.laser_scanning_process
 
     def laser_sweeping(self,pressed:bool):
+        '''
+        run PurePhotonics laser 'fast' scanning without saving data
+
+        Parameters
+        ----------
+        pressed : bool
+            DESCRIPTION. Current state of the sweeping button
+
+        Returns
+        -------
+        None.
+
+        '''
         if pressed:
             self.ui.pushButton_laser_On.setEnabled(False)
             from Scripts.ScanningProcessLaser import LaserSweepingProcess
@@ -422,6 +544,14 @@ class MainWindow(ThreadedMainWindow):
 
     @pyqtSlotWExceptions()
     def enableScanningProcess(self):
+        '''
+        check whether both stages and measuring equipment have been connected to enable scanning features
+
+        Returns
+        -------
+        None.
+
+        '''
         if (self.ui.groupBox_stand.isEnabled() and self.ui.tabWidget_instruments.isEnabled()):
             self.ui.groupBox_Scanning.setEnabled(True)
             self.ui.tabWidget_instruments.setCurrentIndex(0)
@@ -835,6 +965,8 @@ class MainWindow(ThreadedMainWindow):
         print('Logger is deleted')
         del self.analyzer
         print('Analyzer is deleted')
+        del self.powermeter
+        print('powermeter is deleted')
         try:
             self.laser.setOff()
             del self.laser

@@ -7,33 +7,7 @@ SYSTEM_NAME = system()
 
 
 class Consts:
-    """Class with default constant values for fiberstand project."""
-
-    class Stand:
-        class Commands:
-            POLL = "poll"
-            PAUSE = "paus"
-            UNPAUSE = "unpa"
-            CHANGE_DIR = "chan"
-            MOVE_TO = "mvto {0}"
-            MOVE_ON = "mvon {0}"
-            SET_VELOCITY = "velo {0}"
-        if SYSTEM_NAME == "Windows":
-            PORT = "COM7"
-        elif SYSTEM_NAME == "Linux":
-            PORT = "ttyUSB0"
-        else:
-            PORT = "ttyUSB0"
-        BAUD = 115200
-        ENCODER_RATIO = 38.78  # step / mm # 0.0416  # 16115371408954  # mm / step
-        MIN_VEL = 10
-        MAX_VEL = 100
-
-        FORW = 1
-        BACK = -1
-
-        DEFAULT_MOVE_STEP_STEPS = 500
-        DEFAULT_MOVE_STEP_MM = DEFAULT_MOVE_STEP_STEPS / ENCODER_RATIO
+    """Class with default constant values for particular hardware used in the lab"""
 
     class APEX:
         HOST = "10.2.60.25"
@@ -68,4 +42,7 @@ class Consts:
 
     class Scope:
         HOST = '10.2.60.27'
+        
+    class Powermeter:
+        SERIAL_NUMBER='P0015055'
 
