@@ -60,92 +60,6 @@
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
-        <item row="1" column="2">
-         <widget class="QGroupBox" name="groupBox_9">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>300</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>450</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>Range, nm</string>
-          </property>
-          <widget class="QLineEdit" name="EditLine_StartWavelength">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>20</y>
-             <width>131</width>
-             <height>20</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>1550</string>
-           </property>
-           <property name="maxLength">
-            <number>12</number>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="EditLine_StopWavelength">
-           <property name="geometry">
-            <rect>
-             <x>150</x>
-             <y>20</y>
-             <width>131</width>
-             <height>20</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>1551</string>
-           </property>
-           <property name="maxLength">
-            <number>12</number>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-           </property>
-          </widget>
-          <widget class="QPushButton" name="pushButton_getRange">
-           <property name="geometry">
-            <rect>
-             <x>290</x>
-             <y>20</y>
-             <width>91</width>
-             <height>21</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Get range</string>
-           </property>
-          </widget>
-          <widget class="QCheckBox" name="CheckBox_FreezeSpectrum">
-           <property name="geometry">
-            <rect>
-             <x>390</x>
-             <y>20</y>
-             <width>56</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Freeze</string>
-           </property>
-          </widget>
-         </widget>
-        </item>
         <item row="1" column="3">
          <widget class="QGroupBox" name="groupBox_11">
           <property name="sizePolicy">
@@ -232,6 +146,92 @@
           </widget>
          </widget>
         </item>
+        <item row="1" column="2">
+         <widget class="QGroupBox" name="groupBox_9">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>450</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>Range, nm</string>
+          </property>
+          <widget class="QLineEdit" name="EditLine_StartWavelength">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>20</y>
+             <width>131</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>1550</string>
+           </property>
+           <property name="maxLength">
+            <number>12</number>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="EditLine_StopWavelength">
+           <property name="geometry">
+            <rect>
+             <x>150</x>
+             <y>20</y>
+             <width>131</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>1551</string>
+           </property>
+           <property name="maxLength">
+            <number>12</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+           </property>
+          </widget>
+          <widget class="QPushButton" name="pushButton_getRange">
+           <property name="geometry">
+            <rect>
+             <x>290</x>
+             <y>20</y>
+             <width>91</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Get range</string>
+           </property>
+          </widget>
+          <widget class="QCheckBox" name="CheckBox_FreezeSpectrum">
+           <property name="geometry">
+            <rect>
+             <x>390</x>
+             <y>20</y>
+             <width>56</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Freeze</string>
+           </property>
+          </widget>
+         </widget>
+        </item>
         <item row="0" column="1" rowspan="2">
          <widget class="QToolBox" name="File_work">
           <property name="sizePolicy">
@@ -239,6 +239,12 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
           </property>
           <property name="maximumSize">
            <size>
@@ -250,7 +256,7 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
@@ -272,6 +278,12 @@
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>100</height>
+               </size>
               </property>
               <property name="title">
                <string>Connection</string>
@@ -474,9 +486,15 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>100</width>
-             <height>30</height>
+             <width>283</width>
+             <height>700</height>
             </rect>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>700</height>
+            </size>
            </property>
            <attribute name="label">
             <string>Experiment's flow</string>
@@ -487,7 +505,7 @@
             </property>
             <property name="geometry">
              <rect>
-              <x>10</x>
+              <x>0</x>
               <y>220</y>
               <width>291</width>
               <height>121</height>
@@ -694,9 +712,9 @@
             </property>
             <property name="geometry">
              <rect>
-              <x>9</x>
+              <x>0</x>
               <y>0</y>
-              <width>291</width>
+              <width>271</width>
               <height>211</height>
              </rect>
             </property>
@@ -926,8 +944,8 @@
            <widget class="QGroupBox" name="groupBox_save_data">
             <property name="geometry">
              <rect>
-              <x>10</x>
-              <y>550</y>
+              <x>0</x>
+              <y>560</y>
               <width>291</width>
               <height>141</height>
              </rect>
@@ -1163,7 +1181,7 @@
             </property>
             <property name="geometry">
              <rect>
-              <x>10</x>
+              <x>0</x>
               <y>340</y>
               <width>291</width>
               <height>211</height>
@@ -1470,7 +1488,7 @@
                <x>80</x>
                <y>124</y>
                <width>63</width>
-               <height>17</height>
+               <height>700</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1516,9 +1534,15 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>100</width>
-             <height>30</height>
+             <width>300</width>
+             <height>541</height>
             </rect>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
            </property>
            <attribute name="label">
             <string>Laser control</string>
@@ -1985,9 +2009,15 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>100</width>
-             <height>30</height>
+             <width>283</width>
+             <height>600</height>
             </rect>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>600</height>
+            </size>
            </property>
            <attribute name="label">
             <string>Work with files</string>
@@ -1996,9 +2026,9 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>100</y>
-              <width>301</width>
-              <height>189</height>
+              <y>88</y>
+              <width>291</width>
+              <height>201</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -2177,9 +2207,9 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>310</y>
-              <width>311</width>
-              <height>261</height>
+              <y>300</y>
+              <width>301</width>
+              <height>271</height>
              </rect>
             </property>
             <property name="title">
@@ -2285,9 +2315,9 @@
             <widget class="QPushButton" name="pushButton_analyzer_plot2D">
              <property name="geometry">
               <rect>
-               <x>20</x>
+               <x>10</x>
                <y>60</y>
-               <width>61</width>
+               <width>51</width>
                <height>23</height>
               </rect>
              </property>
@@ -2298,9 +2328,9 @@
             <widget class="QPushButton" name="pushButton_analyzer_plotSampleShape">
              <property name="geometry">
               <rect>
-               <x>90</x>
+               <x>73</x>
                <y>60</y>
-               <width>94</width>
+               <width>101</width>
                <height>23</height>
               </rect>
              </property>
@@ -2432,9 +2462,9 @@
             <widget class="QPushButton" name="pushButton_analyzer_save_cropped_data">
              <property name="geometry">
               <rect>
-               <x>190</x>
+               <x>183</x>
                <y>60</y>
-               <width>94</width>
+               <width>101</width>
                <height>23</height>
               </rect>
              </property>
@@ -2446,7 +2476,7 @@
            <widget class="QGroupBox" name="groupBox_8">
             <property name="geometry">
              <rect>
-              <x>0</x>
+              <x>-10</x>
               <y>0</y>
               <width>291</width>
               <height>80</height>
