@@ -292,7 +292,7 @@ class MainWindow(ThreadedMainWindow):
             self.OSA = APEX_OSA_with_additional_features(Consts.APEX.HOST)
             self.ui.checkBox_HighRes.setChecked(self.OSA.IsHighRes)
             self.ui.comboBox_APEX_mode.setEnabled(True)
-            self.ui.comboBox_APEX_mode.setCurrentIndex(self.OSA.GetMode()-3)
+            self.ui.comboBox_APEX_mode.setCurrentIndex(self.OSA.GetMode()-2)
 
         self.add_thread([self.OSA])
         self.OSA.received_spectrum.connect(self.painter.set_data)
@@ -304,6 +304,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.EditLine_StopWavelength.setText(str(self.OSA._StopWavelength))
 
         self.ui.groupBox_OSA_control.setEnabled(True)
+        self.ui.checkBox_OSA_for_laser_scanning.setEnabled(True)
         print('Connected with OSA')
         self.on_pushButton_acquireSpectrum_pressed()
         self.enableScanningProcess()
@@ -378,6 +379,7 @@ class MainWindow(ThreadedMainWindow):
         try:
             from Hardware import ThorlabsPM100
             self.powermeter=ThorlabsPM100.PowerMeter(Consts.Powermeter.SERIAL_NUMBER)
+            self.ui.checkBox_powermeter_for_laser_scanning.setEnabled(True)
         except:
             print('Connection to power meter failed')
 
@@ -396,6 +398,9 @@ class MainWindow(ThreadedMainWindow):
             self.laser=Laser(COMPort)
             self.laser.fineTuning(0)
             print('Laser has been connected')
+            self.ui.groupBox_laser_operation.setEnabled(True)
+            self.ui.groupBox_laser_sweeping.setEnabled(True)
+            self.ui.groupBox_laser_scanning.setEnabled(True)
     #            self.add_thread([self.laser])
         except:
             print('Connection to laser failed. Check the COM port number')
@@ -470,8 +475,9 @@ class MainWindow(ThreadedMainWindow):
         if pressed:
             self.ui.pushButton_laser_On.setEnabled(False)
             from Scripts.ScanningProcessLaser import LaserScanningProcess
-            self.laser_scanning_process=LaserScanningProcess(OSA=self.OSA,
-                laser=self.laser, powermeter=self.powermeter,
+            self.laser_scanning_process=LaserScanningProcess(OSA=(self.OSA if self.ui.checkBox_OSA_for_laser_scanning.isChecked() else None),
+                laser=self.laser,
+                powermeter=(self.powermeter if self.ui.checkBox_powermeter_for_laser_scanning.isChecked() else None),
                 laser_power=float(self.ui.lineEdit_laser_power.text()),
                 scanstep=float(self.ui.lineEdit_laser_lambda_scanning_step.text()),
                 wavelength_start=float(self.ui.lineEdit_laser_lambda_scanning_min.text()),
@@ -485,9 +491,9 @@ class MainWindow(ThreadedMainWindow):
             self.laser_scanning_process.S_add_powers_to_file.connect(
                 lambda PowerVSWavelength: np.savetxt('ProcessedData\\Power_from_powermeter_VS_laser_wavelength.txt',PowerVSWavelength))
             print('Start laser scanning')
-            self.laser_scanning_process.S_finished.connect(
-                self.ui.pushButton_scan_laser_wavelength.toggle)
-            self.laser_scanning_process.S_finished.connect(lambda : self.laser_scanning(False))
+            self.laser_scanning_process.S_toggle_button.connect(lambda:
+                self.ui.pushButton_scan_laser_wavelength.setChecked(False))
+            self.laser_scanning_process.S_toggle_button.connect(lambda : self.laser_scanning(False))
             self.ui.tabWidget_instruments.setEnabled(False)
             self.ui.pushButton_Scanning.setEnabled(False)
             self.ui.pushButton_sweep_laser_wavelength.setEnabled(False)

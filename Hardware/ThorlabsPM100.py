@@ -4,7 +4,7 @@ Created on Fri May 28 13:02:47 2021
 
 @author: Ilya
 """
-import visa
+import pyvisa as visa
 from PyQt5.QtCore import QObject
 
 
@@ -21,12 +21,13 @@ class PowerMeter(QObject):
         def FindDevice(SerialNumber) : #SerialNumber of Console
             rm = visa.ResourceManager()
             a=rm.list_resources()	
-            print(a)
             for b in a :
                 if b.find('USB') > -1  :
                     h=rm.open_resource(b)
                     h.write("*IDN?")
-                    if ((h.read()).split(',')[2]==SerialNumber): return h
+                    if ((h.read()).split(',')[2]==SerialNumber): 
+                        print('connected to powermeter')
+                        return h
                     else: continue	
             print('No desirable device found')
             return None
