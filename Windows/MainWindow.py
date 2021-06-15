@@ -736,7 +736,7 @@ class MainWindow(ThreadedMainWindow):
                         self.stages.position['Z']-self.Z_0, 'FromScope'))
             #TODO: if luna_bin checked ->  self.scanningProcess.S_saveData.connect(ova_savebin)
             if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and 
-                self.ui.comboBox_Luna_mode.currentText() == 'Luna binary files'):
+                self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
                  self.scanningProcess.S_saveData.connect(lambda name: self.OSA.save_binary(
                      + f"{self.logger.SpectralDataFolder}"
                      + "Sp_X={self.stages.position['X']-self.X_0}"
