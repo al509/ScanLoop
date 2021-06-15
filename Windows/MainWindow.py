@@ -737,9 +737,9 @@ class MainWindow(ThreadedMainWindow):
             #TODO: if luna_bin checked ->  self.scanningProcess.S_saveData.connect(ova_savebin)
             if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and 
                 self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
-                 self.scanningProcess.S_saveData.connect(lambda name: self.OSA.save_binary(
-                     + f"{self.logger.SpectralDataFolder}"
-                     + "Sp_X={self.stages.position['X']-self.X_0}"
+                 self.scanningProcess.S_saveData.connect(lambda data, name: self.OSA.save_binary(
+                     f"{self.logger.SpectralDataFolder}"
+                     + f"Sp_{name}_X={self.stages.position['X']-self.X_0}"
                      + f"_Y={self.stages.position['Y']-self.Y_0}"
                      + f"_Z={self.stages.position['Z']-self.Z_0}_.bin"
 ))
@@ -764,21 +764,33 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_pushButton_save_data(self):
-        if self.stages is not None:
-            X=self.stages.position['X']-self.X_0
-            Y=self.stages.position['Y']-self.Y_0
-            Z=self.stages.position['Z']-self.Z_0
-        else:
-            X,Y,Z=[0,0,0]
+        try:
+            if self.stages is not None:
+                X=self.stages.position['X']-self.X_0
+                Y=self.stages.position['Y']-self.Y_0
+                Z=self.stages.position['Z']-self.Z_0
+            else:
+                    X,Y,Z=[0,0,0]
 
-        Ydata=self.painter.Ydata
-        Data=self.painter.Xdata
-        for YDataColumn in Ydata:
-            if YDataColumn is not None:
-                Data=np.column_stack((Data, YDataColumn))
+            Ydata=self.painter.Ydata
+            Data=self.painter.Xdata
+            for YDataColumn in Ydata:
+                if YDataColumn is not None:
+                    Data=np.column_stack((Data, YDataColumn))
 
-        FilePrefix=self.ui.EditLine_saveSpectrumName.text()
-        self.logger.save_data(Data,FilePrefix,X,Y,Z,self.painter.TypeOfData)
+            FilePrefix=self.ui.EditLine_saveSpectrumName.text()
+            if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and 
+                    self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
+                        self.OSA.save_binary( f"{self.logger.SpectralDataFolder}"
+                            + f"Sp_{FilePrefix}_X={X}"
+                            + f"_Y={Y}"
+                            + f"_Z={X}_.bin")
+                        print("Saving Luna as bin")
+
+            else:
+                self.logger.save_data(Data,FilePrefix,X,Y,Z,self.painter.TypeOfData)
+        except:
+                print(sys.exc_info())
 
     def on_pushButton_getRange(self):
         Range=(self.painter.ax.get_xlim())
