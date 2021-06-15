@@ -8,7 +8,6 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 
 
-
 class Logger(QObject):
     updated = pyqtSignal()
     path=os.getcwd()

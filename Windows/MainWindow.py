@@ -20,6 +20,7 @@ from Utils.PyQtUtils import pyqtSlotWExceptions
 from Windows.UIs.MainWindowUI import Ui_MainWindow
 from Scripts import AnalyzerForSpectrogram
 from Scripts import ProcessAndPlotSpectra
+import sys
 
 
 def isfloat(value):
@@ -114,6 +115,9 @@ class MainWindow(ThreadedMainWindow):
             self.on_pushButton_acquireSpectrumRep_pressed)
         self.ui.comboBox_APEX_mode.currentIndexChanged[int].connect(
             lambda x: self.OSA.SetMode(x+3))
+        self.ui.label_Luna_mode.setVisible(False)
+        self.ui.comboBox_Luna_mode.setVisible(False)
+        self.ui.comboBox_Type_of_OSA.currentTextChanged.connect(self.features_visibility)
 
 # =============================================================================
 #         # scope interface
@@ -232,11 +236,28 @@ class MainWindow(ThreadedMainWindow):
             self.scope.channels_states[i]=widget.isChecked()
             self.scope.set_channel_state(i+1,widget.isChecked())
 
-
-
+    
+    def features_visibility(self, OSA):
+        try:
+            if OSA=='Luna':
+                self.ui.groupBox_features.setVisible(True)
+                flag = True
+            elif OSA=='APEX':
+                self.ui.groupBox_features.setVisible(True)
+                flag = False
+            else:
+                self.ui.groupBox_features.setVisible(False)
+                return
+            self.ui.label_Luna_mode.setVisible(flag)
+            self.ui.comboBox_Luna_mode.setVisible(flag)
+            self.ui.label_29.setVisible(not flag)
+            self.ui.comboBox_APEX_mode.setVisible(not flag)
+        except:
+            print(sys.exc_info())
+    
     def connectOSA(self):
         if self.ui.comboBox_Type_of_OSA.currentText()=='Luna':
-            self.OSA=Luna()
+            self.OSA=Luna()  
         if self.ui.comboBox_Type_of_OSA.currentText()=='Yokogawa':
             HOST = Consts.Yokogawa.HOST
             PORT = 10001
@@ -577,6 +598,15 @@ class MainWindow(ThreadedMainWindow):
                         self.stages.position['X']-self.X_0,
                         self.stages.position['Y']-self.Y_0,
                         self.stages.position['Z']-self.Z_0, 'FromScope'))
+            #TODO: if luna_bin checked ->  self.scanningProcess.S_saveData.connect(ova_savebin)
+            if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and 
+                self.ui.comboBox_Luna_mode.currentText() == 'Luna binary files'):
+                 self.scanningProcess.S_saveData.connect(lambda name: self.OSA.save_binary(
+                     + f"{self.logger.SpectralDataFolder}"
+                     + "Sp_X={self.stages.position['X']-self.X_0}"
+                     + f"_Y={self.stages.position['Y']-self.Y_0}"
+                     + f"_Z={self.stages.position['Z']-self.Z_0}_.bin"
+))
             self.scanningProcess.S_finished.connect(self.ui.pushButton_Scanning.toggle)
             self.scanningProcess.S_finished.connect(
                 lambda : self.on_pushButton_Scanning_pressed(False))

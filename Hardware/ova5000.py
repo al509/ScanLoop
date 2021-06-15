@@ -96,6 +96,23 @@ class Luna(QObject):
         self.send_auto("CONF:CWL "+ str(self._Center))
         self.send_auto("CONF:RANG " + str(self._Span))
         
+    def save_binary(self, file_name):
+        '''**Usage:** Save the currnt Jones matrix data in Matrix A as binary 
+        data in the *filename.bin* specified. 
+        
+        An error flag will be set if no data is available to save. The cause of
+        error can be determined by using the SYST:ERR? query.
+        
+        **Response:**   None.
+        **Note**:  The file type ".bin" must be specified. This command always
+        saves the data from Matrix A.
+        
+        **Example:**    save_binary("C:\SavedFiles\JM.bin") saves the data from
+        matrix A into the file "JM.bin"
+        '''
+        self.send_auto(f'SYST:SAVJ "{file_name}"')
+        
+        
     #############################################
 
     def __del__(self):
@@ -103,10 +120,3 @@ class Luna(QObject):
         self.sock.send("*QUIT".encode())
         time.sleep(RESPONSE_TIMEOUT)
         self.sock.close()
-   
-def main():
-    print("Welcome to Luna OVA5000 Shell! Here you can enter any remote commads from Luna's manual.")
-    
-   
-if __name__ == '__main__':
-    main()
