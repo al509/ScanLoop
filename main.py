@@ -1,10 +1,10 @@
 """
- 28.05.2021
+ 29.05.2021
 """
 
 # -*- coding: utf-8 -*-
 
-__version__='18.3.4'
+__version__='18.4.0'
 import sys
 from packaging import version
 from conda import __version__ as condaVersion

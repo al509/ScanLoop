@@ -24,26 +24,29 @@ class LaserScanningProcess(QObject):
 
     S_updateCurrentWavelength=pyqtSignal(str) #signal to initiate update the index of the current file in lineEdit_CurrentFile of main window
     S_saveData=pyqtSignal(object,str) #signal to initiate saving measured spectrum to a file
-    S_finished=pyqtSignal()  # signal to finish
+    S_toggle_button=pyqtSignal()  # signal to finish
     S_saveSpectrumToOSA=pyqtSignal(str)
+    S_add_powers_to_file=pyqtSignal(object) # signal to initiate saving current wavelength and power from powermeter to file
 
     def __init__(self,
                  OSA:QObject,
                  laser:QObject,
+                 powermeter:QObject,
                  laser_power:float,
                  scanstep:float,
                  wavelength_start:float,
                  wavelength_stop:float):
         super().__init__()
+        
         self.OSA=OSA
         self.step=scanstep
         self.wavelength=wavelength_start
         self.wavelength_stop=wavelength_stop
         self.laser=laser
         self.Power=laser_power
-
-        self.short_pause=0.5
-        self.long_pause=4
+        self.powermeter=powermeter
+        self.short_pause=0.1
+        self.long_pause=2
 
     def run(self):
         self.is_running=True
@@ -53,17 +56,23 @@ class LaserScanningProcess(QObject):
         self.laser.setOn()
         time.sleep(self.long_pause)
         tuning=0
+        PowerVSWavelength=[]
         while self.is_running and (self.wavelength-self.wavelength_stop)*np.sign(self.step)<0:
             print(self.wavelength)
-            wavelengthdata, spectrum=self.OSA.acquire_spectrum()
-            time.sleep(0.05)
-            Data=np.stack((wavelengthdata, spectrum),axis=1)
-            self.S_saveData.emit(Data,'W='+str(self.wavelength)) # save spectrum to file
-            if self.OSA.IsHighRes: #if true and high resolution of OSA is used, spectra have to be saved on OSA hardDrive to preserve full resolution
-                    self.S_saveSpectrumToOSA.emit('W='+str(self.wavelength))
-            if not self.is_running:
-                self.laser.setOff()
-                break
+            if self.OSA is not None:
+                wavelengthdata, spectrum=self.OSA.acquire_spectrum()
+                time.sleep(0.05)
+                Data=np.stack((wavelengthdata, spectrum),axis=1)
+                self.S_saveData.emit(Data,'W='+str(self.wavelength)) # save spectrum to file
+            if self.powermeter is not None:
+                Data=np.stack((self.wavelength, self.powermeter.get_power()))
+                PowerVSWavelength.append(Data)
+            # if not self.is_running:
+            #     self.S_add_powers_to_file.emit(PowerVSWavelength)
+            #     self.laser.setOff()
+            #     print('Scanning stopped')
+            #     self.S_toggle_button.emit()
+            #     break
             tuning+=self.step
             self.wavelength+=self.step*1e-3
             if tuning<self.laser.maximum_tuning:
@@ -78,13 +87,17 @@ class LaserScanningProcess(QObject):
                 time.sleep(self.long_pause)
             self.S_updateCurrentWavelength.emit(str(self.wavelength))
 
-            if self.is_running and (self.wavelength-self.wavelength_stop)*np.sign(self.step)>0:
-                self.is_running=False
-                print('\nScanning finished\n')
-                self.laser.setOff()
-        self.S_finished.emit()
+            # if self.is_running and (self.wavelength-self.wavelength_stop)*np.sign(self.step)>0:
+            #     self.S_add_powers_to_file.emit(PowerVSWavelength)
+            #     self.is_running=False
+            #     self.S_toggle_button.emit()
+            #     print('\nScanning finished\n')
+            #     self.laser.setOff()
+        if self.powermeter is not None: self.S_add_powers_to_file.emit(PowerVSWavelength)
+        if (self.wavelength-self.wavelength_stop)*np.sign(self.step)>0 : self.S_toggle_button.emit()
         self.laser.setOff()
-
+        print('\nScanning finished\n')
+        
     def __del__(self):
         print('Closing scanning object...')
         

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1115</width>
-    <height>728</height>
+    <width>950</width>
+    <height>640</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -55,28 +55,28 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1095</width>
-         <height>667</height>
+         <width>926</width>
+         <height>565</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="1" column="3">
          <widget class="QGroupBox" name="groupBox_11">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
           <property name="minimumSize">
            <size>
-            <width>300</width>
+            <width>220</width>
             <height>50</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>300</width>
+            <width>270000</width>
             <height>50</height>
            </size>
           </property>
@@ -86,9 +86,9 @@
           <widget class="QLineEdit" name="EditLine_FilterLowFreqEdge">
            <property name="geometry">
             <rect>
-             <x>87</x>
+             <x>60</x>
              <y>23</y>
-             <width>70</width>
+             <width>61</width>
              <height>17</height>
             </rect>
            </property>
@@ -102,9 +102,9 @@
           <widget class="QLineEdit" name="EditLine_FilterHighFreqEdge">
            <property name="geometry">
             <rect>
-             <x>163</x>
+             <x>130</x>
              <y>23</y>
-             <width>71</width>
+             <width>51</width>
              <height>17</height>
             </rect>
            </property>
@@ -118,9 +118,9 @@
           <widget class="QCheckBox" name="CheckBox_ApplyFFTFilter">
            <property name="geometry">
             <rect>
-             <x>240</x>
+             <x>190</x>
              <y>23</y>
-             <width>50</width>
+             <width>71</width>
              <height>17</height>
             </rect>
            </property>
@@ -133,7 +133,7 @@
             <rect>
              <x>10</x>
              <y>23</y>
-             <width>71</width>
+             <width>41</width>
              <height>17</height>
             </rect>
            </property>
@@ -142,92 +142,6 @@
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QGroupBox" name="groupBox_9">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>300</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>450</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>Range, nm</string>
-          </property>
-          <widget class="QLineEdit" name="EditLine_StartWavelength">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>20</y>
-             <width>131</width>
-             <height>20</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>1550</string>
-           </property>
-           <property name="maxLength">
-            <number>12</number>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="EditLine_StopWavelength">
-           <property name="geometry">
-            <rect>
-             <x>150</x>
-             <y>20</y>
-             <width>131</width>
-             <height>20</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>1551</string>
-           </property>
-           <property name="maxLength">
-            <number>12</number>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-           </property>
-          </widget>
-          <widget class="QPushButton" name="pushButton_getRange">
-           <property name="geometry">
-            <rect>
-             <x>290</x>
-             <y>20</y>
-             <width>91</width>
-             <height>21</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Get range</string>
-           </property>
-          </widget>
-          <widget class="QCheckBox" name="CheckBox_FreezeSpectrum">
-           <property name="geometry">
-            <rect>
-             <x>390</x>
-             <y>20</y>
-             <width>56</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Freeze</string>
            </property>
           </widget>
          </widget>
@@ -264,7 +178,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>541</height>
+             <height>419</height>
             </rect>
            </property>
            <attribute name="label">
@@ -273,9 +187,6 @@
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
              <widget class="QGroupBox" name="groupBox_3">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                 <horstretch>0</horstretch>
@@ -304,7 +215,7 @@
                 <string>Stages</string>
                </property>
                <property name="checkable">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
               <widget class="QPushButton" name="pushButton_OSA_connect">
@@ -320,7 +231,7 @@
                 <string>OSA</string>
                </property>
                <property name="checkable">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
               <widget class="QPushButton" name="pushButton_scope_connect">
@@ -444,110 +355,58 @@
                 <string>Zeroing</string>
                </property>
               </widget>
-              <widget class="QGroupBox" name="groupBox_features">
+              <widget class="QLabel" name="label_29">
+               <property name="geometry">
+                <rect>
+                 <x>20</x>
+                 <y>140</y>
+                 <width>81</width>
+                 <height>21</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>APEX mode</string>
+               </property>
+              </widget>
+              <widget class="QComboBox" name="comboBox_APEX_mode">
                <property name="enabled">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
                <property name="geometry">
                 <rect>
-                 <x>10</x>
-                 <y>150</y>
-                 <width>251</width>
-                 <height>61</height>
+                 <x>110</x>
+                 <y>140</y>
+                 <width>91</width>
+                 <height>21</height>
                 </rect>
                </property>
-               <property name="title">
-                <string>OSA features:</string>
-               </property>
-               <widget class="QComboBox" name="comboBox_APEX_mode">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="geometry">
-                 <rect>
-                  <x>120</x>
-                  <y>20</y>
-                  <width>91</width>
-                  <height>21</height>
-                 </rect>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>OSA</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Tracking generator</string>
-                 </property>
-                </item>
-               </widget>
-               <widget class="QComboBox" name="comboBox_Luna_mode">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="geometry">
-                 <rect>
-                  <x>120</x>
-                  <y>20</y>
-                  <width>121</width>
-                  <height>22</height>
-                 </rect>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>Common .pkl files</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Luna binary files</string>
-                 </property>
-                </item>
-               </widget>
-               <widget class="QLabel" name="label_Luna_mode">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="geometry">
-                 <rect>
-                  <x>10</x>
-                  <y>20</y>
-                  <width>91</width>
-                  <height>20</height>
-                 </rect>
-                </property>
+               <item>
                 <property name="text">
-                 <string>Luna output mode</string>
+                 <string>OSA</string>
                 </property>
-               </widget>
-               <widget class="QLabel" name="label_29">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="geometry">
-                 <rect>
-                  <x>10</x>
-                  <y>20</y>
-                  <width>81</width>
-                  <height>21</height>
-                 </rect>
-                </property>
+               </item>
+               <item>
                 <property name="text">
-                 <string>APEX mode</string>
+                 <string>Tracking generator</string>
                 </property>
-               </widget>
+               </item>
               </widget>
-              <zorder>groupBox_features</zorder>
-              <zorder>pushButton_StagesConnect</zorder>
-              <zorder>pushButton_OSA_connect</zorder>
-              <zorder>pushButton_scope_connect</zorder>
-              <zorder>pushButton_laser_connect</zorder>
-              <zorder>comboBox_Type_of_OSA</zorder>
-              <zorder>comboBox_Type_of_Stages</zorder>
-              <zorder>lineEdit_laser_COMport</zorder>
-              <zorder>label_24</zorder>
-              <zorder>pushButton_zeroing_stages</zorder>
+              <widget class="QPushButton" name="pushButton_powermeter_connect">
+               <property name="geometry">
+                <rect>
+                 <x>110</x>
+                 <y>170</y>
+                 <width>91</width>
+                 <height>23</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Powermeter</string>
+               </property>
+               <property name="checkable">
+                <bool>false</bool>
+               </property>
+              </widget>
              </widget>
             </item>
            </layout>
@@ -557,7 +416,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>700</height>
             </rect>
            </property>
@@ -578,7 +437,7 @@
              <rect>
               <x>0</x>
               <y>220</y>
-              <width>291</width>
+              <width>281</width>
               <height>121</height>
              </rect>
             </property>
@@ -1017,7 +876,7 @@
              <rect>
               <x>0</x>
               <y>560</y>
-              <width>291</width>
+              <width>281</width>
               <height>141</height>
              </rect>
             </property>
@@ -1154,8 +1013,8 @@
               <rect>
                <x>100</x>
                <y>110</y>
-               <width>32</width>
-               <height>20</height>
+               <width>37</width>
+               <height>22</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1190,8 +1049,8 @@
               <rect>
                <x>100</x>
                <y>80</y>
-               <width>36</width>
-               <height>20</height>
+               <width>42</width>
+               <height>22</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1254,7 +1113,7 @@
              <rect>
               <x>0</x>
               <y>340</y>
-              <width>291</width>
+              <width>281</width>
               <height>211</height>
              </rect>
             </property>
@@ -1282,7 +1141,7 @@
               <rect>
                <x>10</x>
                <y>178</y>
-               <width>271</width>
+               <width>261</width>
                <height>23</height>
               </rect>
              </property>
@@ -1430,7 +1289,7 @@
               <rect>
                <x>218</x>
                <y>94</y>
-               <width>63</width>
+               <width>51</width>
                <height>20</height>
               </rect>
              </property>
@@ -1605,42 +1464,45 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>541</height>
+             <width>279</width>
+             <height>500</height>
             </rect>
            </property>
            <property name="minimumSize">
             <size>
              <width>0</width>
-             <height>0</height>
+             <height>500</height>
             </size>
            </property>
            <attribute name="label">
             <string>Laser control</string>
            </attribute>
-           <widget class="QGroupBox" name="groupBox_5">
+           <widget class="QGroupBox" name="groupBox_laser_scanning">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>180</y>
-              <width>291</width>
+              <y>150</y>
+              <width>281</width>
               <height>161</height>
              </rect>
             </property>
             <property name="title">
-             <string>Scanning wavelength and save data</string>
+             <string>Scanning wavelength and save data </string>
             </property>
             <widget class="QLineEdit" name="lineEdit_laser_lambda_scanning_min">
              <property name="geometry">
               <rect>
-               <x>30</x>
+               <x>10</x>
                <y>50</y>
                <width>61</width>
                <height>20</height>
               </rect>
              </property>
              <property name="text">
-              <string>1550</string>
+              <string>1550.0000</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1649,14 +1511,14 @@
             <widget class="QLineEdit" name="lineEdit_laser_lambda_scanning_max">
              <property name="geometry">
               <rect>
-               <x>110</x>
+               <x>80</x>
                <y>50</y>
                <width>61</width>
                <height>20</height>
               </rect>
              </property>
              <property name="text">
-              <string>1550.5</string>
+              <string>1550.0500</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1665,7 +1527,7 @@
             <widget class="QLabel" name="label_16">
              <property name="geometry">
               <rect>
-               <x>50</x>
+               <x>20</x>
                <y>22</y>
                <width>47</width>
                <height>21</height>
@@ -1678,7 +1540,7 @@
             <widget class="QLabel" name="label_18">
              <property name="geometry">
               <rect>
-               <x>130</x>
+               <x>90</x>
                <y>22</y>
                <width>47</width>
                <height>21</height>
@@ -1691,7 +1553,7 @@
             <widget class="QLineEdit" name="lineEdit_laser_lambda_scanning_step">
              <property name="geometry">
               <rect>
-               <x>210</x>
+               <x>150</x>
                <y>50</y>
                <width>41</width>
                <height>20</height>
@@ -1707,7 +1569,7 @@
             <widget class="QLabel" name="label_19">
              <property name="geometry">
               <rect>
-               <x>210</x>
+               <x>160</x>
                <y>22</y>
                <width>47</width>
                <height>21</height>
@@ -1721,7 +1583,7 @@
              <property name="geometry">
               <rect>
                <x>200</x>
-               <y>90</y>
+               <y>50</y>
                <width>75</width>
                <height>23</height>
               </rect>
@@ -1738,12 +1600,12 @@
               <rect>
                <x>10</x>
                <y>90</y>
-               <width>121</width>
-               <height>21</height>
+               <width>51</width>
+               <height>31</height>
               </rect>
              </property>
              <property name="text">
-              <string>Current wavelength</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Current λ&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
             <widget class="QLabel" name="label_current_scanning_laser_wavelength">
@@ -1759,18 +1621,59 @@
               <string>1550</string>
              </property>
             </widget>
+            <widget class="QCheckBox" name="checkBox_OSA_for_laser_scanning">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="geometry">
+              <rect>
+               <x>190</x>
+               <y>80</y>
+               <width>61</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>OSA</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+            </widget>
+            <widget class="QCheckBox" name="checkBox_powermeter_for_laser_scanning">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="geometry">
+              <rect>
+               <x>190</x>
+               <y>110</y>
+               <width>61</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Powermeter</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+            </widget>
            </widget>
-           <widget class="QGroupBox" name="groupBox_7">
+           <widget class="QGroupBox" name="groupBox_laser_operation">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="geometry">
              <rect>
               <x>0</x>
               <y>20</y>
-              <width>301</width>
-              <height>141</height>
+              <width>281</width>
+              <height>121</height>
              </rect>
             </property>
             <property name="title">
-             <string>Laser parameters</string>
+             <string>Laser operation</string>
             </property>
             <widget class="QLineEdit" name="lineEdit_laser_lambda">
              <property name="geometry">
@@ -1791,7 +1694,7 @@
             <widget class="QLineEdit" name="lineEdit_laser_power">
              <property name="geometry">
               <rect>
-               <x>89</x>
+               <x>80</x>
                <y>41</y>
                <width>51</width>
                <height>20</height>
@@ -1833,9 +1736,9 @@
             <widget class="QPushButton" name="pushButton_laser_On">
              <property name="geometry">
               <rect>
-               <x>220</x>
+               <x>210</x>
                <y>40</y>
-               <width>75</width>
+               <width>61</width>
                <height>23</height>
               </rect>
              </property>
@@ -1887,7 +1790,7 @@
              </property>
              <property name="geometry">
               <rect>
-               <x>150</x>
+               <x>140</x>
                <y>40</y>
                <width>61</width>
                <height>22</height>
@@ -1915,7 +1818,7 @@
             <widget class="QLabel" name="label_25">
              <property name="geometry">
               <rect>
-               <x>150</x>
+               <x>140</x>
                <y>20</y>
                <width>61</width>
                <height>16</height>
@@ -1929,12 +1832,15 @@
              </property>
             </widget>
            </widget>
-           <widget class="QGroupBox" name="groupBox_10">
+           <widget class="QGroupBox" name="groupBox_laser_sweeping">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>350</y>
-              <width>291</width>
+              <y>320</y>
+              <width>281</width>
               <height>121</height>
              </rect>
             </property>
@@ -2080,7 +1986,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>600</height>
             </rect>
            </property>
@@ -2465,8 +2371,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>33</width>
-                <height>20</height>
+                <width>38</width>
+                <height>22</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -2592,15 +2498,15 @@
         <item row="0" column="2" colspan="2">
          <widget class="QGroupBox" name="groupBox_spectrum">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>2</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
           <property name="minimumSize">
            <size>
-            <width>550</width>
-            <height>550</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="sizeIncrement">
@@ -2620,6 +2526,92 @@
           </property>
          </widget>
         </item>
+        <item row="1" column="2">
+         <widget class="QGroupBox" name="groupBox_9">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>260</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>10000000</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>Range, nm</string>
+          </property>
+          <widget class="QLineEdit" name="EditLine_StartWavelength">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>20</y>
+             <width>61</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>1550</string>
+           </property>
+           <property name="maxLength">
+            <number>12</number>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="EditLine_StopWavelength">
+           <property name="geometry">
+            <rect>
+             <x>80</x>
+             <y>20</y>
+             <width>51</width>
+             <height>20</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>1551.123</string>
+           </property>
+           <property name="maxLength">
+            <number>12</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+           </property>
+          </widget>
+          <widget class="QPushButton" name="pushButton_getRange">
+           <property name="geometry">
+            <rect>
+             <x>140</x>
+             <y>20</y>
+             <width>71</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Get range</string>
+           </property>
+          </widget>
+          <widget class="QCheckBox" name="CheckBox_FreezeSpectrum">
+           <property name="geometry">
+            <rect>
+             <x>218</x>
+             <y>22</y>
+             <width>56</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Freeze</string>
+           </property>
+          </widget>
+         </widget>
+        </item>
        </layout>
       </widget>
      </widget>
@@ -2631,8 +2623,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1115</width>
-     <height>21</height>
+     <width>950</width>
+     <height>26</height>
     </rect>
    </property>
   </widget>

@@ -9,3 +9,6 @@ ZeroPosition.txt
 *.stats
 Parameters.txt
 *.pyc
+*.pyc
+*.txt
+*.pyc
