@@ -55,8 +55,10 @@ class ScanningProcess(QObject):
         super().__init__()
         self.OSA=OSA # add Optical Spectral Analyzer
         self.FullSpan=self.OSA._Span
-        self.IsHighRes=self.OSA.IsHighRes
-
+        try:
+            self.IsHighRes=self.OSA.IsHighRes
+        except:
+            self.IsHighRes=False
         self.stages=Stages # add all three stages
         self.set_ScanningType(ScanningType)
 

@@ -691,76 +691,79 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_pushButton_Scanning_pressed(self,pressed:bool):
-        if pressed:
-            if self.ui.tabWidget_instruments.currentIndex()==0: ## if OSA is active, scanning
-                                                                ## with OSA
-                from Scripts.ScanningProcessOSA import ScanningProcess
-                self.scanningProcess=ScanningProcess(OSA=self.OSA,Stages=self.stages,
-                    scanstep=int(self.ui.lineEdit_ScanningStep.text()),
-                    seekcontactstep=int(self.ui.lineEdit_SearchingStep.text()),
-                    backstep=int(self.ui.lineEdit_BackStep.text()),
-                    seekcontactvalue=float(self.ui.lineEdit_LevelToDetectContact.text()),
-                    ScanningType=int(self.ui.comboBox_ScanningType.currentIndex()),
-                    SqueezeSpanWhileSearchingContact=self.ui.checkBox_SqueezeSpan.isChecked(),
-                    CurrentFileIndex=int(self.ui.lineEdit_CurrentFile.text()),
-                    StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
-                    numberofscans=int(self.ui.lineEdit_numberOfScans.text()),
-                    searchcontact=self.ui.checkBox_searchContact.isChecked(),
-                    followPeak=self.ui.checkBox_followPeak.isChecked(),
-                    saveDifference=self.ui.checkBox_saveDifference.isChecked())
-                self.scanningProcess.S_saveData.connect(
-                    lambda Data,prefix: self.logger.save_data(Data,prefix,
-                        self.stages.position['X']-self.X_0, self.stages.position['Y']-self.Y_0,
-                        self.stages.position['Z']-self.Z_0,'FromOSA'))
-                self.scanningProcess.S_saveSpectrumToOSA.connect(
-                    lambda FilePrefix: self.OSA.SaveToFile(
-                        'D:'+'Sp_'+FilePrefix, TraceNumber=1, Type="txt"))
-
-            elif self.ui.tabWidget_instruments.currentIndex()==1: ## if scope is active,
-                                                                  ## scanning with scope
-                from Scripts.ScanningProcessScope import ScanningProcess
-                self.scanningProcess=ScanningProcess(Scope=self.scope,Stages=self.stages,
-                    scanstep=int(self.ui.lineEdit_ScanningStep.text()),
-                    seekcontactstep=int(self.ui.lineEdit_SearchingStep.text()),
-                    backstep=int(self.ui.lineEdit_BackStep.text()),
-                    seekcontactvalue=float(self.ui.lineEdit_LevelToDetectContact.text()),
-                    ScanningType=int(self.ui.comboBox_ScanningType.currentIndex()),
-                    CurrentFileIndex=int(self.ui.lineEdit_CurrentFile.text()),
-                    StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
-                    numberofscans=int(self.ui.lineEdit_numberOfScans.text()),
-                    searchcontact=self.ui.checkBox_searchContact.isChecked())
-                self.scanningProcess.S_saveData.connect(
-                    lambda Data,prefix: self.logger.save_data(Data,prefix,
-                        self.stages.position['X']-self.X_0,
-                        self.stages.position['Y']-self.Y_0,
-                        self.stages.position['Z']-self.Z_0, 'FromScope'))
-            #TODO: if luna_bin checked ->  self.scanningProcess.S_saveData.connect(ova_savebin)
-            if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and 
-                self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
-                 self.scanningProcess.S_saveData.connect(lambda data, name: self.OSA.save_binary(
-                     f"{self.logger.SpectralDataFolder}"
-                     + f"Sp_{name}_X={self.stages.position['X']-self.X_0}"
-                     + f"_Y={self.stages.position['Y']-self.Y_0}"
-                     + f"_Z={self.stages.position['Z']-self.Z_0}_.bin"
-))
-            self.scanningProcess.S_finished.connect(self.ui.pushButton_Scanning.toggle)
-            self.scanningProcess.S_finished.connect(
-                lambda : self.on_pushButton_Scanning_pressed(False))
-            self.scanningProcess.S_updateCurrentFileName.connect(
-                lambda S: self.ui.lineEdit_CurrentFile.setText(S))
-            self.add_thread([self.scanningProcess])
-            self.ui.tabWidget_instruments.setEnabled(False)
-            self.ui.groupBox_stand.setEnabled(False)
-            self.force_scanning_process.connect(self.scanningProcess.run)
-            print('Start Scanning')
-            self.force_scanning_process.emit()
-
-        else:
-            self.scanningProcess.is_running=False
-            del self.scanningProcess
-            self.ui.tabWidget_instruments.setEnabled(True)
-            self.ui.groupBox_scope_control.setEnabled(True)
-            self.ui.groupBox_stand.setEnabled(True)
+        try:
+            if pressed:
+                if self.ui.tabWidget_instruments.currentIndex()==0: ## if OSA is active, scanning
+                                                                    ## with OSA
+                    from Scripts.ScanningProcessOSA import ScanningProcess
+                    self.scanningProcess=ScanningProcess(OSA=self.OSA,Stages=self.stages,
+                        scanstep=int(self.ui.lineEdit_ScanningStep.text()),
+                        seekcontactstep=int(self.ui.lineEdit_SearchingStep.text()),
+                        backstep=int(self.ui.lineEdit_BackStep.text()),
+                        seekcontactvalue=float(self.ui.lineEdit_LevelToDetectContact.text()),
+                        ScanningType=int(self.ui.comboBox_ScanningType.currentIndex()),
+                        SqueezeSpanWhileSearchingContact=self.ui.checkBox_SqueezeSpan.isChecked(),
+                        CurrentFileIndex=int(self.ui.lineEdit_CurrentFile.text()),
+                        StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
+                        numberofscans=int(self.ui.lineEdit_numberOfScans.text()),
+                        searchcontact=self.ui.checkBox_searchContact.isChecked(),
+                        followPeak=self.ui.checkBox_followPeak.isChecked(),
+                        saveDifference=self.ui.checkBox_saveDifference.isChecked())
+                    self.scanningProcess.S_saveData.connect(
+                        lambda Data,prefix: self.logger.save_data(Data,prefix,
+                            self.stages.position['X']-self.X_0, self.stages.position['Y']-self.Y_0,
+                            self.stages.position['Z']-self.Z_0,'FromOSA'))
+                    self.scanningProcess.S_saveSpectrumToOSA.connect(
+                        lambda FilePrefix: self.OSA.SaveToFile(
+                            'D:'+'Sp_'+FilePrefix, TraceNumber=1, Type="txt"))
+    
+                elif self.ui.tabWidget_instruments.currentIndex()==1: ## if scope is active,
+                                                                      ## scanning with scope
+                    from Scripts.ScanningProcessScope import ScanningProcess
+                    self.scanningProcess=ScanningProcess(Scope=self.scope,Stages=self.stages,
+                        scanstep=int(self.ui.lineEdit_ScanningStep.text()),
+                        seekcontactstep=int(self.ui.lineEdit_SearchingStep.text()),
+                        backstep=int(self.ui.lineEdit_BackStep.text()),
+                        seekcontactvalue=float(self.ui.lineEdit_LevelToDetectContact.text()),
+                        ScanningType=int(self.ui.comboBox_ScanningType.currentIndex()),
+                        CurrentFileIndex=int(self.ui.lineEdit_CurrentFile.text()),
+                        StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
+                        numberofscans=int(self.ui.lineEdit_numberOfScans.text()),
+                        searchcontact=self.ui.checkBox_searchContact.isChecked())
+                    self.scanningProcess.S_saveData.connect(
+                        lambda Data,prefix: self.logger.save_data(Data,prefix,
+                            self.stages.position['X']-self.X_0,
+                            self.stages.position['Y']-self.Y_0,
+                            self.stages.position['Z']-self.Z_0, 'FromScope'))
+                #TODO: if luna_bin checked ->  self.scanningProcess.S_saveData.connect(ova_savebin)
+                if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and 
+                    self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
+                     self.scanningProcess.S_saveData.connect(lambda data, name: self.OSA.save_binary(
+                         f"{self.logger.SpectralDataFolder}"
+                         + f"Sp_{name}_X={self.stages.position['X']-self.X_0}"
+                         + f"_Y={self.stages.position['Y']-self.Y_0}"
+                         + f"_Z={self.stages.position['Z']-self.Z_0}_.bin"
+    ))
+                self.scanningProcess.S_finished.connect(self.ui.pushButton_Scanning.toggle)
+                self.scanningProcess.S_finished.connect(
+                    lambda : self.on_pushButton_Scanning_pressed(False))
+                self.scanningProcess.S_updateCurrentFileName.connect(
+                    lambda S: self.ui.lineEdit_CurrentFile.setText(S))
+                self.add_thread([self.scanningProcess])
+                self.ui.tabWidget_instruments.setEnabled(False)
+                self.ui.groupBox_stand.setEnabled(False)
+                self.force_scanning_process.connect(self.scanningProcess.run)
+                print('Start Scanning')
+                self.force_scanning_process.emit()
+    
+            else:
+                self.scanningProcess.is_running=False
+                del self.scanningProcess
+                self.ui.tabWidget_instruments.setEnabled(True)
+                self.ui.groupBox_scope_control.setEnabled(True)
+                self.ui.groupBox_stand.setEnabled(True)
+        except:
+            print(sys.exc_info())
 
 
     def on_pushButton_save_data(self):
