@@ -18,7 +18,8 @@ from Logger.Logger import Logger
 from Visualization.Painter import MyPainter
 from Utils.PyQtUtils import pyqtSlotWExceptions
 from Windows.UIs.MainWindowUI import Ui_MainWindow
-from Scripts import AnalyzerForSpectrogram
+# from Scripts import AnalyzerForSpectrogram
+from Scripts import Analyzer
 from Scripts import ProcessAndPlotSpectra
 import sys
 
@@ -172,17 +173,21 @@ class MainWindow(ThreadedMainWindow):
         self.add_thread([self.processSpectra])
         self.ui.pushButton_processSpectralData.pressed.connect(self.on_Push_Button_ProcessSpectra)
         self.ui.pushButton_processTDData.pressed.connect(self.on_Push_Button_ProcessTD)
-
+        self.ui.pushButton_choose_folder_to_process.clicked.connect(self.choose_folder_to_process)
 # =============================================================================
 #         # analyzer logic
 # =============================================================================
-        self.analyzer=AnalyzerForSpectrogram.AnalyzerForSpectrogram(
+        self.analyzer=Analyzer.Analyzer(
             os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl')
         self.add_thread([self.analyzer])
+        self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(
+            self.choose_folder_for_analyzer)
+
+        
         self.ui.pushButton_process_arb_spectral_data.clicked.connect(
             self.process_arb_spectral_data_clicked)
         self.ui.pushButton_process_arb_TD_data.clicked.connect(self.process_arb_TD_data_clicked)
-        self.ui.pushButton_choose_folder_to_process.clicked.connect(self.choose_folder_to_process)
+        
         self.ui.pushButton_plotSampleShape.clicked.connect(
             lambda: self.plotSampleShape(DirName='SpectralData',
             axis=self.ui.comboBox_axis_to_plot_along.currentText()))
@@ -191,13 +196,12 @@ class MainWindow(ThreadedMainWindow):
             axis=self.ui.comboBox_axis_to_plot_along_arb_data.currentText()))
         self.ui.pushButton_analyzer_plot_single_spectrum_from_file.clicked.connect(
             self.plot_single_spectrum_from_file)
-        self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(
-            self.choose_folder_for_analyzer)
+
         self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(
             self.analyzer.plot_sample_shape)
         self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot2D())
         self.ui.pushButton_analyzer_plotSlice.clicked.connect(
-            lambda: self.analyzer.plotSlice(float(self.ui.lineEdit_slice_position.text()),
+            lambda: self.analyzer.plot_and_analyze_slice(float(self.ui.lineEdit_slice_position.text()),
             float(self.ui.lineEdit_analyzer_resonance_level.text()),
             self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
         self.ui.pushButton_analyzer_extractERV.clicked.connect(
@@ -999,9 +1003,10 @@ class MainWindow(ThreadedMainWindow):
     def choose_folder_for_analyzer(self):
         DataFilePath= str(QFileDialog.getOpenFileName(
             self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]
-        self.analyzer.FilePath=DataFilePath
-        self.analyzer.Data=None
-        self.ui.label_analyzer_folder.setText(self.analyzer.FilePath)
+        self.analyzer.file_path=DataFilePath
+        self.ui.label_analyzer_folder.setText(self.analyzer.file_path)
+        self.analyzer.load_data(DataFilePath)
+        
 
     def closeEvent(self, event):
 #         here you can terminate your threads and do other stuff

@@ -5,6 +5,12 @@ Created on Tue Feb  4 15:08:47 2020
 @author: Ilya
 """
 
+
+'''
+NOTE that positions are in steps 2/5 micron each!
+'''
+
+
 from PyQt5.QtCore import QObject,  pyqtSignal
 import sys
 import os

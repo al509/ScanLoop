@@ -1,3 +1,7 @@
+'''
+NOTE that positions are in steps 2/5 micron each!
+'''
+
 from PyQt5.QtCore import QObject,  pyqtSignal
 import sys
 import os
