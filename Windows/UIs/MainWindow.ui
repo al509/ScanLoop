@@ -2409,7 +2409,7 @@
                </rect>
               </property>
               <property name="text">
-               <string>steps along axis</string>
+               <string>microns along axis</string>
               </property>
              </widget>
              <widget class="QComboBox" name="comboBox_axis_to_analyze_along_arb_data">

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\Александр\Desktop\work\Github\ScanLoop\Windows\UIs\MainWindow.ui'
+# Form implementation generated from reading ui file 'MainWindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -968,7 +968,7 @@ class Ui_MainWindow(object):
         self.groupBox_4.setTitle(_translate("MainWindow", "Plot slice"))
         self.pushButton_analyzer_plotSlice.setText(_translate("MainWindow", "Plot slice at"))
         self.lineEdit_slice_position.setText(_translate("MainWindow", "500"))
-        self.label_14.setText(_translate("MainWindow", "steps along axis"))
+        self.label_14.setText(_translate("MainWindow", "microns along axis"))
         self.comboBox_axis_to_analyze_along_arb_data.setToolTip(_translate("MainWindow", "Choose channel to plot"))
         self.comboBox_axis_to_analyze_along_arb_data.setItemText(0, _translate("MainWindow", "X"))
         self.comboBox_axis_to_analyze_along_arb_data.setItemText(1, _translate("MainWindow", "Y"))

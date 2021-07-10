@@ -174,6 +174,16 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_processSpectralData.pressed.connect(self.on_Push_Button_ProcessSpectra)
         self.ui.pushButton_processTDData.pressed.connect(self.on_Push_Button_ProcessTD)
         self.ui.pushButton_choose_folder_to_process.clicked.connect(self.choose_folder_to_process)
+                
+        self.ui.pushButton_process_arb_spectral_data.clicked.connect(
+            self.process_arb_spectral_data_clicked)
+        self.ui.pushButton_process_arb_TD_data.clicked.connect(self.process_arb_TD_data_clicked)
+        self.ui.pushButton_plotSampleShape.clicked.connect(
+            lambda: self.plotSampleShape(DirName='SpectralData',
+            axis=self.ui.comboBox_axis_to_plot_along.currentText()))
+        self.ui.pushButton_plotSampleShape_arb_data.clicked.connect(
+            lambda: self.plotSampleShape(DirName=self.Folder,
+            axis=self.ui.comboBox_axis_to_plot_along_arb_data.currentText()))
 # =============================================================================
 #         # analyzer logic
 # =============================================================================
@@ -183,17 +193,8 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(
             self.choose_folder_for_analyzer)
 
-        
-        self.ui.pushButton_process_arb_spectral_data.clicked.connect(
-            self.process_arb_spectral_data_clicked)
-        self.ui.pushButton_process_arb_TD_data.clicked.connect(self.process_arb_TD_data_clicked)
-        
-        self.ui.pushButton_plotSampleShape.clicked.connect(
-            lambda: self.plotSampleShape(DirName='SpectralData',
-            axis=self.ui.comboBox_axis_to_plot_along.currentText()))
-        self.ui.pushButton_plotSampleShape_arb_data.clicked.connect(
-            lambda: self.plotSampleShape(DirName=self.Folder,
-            axis=self.ui.comboBox_axis_to_plot_along_arb_data.currentText()))
+    
+
         self.ui.pushButton_analyzer_plot_single_spectrum_from_file.clicked.connect(
             self.plot_single_spectrum_from_file)
 

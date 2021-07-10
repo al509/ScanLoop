@@ -8,11 +8,11 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-import time
 from PyQt5.QtCore import QObject
 import pickle
 from scipy.signal import find_peaks
 from Scripts.SNAP_experiment import SNAP
+import json
 
 class Analyzer(QObject,SNAP):
         def __init__(self, path:str):
@@ -22,18 +22,16 @@ class Analyzer(QObject,SNAP):
             super().__init__(None)
             self.single_spectrum_path=None
             self.file_path=path
+            self.plotting_parameters_file='plotting_parameters.txt'
             
         def save_cropped_data(self):
-            x_lim=self.fig_spectrogram.axes[0].get_xlim()
-            wave_lim=self.fig_spectrogram.axes[0].get_xlim()
-            index=self.axes_number[self.axis]
-            x=self.positions[:,index]
-            i_x_min=np.argmin(abs(x-x_lim[0]))
-            i_x_max=np.argmin(abs(x-x_lim[1]))
+            x_lim=self.fig_spectrogram.axes[0].get_xlim() #positions
+            wave_lim=self.fig_spectrogram.axes[0].get_ylim()
+            i_x_min=np.argmin(abs(self.x-x_lim[0]))
+            i_x_max=np.argmin(abs(self.x-x_lim[1]))
             
             i_w_min=np.argmin(abs(self.wavelengths-wave_lim[0]))
             i_w_max=np.argmin(abs(self.wavelengths-wave_lim[1]))
-            
             path,FileName = os.path.split(self.file_path)
             NewFileName=path+'\\'+FileName.split('.pkl')[0]+'_cropped.pkl'
             f=open(NewFileName,'wb')
@@ -56,10 +54,14 @@ class Analyzer(QObject,SNAP):
             plt.ylabel('Spectral power density, dBm')
             
         def plot2D(self):
-            self.plot_spectrogram()
+            with open(self.plotting_parameters_file,'r') as f:
+                parameters_dict=json.load(f)
+            self.plot_spectrogram(**parameters_dict)
             
         def plot_and_analyze_slice(self,position, MinimumPeakDepth,axis_to_process='Z'):
-            fig=self.plot_spectrum(position)
+            with open(self.plotting_parameters_file,'r') as f:
+                parameters_dict=json.load(f)
+            fig=self.plot_spectrum(position,language=parameters_dict['language'])
             i=np.argmin(abs(self.x-position))
             SignalData=self.transmission[:,i]
             peakind2,_=find_peaks(abs(SignalData-np.nanmean(SignalData)),height=MinimumPeakDepth , distance=10)
@@ -78,5 +80,7 @@ class Analyzer(QObject,SNAP):
 if __name__ == "__main__":
     analyzer=Analyzer('')
     os.chdir('..')
-    analyzer.file_path=os.getcwd()+'\\Test_spectrogram.pkl'
-    analyzer.extractERV(1,0,15000)
+    analyzer.file_path=os.getcwd()+'\\Test_spectrogram_cropped.pkl'
+    analyzer.load_data(analyzer.file_path)
+    analyzer.plot_spectrogram()
+    # analyzer.extractERV(1,0,15000)
