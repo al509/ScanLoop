@@ -8,6 +8,7 @@ ZeroPosition.txt
 .pylint.d/main1.stats
 *.stats
 Parameters.txt
+plotting_parameters.txt
 *.pyc
 *.pyc
 *.txt
