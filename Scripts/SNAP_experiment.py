@@ -145,13 +145,17 @@ class SNAP():
         if position_in_steps_axis:
             ax_steps=ax_Wavelengths.twiny()
             ax_steps.set_xlim([np.min(self.x)/2.5,np.max(self.x)/2.5])
-
-            
-            clb=fig.colorbar(im,ax=ax_steps,pad=colorbar_pad,location=colorbar_location)
+            try:
+                clb=fig.colorbar(im,ax=ax_steps,pad=colorbar_pad,location=colorbar_location)
+            except TypeError:
+                print('WARNING: update matplotlib up to 3.4.2 to plot colorbars properly')
+                clb=fig.colorbar(im,ax=ax_steps,pad=colorbar_pad)
         else:
-            clb=fig.colorbar(im,ax=ax_Radius,pad=colorbar_pad,location=colorbar_location)
-            
-        
+            try:
+                clb=fig.colorbar(im,ax=ax_Radius,pad=colorbar_pad,location=colorbar_location)
+            except TypeError:
+                print('WARNING: update matplotlib up to 3.4.2 to plot colorbars properly')
+                clb=fig.colorbar(im,ax=ax_Radius,pad=colorbar_pad)
 
         if language=='eng':
             ax_Wavelengths.set_xlabel(r'Position, $\mu$m')
@@ -169,6 +173,7 @@ class SNAP():
             try:
                 ax_steps.set_xlabel('Position, steps')
             except: pass 
+        
         elif language=='ru':
             ax_Wavelengths.set_xlabel('Расстояние, мкм')
             ax_Wavelengths.set_ylabel('Длина волны, нм')
@@ -185,6 +190,9 @@ class SNAP():
             try:
                 ax_steps.set_xlabel('Расстояние, шаги')
             except: pass 
+        
+        
+            
         plt.tight_layout()
         self.fig_spectrogram=fig
         return fig,im,ax_Wavelengths,ax_Radius

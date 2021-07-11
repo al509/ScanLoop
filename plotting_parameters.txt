@@ -1,2 +1,2 @@
-{"new_figure": true, "figsize": [7, 4], "font_size": 11, "title": false, "vmin": null, "vmax": null, "cmap": "jet", "language": "eng", "enable_offset": false, "colorbar_location": "right","position_in_steps_axis": true ,
+{"new_figure": true, "figsize": [7, 4], "font_size": 11, "title": false, "vmin": null, "vmax": null, "cmap": "jet", "language": "eng", "enable_offset": false, "colorbar_location": "right","position_in_steps_axis": false ,
 "ERV_axis":true, "colorbar_pad": 0.12, "colorbar_title_position": "right", "colorbar_title_rotation": 0}
