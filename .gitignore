@@ -15,3 +15,7 @@ plotting_parameters.txt
 *.pyc
 *.pyc
 *.pyc
+Windows/__pycache__/MainWindow.cpython-37.pyc
+Windows/UIs/__pycache__/MainWindowUI.cpython-37.pyc
+Windows/__pycache__/MainWindow.cpython-37.pyc
+*.pyc
