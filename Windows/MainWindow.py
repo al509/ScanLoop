@@ -191,9 +191,9 @@ class MainWindow(ThreadedMainWindow):
             os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl')
         self.add_thread([self.analyzer])
         self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(
-            self.choose_folder_for_analyzer)
-
-    
+            self.choose_file_for_analyzer)
+        self.ui.pushButton_analyzer_choose_plotting_param_file.clicked.connect(
+            self.choose_file_for_analyzer_plotting)
 
         self.ui.pushButton_analyzer_plot_single_spectrum_from_file.clicked.connect(
             self.plot_single_spectrum_from_file)
@@ -1001,12 +1001,27 @@ class MainWindow(ThreadedMainWindow):
         self.analyzer.plot_single_spectrum_from_file()
         self.ui.label_analyzer_single_spectrum_file.setText(self.analyzer.single_spectrum_path)
 
-    def choose_folder_for_analyzer(self):
+    def choose_file_for_analyzer(self):
         DataFilePath= str(QFileDialog.getOpenFileName(
             self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]
+        if DataFilePath is '':
+            print('file is not chosen or previous choice is preserved')
         self.analyzer.file_path=DataFilePath
-        self.ui.label_analyzer_folder.setText(self.analyzer.file_path)
+        self.ui.label_analyzer_file.setText(DataFilePath)
         self.analyzer.load_data(DataFilePath)
+       
+
+    def choose_file_for_analyzer_plotting(self):
+        FilePath= str(QFileDialog.getOpenFileName(
+            self, "Select plotting parameters file",'','*.txt')).split("\',")[0].split("('")[1]
+        if FilePath is '':
+            FilePath=os.getcwd()+'\\plotting_parameters.txt'
+        self.analyzer.plotting_parameters_file=FilePath
+        self.ui.label_analyzer_plotting_file.setText(FilePath)
+        
+            
+
+                   
         
 
     def closeEvent(self, event):

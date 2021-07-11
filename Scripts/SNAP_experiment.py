@@ -246,6 +246,7 @@ class SNAP():
         
         if self.fig_spectrogram is not None and indicate_ERV_on_spectrogram:
             self.fig_spectrogram.axes[0].pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix,shading='auto')
+            self.fig_spectrogram.canvas.draw()
         elif self.fig_spectrogram is None and indicate_ERV_on_spectrogram:
             self.plot_spectrogram()
             self.fig_spectrogram.axes[0].pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix,shading='auto')

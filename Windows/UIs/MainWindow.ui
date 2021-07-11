@@ -2031,7 +2031,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-147</y>
              <width>283</width>
              <height>600</height>
             </rect>
@@ -2232,7 +2232,7 @@
               <x>0</x>
               <y>300</y>
               <width>301</width>
-              <height>271</height>
+              <height>301</height>
              </rect>
             </property>
             <property name="title">
@@ -2242,9 +2242,9 @@
              <property name="geometry">
               <rect>
                <x>10</x>
-               <y>180</y>
+               <y>210</y>
                <width>281</width>
-               <height>80</height>
+               <height>91</height>
               </rect>
              </property>
              <property name="title">
@@ -2254,7 +2254,7 @@
               <property name="geometry">
                <rect>
                 <x>150</x>
-                <y>40</y>
+                <y>50</y>
                 <width>121</width>
                 <height>31</height>
                </rect>
@@ -2273,7 +2273,7 @@
                </rect>
               </property>
               <property name="text">
-               <string>1550</string>
+               <string>1530</string>
               </property>
              </widget>
              <widget class="QLabel" name="label_15">
@@ -2286,7 +2286,7 @@
                </rect>
               </property>
               <property name="text">
-               <string>Wavelengths: min, max</string>
+               <string>Wavelengths: (min, max), nm</string>
               </property>
               <property name="wordWrap">
                <bool>true</bool>
@@ -2302,16 +2302,16 @@
                </rect>
               </property>
               <property name="text">
-               <string>1551</string>
+               <string>1590</string>
               </property>
              </widget>
             </widget>
             <widget class="QPushButton" name="pushButton_analyzer_choose_file_spectrogram">
              <property name="geometry">
               <rect>
-               <x>20</x>
+               <x>10</x>
                <y>30</y>
-               <width>100</width>
+               <width>101</width>
                <height>23</height>
               </rect>
              </property>
@@ -2319,12 +2319,12 @@
               <string>File to analyze</string>
              </property>
             </widget>
-            <widget class="QLabel" name="label_analyzer_folder">
+            <widget class="QLabel" name="label_analyzer_file">
              <property name="geometry">
               <rect>
-               <x>159</x>
+               <x>119</x>
                <y>30</y>
-               <width>121</width>
+               <width>161</width>
                <height>23</height>
               </rect>
              </property>
@@ -2351,7 +2351,7 @@
             <widget class="QPushButton" name="pushButton_analyzer_plotSampleShape">
              <property name="geometry">
               <rect>
-               <x>73</x>
+               <x>170</x>
                <y>60</y>
                <width>101</width>
                <height>23</height>
@@ -2365,7 +2365,7 @@
              <property name="geometry">
               <rect>
                <x>10</x>
-               <y>90</y>
+               <y>130</y>
                <width>281</width>
                <height>80</height>
               </rect>
@@ -2462,7 +2462,7 @@
                </rect>
               </property>
               <property name="text">
-               <string>Level to peak analyzer</string>
+               <string>Level  to peak analyzer</string>
               </property>
               <property name="wordWrap">
                <bool>true</bool>
@@ -2478,21 +2478,50 @@
                </rect>
               </property>
               <property name="text">
-               <string>20</string>
+               <string>3</string>
               </property>
              </widget>
             </widget>
             <widget class="QPushButton" name="pushButton_analyzer_save_cropped_data">
              <property name="geometry">
               <rect>
-               <x>183</x>
+               <x>70</x>
                <y>60</y>
+               <width>81</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Save cropped</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_analyzer_choose_plotting_param_file">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>90</y>
                <width>101</width>
                <height>23</height>
               </rect>
              </property>
              <property name="text">
-              <string>Save cropped data</string>
+              <string>Plotting param file </string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_analyzer_plotting_file">
+             <property name="geometry">
+              <rect>
+               <x>120</x>
+               <y>90</y>
+               <width>161</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>none</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </widget>
@@ -2608,7 +2637,7 @@
             <string>1550</string>
            </property>
            <property name="maxLength">
-            <number>12</number>
+            <number>8</number>
            </property>
           </widget>
           <widget class="QLineEdit" name="EditLine_StopWavelength">
@@ -2624,7 +2653,7 @@
             <string>1551.123</string>
            </property>
            <property name="maxLength">
-            <number>12</number>
+            <number>8</number>
            </property>
            <property name="alignment">
             <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
