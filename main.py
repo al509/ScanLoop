@@ -4,7 +4,7 @@
 
 # -*- coding: utf-8 -*-
 
-__version__='18.6.1'
+__version__='18.6.2'
 import sys
 from packaging import version
 from conda import __version__ as condaVersion
@@ -28,4 +28,4 @@ def main():
 
 if __name__ == '__main__':
 
-    m = main()
+    m_sl = main()

@@ -5,6 +5,7 @@ This is the wrapper of SNAP_experiment.SNAP class to incorporate it to the SCANL
 @author: Ilya
 """
 import os
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
@@ -22,7 +23,7 @@ class Analyzer(QObject,SNAP):
             super().__init__(None)
             self.single_spectrum_path=None
             self.file_path=path
-            self.plotting_parameters_file='plotting_parameters.txt'
+            self.plotting_parameters_file=os.path.dirname(sys.argv[0])+'\\plotting_parameters.txt'
             
         def save_cropped_data(self):
             x_lim=self.fig_spectrogram.axes[0].get_xlim() #positions
