@@ -16,6 +16,8 @@ import sys
 import os
 import numpy as np
 import Hardware.thorlabs_apt as apt
+import time
+
 
 class ThorlabsStages(QObject):
     connected = pyqtSignal()
