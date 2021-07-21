@@ -28,20 +28,33 @@ class ThorlabsStages(QObject):
         super().__init__()
 
 #
-
-        self.Stage_key['X'] = apt.Motor(27255020)
-        self.Stage_key['X'].backlash_distance(0)
-        self.Stage_key['X'].set_velocity_parameters(0, 1, 2.4)
-        self.Stage_key['X'].set_move_home_parameters(2, 1, 2.0, 0.0001)
-        self.Stage_key['X'].move_home(True)
+        try:
+            self.Stage_key['X'] = apt.Motor(27255020)
+        except Exception as e:
+            print('Error while initializing Cub 27255020 stage: ' + str(e))
+        try:
+            self.Stage_key['X'].backlash_distance(0)
+            self.Stage_key['X'].set_velocity_parameters(0, 1, 2.4)
+            self.Stage_key['X'].set_move_home_parameters(2, 1, 2.0, 0.0001)
+            self.Stage_key['X'].move_home(True)
+        except Exception as e:
+            print('Error while configuring Cub 27255020 stage: '+ str(e))
+        try:
+            self.Stage_key['Z'] = apt.Motor()
+        except Exception as e:
+            print('Error while initializing NRT 90864301 stage: ' + str(e))
+        try:
+            self.Stage_key['Z'].backlash_distance(0)
+            self.Stage_key['Z'].set_move_home_parameters(2, 1, 2.0, 0.0001)
+            self.Stage_key['Z'].move_home(False)
+        except Exception as e:
+            print('Error while configuring NRT 90864301 stage: '+ str(e))
         
-        self.Stage_key['Z'] = apt.Motor(90864301)
-        self.Stage_key['Z'].backlash_distance(0)
-        self.Stage_key['Z'].set_move_home_parameters(2, 1, 2.0, 0.0001)
-        self.Stage_key['Z'].move_home(False)
-        
-        self.position['X']=self.get_position('X')
-        self.position['Z']=self.get_position('Z')
+        try:
+            self.position['X']=self.get_position('X')
+            self.position['Z']=self.get_position('Z')
+        except Exception as e:
+            print('cannot take positions of stages: ' + str(e))
         self.IsConnected=1
 
 
