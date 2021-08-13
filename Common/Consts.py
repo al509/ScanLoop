@@ -13,7 +13,7 @@ class Consts:
         HOST = "10.2.60.25"
 
     class Yokogawa:
-        HOST = "10.2.60.20"
+        HOST = "10.2.60.60"
 
     class Interrogator:
         HOST = "192.168.19.111"
