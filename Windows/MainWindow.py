@@ -743,6 +743,7 @@ class MainWindow(ThreadedMainWindow):
                 #TODO: if luna_bin checked ->  self.scanningProcess.S_saveData.connect(ova_savebin)
                 if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and 
                     self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
+                     self.scanningProcess.LunaJonesMeasurement=True
                      self.scanningProcess.S_saveData.connect(lambda data, name: self.OSA.save_binary(
                          f"{self.logger.SpectralDataFolder}"
                          + f"Sp_{name}_X={self.stages.position['X']-self.X_0}"

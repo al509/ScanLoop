@@ -73,6 +73,8 @@ class ScanningProcess(QObject):
         self.searchcontact=searchcontact
         self.followPeak=followPeak
         self.saveDifference=saveDifference
+        
+        self.LunaJonesMeasurement=False
 
 
     def set_ScanningType(self,ScanningType:int): # set axis depending on choice in MainWindow
@@ -163,8 +165,11 @@ class ScanningProcess(QObject):
             self.set_OSA_to_Searching_Contact_State()
         while self.is_running and self.CurrentFileIndex<self.StopFileIndex+1:
             if self.saveDifference:
-                wavelengths_background,background_signal=self.OSA.acquire_spectrum()
-
+                if not self.LunaJonesMeasurement:
+                    wavelengths_background,background_signal=self.OSA.acquire_spectrum()
+                else:
+                    self.S_saveData.emit(0,'skip_this_name') # save Jones matrixes to Luna for out of contact
+                                
 
             time0=time.time()
             ## Getting in contact between the taper and the sample
