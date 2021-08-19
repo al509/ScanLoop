@@ -745,7 +745,7 @@ class MainWindow(ThreadedMainWindow):
                     self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
                      self.scanningProcess.LunaJonesMeasurement=True
                      self.scanningProcess.S_saveData.connect(lambda data, name: self.OSA.save_binary(
-                         f"{self.logger.SpectralDataFolder}"
+                         f"{self.logger.SpectralBinaryDataFolder}"
                          + f"Sp_{name}_X={self.stages.position['X']-self.X_0}"
                          + f"_Y={self.stages.position['Y']-self.Y_0}"
                          + f"_Z={self.stages.position['Z']-self.Z_0}_.bin"

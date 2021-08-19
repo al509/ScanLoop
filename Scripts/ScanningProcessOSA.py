@@ -164,11 +164,11 @@ class ScanningProcess(QObject):
         if self.SqueezeSpanWhileSearchingContact:  ## to speed up the process of the getting contact, the very narrow span of OSA can be set
             self.set_OSA_to_Searching_Contact_State()
         while self.is_running and self.CurrentFileIndex<self.StopFileIndex+1:
-            if self.saveDifference:
-                if not self.LunaJonesMeasurement:
-                    wavelengths_background,background_signal=self.OSA.acquire_spectrum()
-                else:
-                    self.S_saveData.emit(0,'skip_this_name') # save Jones matrixes to Luna for out of contact
+         
+            if self.save_out_of_contact:
+                wavelengths_background,background_signal=self.OSA.acquire_spectrum()
+                if self.LunaJonesMeasurement:
+                    self.S_saveData.emit(np.stack((wavelengths_background, background_signal),axis=1),'out_of_contact') # save Jones matrixes to Luna for out of contact
                                 
 
             time0=time.time()
@@ -186,10 +186,8 @@ class ScanningProcess(QObject):
                 print('saving sweep # ', jj+1)
                 wavelengthdata, spectrum=self.OSA.acquire_spectrum()
                 time.sleep(0.05)
-                if self.saveDifference:
-                    Data=np.stack((wavelengthdata, spectrum-background_signal),axis=1)
-                else:
-                    Data=np.stack((wavelengthdata, spectrum),axis=1)
+                
+                Data=np.stack((wavelengthdata, spectrum),axis=1)
                 self.S_saveData.emit(Data,'p='+str(self.CurrentFileIndex)+'_j='+str(jj)) # save spectrum to file
                 if not self.is_running: break
 

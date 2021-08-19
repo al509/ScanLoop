@@ -13,6 +13,7 @@ class Logger(QObject):
     path=os.getcwd()
     ZeroPositionFileName=path+'\\ZeroPosition.txt'
     SpectralDataFolder=path+'\\SpectralData\\'
+    SpectralBinaryDataFolder=path+'\\SpectralBinData\\'
     TDFolder=path+'\\TimeDomainData\\'
     ParametersFileName=path+'\\Parameters.txt'
     

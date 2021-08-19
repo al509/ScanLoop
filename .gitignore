@@ -2,18 +2,12 @@
 *.png
 *.pkl
 *.pyc
-*.pyc
 ZeroPosition.txt
-*.pyc
 .pylint.d/main1.stats
 *.stats
 Parameters.txt
 plotting_parameters.txt
-*.pyc
-*.pyc
 *.txt
-*.pyc
-*.pyc
 *.pyc
 Windows/__pycache__/MainWindow.cpython-37.pyc
 Windows/UIs/__pycache__/MainWindowUI.cpython-37.pyc
@@ -21,4 +15,5 @@ Windows/__pycache__/MainWindow.cpython-37.pyc
 *.pyc
 plotting_parameters.txt
 *.pyc
-*.pyc
+
+

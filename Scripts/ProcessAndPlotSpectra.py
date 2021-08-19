@@ -11,11 +11,15 @@ import pickle
 
 
 class ProcessSpectra(QObject):
+    
+    axes_number={'X':0,'Y':1,'Z':2,'W':3,'p':4}
 
     def __init__(self, path_to_main):
         QObject.__init__(self)
         self.ProcessedDataFolder=path_to_main+'\\ProcessedData\\'
         self.Source_DirName=path_to_main+'\\SpectralData\\'
+        self.out_of_contact_data=False
+
     skip_Header=3
     LowFreqEdge=0.000 ##For FFT filter. Set <0 to avoid
     HighFreqEdge=30 ##For FFT filter. Set >1 to avoid
@@ -149,7 +153,13 @@ class ProcessSpectra(QObject):
         AccuracyOfWavelength=self.AccuracyOfWavelength
         time1=time.time()
         FileList=os.listdir(self.Source_DirName)
+        OutOfContactFileList=[]
         if '.gitignore' in FileList:FileList.remove('.gitignore')
+        for file in FileList:
+            if 'out_of_contact' in file:
+                FileList.remove(file)
+                OutOfContactFileList.append(file)
+                self.out_of_contact_data=True
         self.define_file_naming_style(FileList[0])
         """
         group files at each point
@@ -191,6 +201,20 @@ class ProcessSpectra(QObject):
             SmallSignalArray=np.zeros((NumberOfWavelengthPoints,NumberOfArraysToAverage))
             ShiftIndexesMatrix=np.zeros((NumberOfArraysToAverage,NumberOfArraysToAverage))
             print(FileNameListAtPoint[0])
+            
+            if self.out_of_contact_data:
+                for file in OutOfContactFileList:
+                    if axis_to_plot_along+'='+str(Positions[ii][self.axes_number[axis_to_plot_along]]) in file:
+                        OutOfContactFileName=file
+                        break
+                # OutOfContactFileName='Sp_out_of_contact_X'+FileNameListAtPoint[0].split('_X')[1]
+                try:
+                    OutOfContactData=pickle.load(open(self.Source_DirName +OutOfContactFileName, "rb"))
+                    OutOfContactSignal=self.InterpolateInDesiredPoint(OutOfContactData[:,1],OutOfContactData[:,0],MainWavelengths)
+                except:
+                    OutOfContactSignal=np.zeros((NumberOfWavelengthPoints,1))
+                    print('out of contact file {} is not found'.format(OutOfContactFileName))
+ 
             for jj, FileName in enumerate(FileNameListAtPoint):
                 try:
                     if type_of_data=='bin':
@@ -199,7 +223,8 @@ class ProcessSpectra(QObject):
                         Data = np.genfromtxt(self.Source_DirName +FileName,skip_header=self.skip_Header)
                 except UnicodeDecodeError:
                     print('Error while getting data from file {}'.format(FileName))
-                SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(Data[:,1],Data[:,0],MainWavelengths)
+                SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(Data[:,1],Data[:,0],MainWavelengths)-OutOfContactSignal
+          
             SignalLog=np.zeros(NumberOfWavelengthPoints)
             MeanLevel=np.mean(SmallSignalArray)
             ShiftArray=np.zeros(NumberOfArraysToAverage)
@@ -298,8 +323,8 @@ if __name__ == "__main__":
     os.chdir('..')
     path= os.getcwd()
     
-    ProcessSpectra=ProcessSpectra(path)
+    p=ProcessSpectra(path)
 #    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
 #                                     axis_to_plot_along='Z')
 
-    ProcessSpectra.run(StepSize=20,Shifting=True, Averaging=True,axis_to_plot_along='Z',type_of_data='bin')
+    p.run(StepSize=10,Shifting=False, Averaging=False,axis_to_plot_along='Y',type_of_data='bin')

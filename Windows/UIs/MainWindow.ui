@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1068</width>
-         <height>588</height>
+         <width>1072</width>
+         <height>602</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -178,7 +178,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>442</height>
+             <height>476</height>
             </rect>
            </property>
            <attribute name="label">
@@ -472,8 +472,8 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-19</y>
-             <width>279</width>
+             <y>-224</y>
+             <width>283</width>
              <height>700</height>
             </rect>
            </property>
@@ -1070,8 +1070,8 @@
               <rect>
                <x>100</x>
                <y>110</y>
-               <width>37</width>
-               <height>22</height>
+               <width>32</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1106,8 +1106,8 @@
               <rect>
                <x>100</x>
                <y>80</y>
-               <width>42</width>
-               <height>22</height>
+               <width>36</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1431,7 +1431,7 @@
               <string>save only difference between in_contact and out_of_contact spectra</string>
              </property>
              <property name="text">
-              <string>Save difference</string>
+              <string>Save out_of_contact</string>
              </property>
             </widget>
             <widget class="QCheckBox" name="checkBox_searchContact">
@@ -1533,8 +1533,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>635</height>
+             <width>98</width>
+             <height>500</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2055,8 +2055,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>635</height>
+             <width>98</width>
+             <height>600</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2440,8 +2440,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>38</width>
-                <height>22</height>
+                <width>33</width>
+                <height>20</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -2722,7 +2722,7 @@
      <x>0</x>
      <y>0</y>
      <width>1092</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
