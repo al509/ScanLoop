@@ -51,7 +51,7 @@ class ScanningProcess(QObject):
                  Stages:QObject,
                  scanstep:int,seekcontactstep:int,backstep:int,seekcontactvalue:float,ScanningType:int,SqueezeSpanWhileSearchingContact:bool,
                  CurrentFileIndex:int,StopFileIndex:int,numberofscans:int,searchcontact:bool,followPeak:bool,
-                 saveDifference:bool):
+                 save_out_of_contact:bool):
         super().__init__()
         self.OSA=OSA # add Optical Spectral Analyzer
         self.FullSpan=self.OSA._Span
@@ -72,8 +72,8 @@ class ScanningProcess(QObject):
         self.NumberOfScans=numberofscans
         self.searchcontact=searchcontact
         self.followPeak=followPeak
-        self.saveDifference=saveDifference
         
+        self.save_out_of_contact=save_out_of_contact
         self.LunaJonesMeasurement=False
 
 
@@ -167,8 +167,7 @@ class ScanningProcess(QObject):
          
             if self.save_out_of_contact:
                 wavelengths_background,background_signal=self.OSA.acquire_spectrum()
-                if self.LunaJonesMeasurement:
-                    self.S_saveData.emit(np.stack((wavelengths_background, background_signal),axis=1),'out_of_contact') # save Jones matrixes to Luna for out of contact
+                self.S_saveData.emit(np.stack((wavelengths_background, background_signal),axis=1),'out_of_contact') # save Jones matrixes to Luna for out of contact
                                 
 
             time0=time.time()

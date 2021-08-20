@@ -152,33 +152,35 @@ class ProcessSpectra(QObject):
         self.axis_to_plot_along=axis_to_plot_along
         AccuracyOfWavelength=self.AccuracyOfWavelength
         time1=time.time()
-        FileList=os.listdir(self.Source_DirName)
+        AllFilesList=os.listdir(self.Source_DirName)
         OutOfContactFileList=[]
-        if '.gitignore' in FileList:FileList.remove('.gitignore')
-        for file in FileList:
+        ContactFileList=[]
+        if '.gitignore' in AllFilesList:AllFilesList.remove('.gitignore')
+        for file in AllFilesList:
             if 'out_of_contact' in file:
-                FileList.remove(file)
                 OutOfContactFileList.append(file)
                 self.out_of_contact_data=True
-        self.define_file_naming_style(FileList[0])
+            else:
+                ContactFileList.append(file)
+        self.define_file_naming_style(ContactFileList[0])
         """
         group files at each point
         """
-        FileList=sorted(FileList,key=lambda s:self.get_position_from_file_name(s,axis=axis_to_plot_along))
-        StructuredFileList,Positions=self.Create2DListOfFiles(FileList,axis=axis_to_plot_along)
+        ContactFileList=sorted(ContactFileList,key=lambda s:self.get_position_from_file_name(s,axis=axis_to_plot_along))
+        StructuredFileList,Positions=self.Create2DListOfFiles(ContactFileList,axis=axis_to_plot_along)
         NumberOfPointsZ=len(StructuredFileList)
         #Data = np.loadtxt(DirName+ '\\Signal' + '\\' +FileList[0])
-        print(self.Source_DirName+ FileList[0])
+        print(self.Source_DirName+ ContactFileList[0])
         """
         Create main wavelength array
         """
-        MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(self.Source_DirName +FileList[0])
+        MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(self.Source_DirName +ContactFileList[0])
         if type_of_data=='bin':
-            Data = pickle.load(open(self.Source_DirName +FileList[0], "rb"))[:,0]
+            Data = pickle.load(open(self.Source_DirName +ContactFileList[0], "rb"))[:,0]
         elif type_of_data=='txt':
-            Data=np.genfromtxt(self.Source_DirName +FileList[0],skip_header=self.skip_Header)[:,0]
+            Data=np.genfromtxt(self.Source_DirName +ContactFileList[0],skip_header=self.skip_Header)[:,0]
         WavelengthStep=np.max(np.diff(Data))
-        for File in FileList:
+        for File in ContactFileList:
             try:
                 minw,maxw=self.get_min_max_wavelengths_from_file(self.Source_DirName +File)
             except UnicodeDecodeError:
@@ -204,6 +206,7 @@ class ProcessSpectra(QObject):
             
             if self.out_of_contact_data:
                 for file in OutOfContactFileList:
+                    OutOfContactFileName=''
                     if axis_to_plot_along+'='+str(Positions[ii][self.axes_number[axis_to_plot_along]]) in file:
                         OutOfContactFileName=file
                         break
@@ -212,8 +215,10 @@ class ProcessSpectra(QObject):
                     OutOfContactData=pickle.load(open(self.Source_DirName +OutOfContactFileName, "rb"))
                     OutOfContactSignal=self.InterpolateInDesiredPoint(OutOfContactData[:,1],OutOfContactData[:,0],MainWavelengths)
                 except:
-                    OutOfContactSignal=np.zeros((NumberOfWavelengthPoints,1))
+                    OutOfContactSignal=np.zeros((1,NumberOfWavelengthPoints))
                     print('out of contact file {} is not found'.format(OutOfContactFileName))
+            else:
+                OutOfContactSignal=np.zeros((1,NumberOfWavelengthPoints))
  
             for jj, FileName in enumerate(FileNameListAtPoint):
                 try:

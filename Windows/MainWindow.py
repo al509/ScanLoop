@@ -75,7 +75,7 @@ class ThreadedMainWindow(QMainWindow):
 #            thread.wait()
             thread.quit()
 
-
+#save_out_of_contact
 
 class MainWindow(ThreadedMainWindow):
     force_OSA_acquireAll = pyqtSignal()
@@ -713,7 +713,7 @@ class MainWindow(ThreadedMainWindow):
                         numberofscans=int(self.ui.lineEdit_numberOfScans.text()),
                         searchcontact=self.ui.checkBox_searchContact.isChecked(),
                         followPeak=self.ui.checkBox_followPeak.isChecked(),
-                        saveDifference=self.ui.checkBox_saveDifference.isChecked())
+                        save_out_of_contact=self.ui.checkBox_save_out_of_contact.isChecked())
                     self.scanningProcess.S_saveData.connect(
                         lambda Data,prefix: self.logger.save_data(Data,prefix,
                             self.stages.position['X']-self.X_0, self.stages.position['Y']-self.Y_0,
@@ -905,7 +905,7 @@ class MainWindow(ThreadedMainWindow):
         Dict['analyzer_min_wavelength']=float(self.ui.lineEdit_analyzer_wavelength_min.text())
         Dict['analyzer_max_wavelength']=float(self.ui.lineEdit_analyzer_wavelength_max.text())
         Dict['analyzer_resonance_level']=float(self.ui.lineEdit_analyzer_resonance_level.text())
-        Dict['save_difference?']=str(self.ui.checkBox_saveDifference.isChecked())
+        Dict['save_out_of_contact?']=str(self.ui.checkBox_save_out_of_contact.isChecked())
 
         self.logger.SaveParameters(Dict)
 
@@ -937,7 +937,7 @@ class MainWindow(ThreadedMainWindow):
             Dict['AverageShapeWhileProcessing?']=='True')
         self.ui.checkBox_IsShiftingWhileProcessing.setChecked(
             Dict['ShiftingWhileProcessing?']=='True')
-        self.ui.checkBox_saveDifference.setChecked(Dict['save_difference?']=='True')
+        self.ui.checkBox_save_out_of_contact.setChecked(Dict['save_out_of_contact?']=='True')
         self.ui.lineEdit_numberOfScans.setText(str(Dict['NumberOfScans']))
 
         self.ui.comboBox_axis_to_plot_along.setCurrentIndex(int(Dict['axis_to_plot_along']))

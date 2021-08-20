@@ -62,7 +62,10 @@ class Luna(QObject):
         '''Send any kind of command'''
         if "?" in cmd:
             return self.send_query(cmd)
-        self.send_command(cmd)
+        try:
+            self.send_command(cmd)
+        except Exception as e:
+            print(e)
         return None
 
     ########## Methods for integrate into scanloop ##########
