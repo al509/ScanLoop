@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1092</width>
-    <height>663</height>
+    <height>719</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -56,7 +56,7 @@
          <x>0</x>
          <y>0</y>
          <width>1072</width>
-         <height>602</height>
+         <height>658</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -178,7 +178,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>476</height>
+             <height>532</height>
             </rect>
            </property>
            <attribute name="label">
@@ -472,7 +472,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-183</y>
+             <y>-168</y>
              <width>283</width>
              <height>700</height>
             </rect>
@@ -1533,8 +1533,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
-             <height>500</height>
+             <width>300</width>
+             <height>532</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2055,7 +2055,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
+             <width>283</width>
              <height>600</height>
             </rect>
            </property>
@@ -2339,7 +2339,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>File to analyze</string>
+              <string>Spectrogram file</string>
              </property>
             </widget>
             <widget class="QLabel" name="label_analyzer_file">
@@ -2478,9 +2478,9 @@
              <widget class="QLabel" name="label_17">
               <property name="geometry">
                <rect>
-                <x>70</x>
+                <x>170</x>
                 <y>40</y>
-                <width>111</width>
+                <width>91</width>
                 <height>41</height>
                </rect>
               </property>
@@ -2494,7 +2494,7 @@
              <widget class="QLineEdit" name="lineEdit_analyzer_resonance_level">
               <property name="geometry">
                <rect>
-                <x>190</x>
+                <x>230</x>
                 <y>50</y>
                 <width>41</width>
                 <height>20</height>
@@ -2502,6 +2502,32 @@
               </property>
               <property name="text">
                <string>3</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="pushButton_analyzer_save_slice">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>50</y>
+                <width>75</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Save slice</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="pushButton_analyzer_analyze_slice">
+              <property name="geometry">
+               <rect>
+                <x>90</x>
+                <y>50</y>
+                <width>75</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Analyze slice</string>
               </property>
              </widget>
             </widget>
@@ -2570,7 +2596,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>Choose  spectrum</string>
+              <string>Spectrum file</string>
              </property>
             </widget>
             <widget class="QLabel" name="label_analyzer_single_spectrum_file">

@@ -14,9 +14,9 @@ import matplotlib
 import pickle
 import bottleneck as bn
 from scipy import interpolate
-from scipy.optimize import minimize as sp_minimize
 import scipy.signal
 from  scipy.ndimage import center_of_mass
+import scipy.optimize
 # from mpl_toolkits.mplot3d import Axes3D
 
 
@@ -266,6 +266,41 @@ class SNAP():
         plt.tight_layout()
         return np.array(Pos),np.array(PeakWavelengthArray),np.array(ERV),np.array(LineWidthArray)
         
+def get_lorenzian_fit(waves,signal):
+    '''
+    fit shape, given in log scale, with Lorenzian 10*np.log10(abs(transmission*np.exp(1j*phase) - 1j*depth/(w-w0+1j*width/2))**2) 
+    
 
+    return [transmission, Fano_phase, resonance_position,linewidth,depth], [x_fitted,y_fitted]
+    
 
+    '''
+    signal_lin=10**(signal/10)
+    transmission=np.mean(signal_lin)
+    peakinds=scipy.signal.find_peaks(signal_lin)
+    width=(waves[-1]-waves[0])/5
+    phase=0
+    depth=0.001
+    p0=[transmission,phase,waves[peakinds[0][0]],width,depth]
+    
+    popt, pcov=scipy.optimize.curve_fit(lorenzian,waves,signal,p0=p0)
+    return popt, waves, lorenzian(waves,*popt)
+       
+def lorenzian(w,transmission,phase,w0,width,depth,):
+    return 10*np.log10(abs(transmission*np.exp(1j*phase*np.pi) - 1j*depth/(w-w0+1j*width/2))**2) 
+
+if __name__ == "__main__":
+    '''
+    testing and debug
+    '''
+    plt.figure(2)
+    waves=np.linspace(1550.64-0.05,1550.64+0.05,400)
+    for phase in np.linspace(-np.pi,np.pi,5):
+        plt.plot(waves,lorenzian(waves, 0.5, 1550.64, 0.01, 0.001, phase),label=str(phase))
+    plt.legend()
+    
+    # analyzer.extractERV(1,0,15000)
+
+    
+    
 

@@ -202,9 +202,12 @@ class MainWindow(ThreadedMainWindow):
             self.analyzer.plot_sample_shape)
         self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot2D())
         self.ui.pushButton_analyzer_plotSlice.clicked.connect(
-            lambda: self.analyzer.plot_and_analyze_slice(float(self.ui.lineEdit_slice_position.text()),
-            float(self.ui.lineEdit_analyzer_resonance_level.text()),
-            self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
+            lambda: self.analyzer.plot_slice(float(self.ui.lineEdit_slice_position.text()),
+                                             self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
+        self.ui.pushButton_analyzer_save_slice.clicked.connect(self.analyzer.save_slice_data)
+        self.ui.pushButton_analyzer_analyze_slice.clicked.connect(lambda: self.analyzer.analyze_slice(
+                                                                    float(self.ui.lineEdit_analyzer_resonance_level.text())))
+            
         self.ui.pushButton_analyzer_extractERV.clicked.connect(
             lambda: self.analyzer.extractERV(
                 float(self.ui.lineEdit_analyzer_resonance_level.text()),
