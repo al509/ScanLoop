@@ -91,7 +91,13 @@ class ProcessSpectra(QObject):
                     a=0
                 return a
 
-    def Create2DListOfFiles(self,FileList,axis='X'):  #Find all files which acqured at the same point
+    def Create2DListOfFiles(self,FileList,axis='X'):  
+        '''
+        Find all files which acqured at the same point
+        
+        return  structures file list and list of positions in steps!
+        '''
+        
         NewFileList=[]
         Positions=[]
         ## if Files are named with X position then Using new
