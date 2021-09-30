@@ -218,6 +218,12 @@ class SNAP():
         plt.clf()
         # matplotlib.rcParams.update({'font.size': font_size})
         index=np.argmin(abs(x-self.x))
+        
+        ax = plt.axes()
+        ax.minorticks_on()
+        ax.grid(which='major', linestyle=':', linewidth='0.1', color='black')
+        ax.grid(which='minor', linestyle=':', linewidth='0.1', color='black')
+
         plt.plot(self.wavelengths,self.transmission[:,index])
         if language=='eng':
             plt.xlabel('Wavelength, nm')
