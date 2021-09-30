@@ -69,6 +69,9 @@ class SNAP():
         self.positions=Positions
         return x,wavelengths,exp_data
     
+    def remove_nans(self):
+        indexes_of_nan=list()
+    
     def convert_to_lin_transmission(self):
         self.transmission_scale='lin'
         self.transmission=10**((self.transmission-np.max(self.transmission))/10)
