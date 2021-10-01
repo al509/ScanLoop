@@ -28,6 +28,8 @@ class Analyzer(QObject,SNAP_experiment.SNAP):
             self.file_path=path
             self.plotting_parameters_file=os.path.dirname(sys.argv[0])+'\\plotting_parameters.txt'
             self.fig_slice=None
+
+            
             
         def save_cropped_data(self):
             x_lim=self.fig_spectrogram.axes[0].get_xlim() #positions
@@ -73,6 +75,7 @@ class Analyzer(QObject,SNAP_experiment.SNAP):
             f = open(NewFileName+'.pkl',"wb")
             pickle.dump(Data,f)
             f.close()
+            print('spectrum has been saved to ', NewFileName+'.pkl')
         
 
         def plot_single_spectrum_from_file(self):
@@ -128,13 +131,14 @@ class Analyzer(QObject,SNAP_experiment.SNAP):
             index_max=np.argmin(abs(waves-wave_max))
             waves=waves[index_min:index_max]
             signal=signal[index_min:index_max]
-            print(signal)
             try:
                 popt, waves_fitted,signal_fitted=SNAP_experiment.get_lorenzian_fit(waves,signal)
             except Exception as e:
                 print('Error: {}'.format(e))
             plt.plot(waves_fitted, signal_fitted, color='red')
-            resutls_text='$|S_0|$={:.2f} \n arg(S)={:.2f} $\pi$  \n $\lambda_0$={:.4f}  nm \n $\Delta \lambda={:.4f}$ nm \n Depth={:.3e} \n Q factor={:.1e}'.format(*popt,popt[2]/popt[3])
+            resutls_text='$|S_0|$={:.2f} \n arg(S)={:.2f} $\pi$  \n $\lambda_0$={:.4f}  nm \n $\Delta \lambda={:.4f}$ nm \n Depth={:.3e} \n Depth/$\Delta \lambda$={:.4f} \n Q factor={:.1e}'.format(*popt,popt[4]/popt[3],popt[2]/popt[3])
+            for t in plt.gca().texts:
+                t.set_visible(False)
             plt.text(0.8, 0.5,resutls_text,
                      horizontalalignment='center',
                      verticalalignment='center',
