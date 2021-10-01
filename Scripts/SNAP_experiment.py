@@ -213,18 +213,20 @@ class SNAP():
         return fig
     
     
+
+    
     def plot_spectrum(self,x,language='eng'):
         fig=plt.figure()
         plt.clf()
-        # matplotlib.rcParams.update({'font.size': font_size})
-        index=np.argmin(abs(x-self.x))
-        
+
         ax = plt.axes()
         ax.minorticks_on()
         ax.grid(which='major', linestyle=':', linewidth='0.1', color='black')
         ax.grid(which='minor', linestyle=':', linewidth='0.1', color='black')
 
+        index=np.argmin(abs(x-self.x))
         plt.plot(self.wavelengths,self.transmission[:,index])
+        
         if language=='eng':
             plt.xlabel('Wavelength, nm')
             plt.ylabel('Spectral power density, dBm')
@@ -232,12 +234,19 @@ class SNAP():
             plt.xlabel('Длина волны, нм')
             plt.ylabel('Спектральная плотность мощности, дБм')
         return fig
-        
-        
+    
+
     
     def extract_ERV(self,MinimumPeakDepth,MinWavelength=0,MaxWavelength=1e4, indicate_ERV_on_spectrogram=False):
+        '''
+        analyze 2D spectrogram
+        return position of the main resonance (and corresponding ERV), and resonance parameters:
+            nonresonance transmission, Fano phase shift, depth/width, linewidth
+        for each slice along position axis
+        
+        uses scipy.find_peak
+        '''
         NumberOfWavelength,Number_of_positions = self.transmission.shape
-        LineWidthArray=np.zeros(Number_of_positions)
         PeakWavelengthArray=np.zeros(Number_of_positions)
         PeakWavelengthMatrix=np.zeros(np.shape(self.transmission))
         PeakWavelengthMatrix[:]=np.nan
@@ -245,7 +254,8 @@ class SNAP():
         Positions=self.x
         
         PeakWavelengthArray=[]
-        LineWidthArray=[]
+        resonance_parameters_array=[]
+        
         Pos=[]
         for Zind, Z in enumerate(range(0,Number_of_positions)):
             peakind,_=scipy.signal.find_peaks(abs(self.transmission[:,Zind]-np.nanmean(self.transmission[:,Zind])),height=MinimumPeakDepth)
@@ -256,7 +266,11 @@ class SNAP():
                 PeakWavelengthArray.append(WavelengthArray[NewPeakind[0]])
                 PeakWavelengthMatrix[NewPeakind[0],Zind]=-self.transmission[NewPeakind[0],Zind]
                 Pos.append(Positions[Zind])
-                LineWidthArray.append(0)
+                fitting_parameters,_,_=get_Fano_fit(WavelengthArray, self.transmission[:,Zind],WavelengthArray[NewPeakind[0]])
+                resonance_parameters_array.append([fitting_parameters[0],fitting_parameters[1],
+                                                  fitting_parameters[4]/fitting_parameters[3],
+                                                  fitting_parameters[3]])
+
                 
         lambda_0=np.nanmin(WavelengthArray)
         ERV=(PeakWavelengthArray-lambda_0)/np.nanmean(PeakWavelengthArray)*self.R_0*self.refractive_index
@@ -268,34 +282,68 @@ class SNAP():
             self.plot_spectrogram()
             self.fig_spectrogram.axes[0].pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix,shading='auto')
         
+        resonance_parameters_array=np.array(resonance_parameters_array)
         plt.figure()
         plt.plot(Pos,PeakWavelengthArray)
         plt.xlabel('Distance, $\mu$m')
-        plt.ylabel('Cutt-off wavelength, nm')
+        plt.ylabel('Cut-off wavelength, nm')
         plt.tight_layout()
-        return np.array(Pos),np.array(PeakWavelengthArray),np.array(ERV),np.array(LineWidthArray)
         
-def get_lorenzian_fit(waves,signal):
+        plt.figure()
+        plt.plot(Pos,resonance_parameters_array[:,2])
+        plt.xlabel('Distance, $\mu$m')
+        plt.ylabel('Depth',color='blue')
+        plt.gca().tick_params(axis='y', colors='blue')
+        ax2 = plt.gca().twinx()
+        ax2.plot(Pos,resonance_parameters_array[:,3], color='red')
+        ax2.set_ylabel('Linewidth $\Delta \lambda$, nm',color='red')
+        ax2.tick_params(axis='y', colors='red')
+        plt.tight_layout()
+        
+        plt.figure()
+        plt.title('Nonresonanse transmission $|S_0|$')
+        plt.plot(Pos,resonance_parameters_array[:,0])
+        plt.xlabel('Distance, $\mu$m')
+        plt.ylabel('Nonresonance transmission $|S_0|$')
+        plt.tight_layout()
+        
+        
+        return np.array(Pos),np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
+    
+    
+        
+def get_Fano_fit(waves,signal,peak_wavelength=None):
     '''
     fit shape, given in log scale, with Lorenzian 10*np.log10(abs(transmission*np.exp(1j*phase) - 1j*depth/(w-w0+1j*width/2))**2) 
     
-
+    meay use peak_wavelength
     return [transmission, Fano_phase, resonance_position,linewidth,depth], [x_fitted,y_fitted]
     
 
     '''
     signal_lin=10**(signal/10)
     transmission=np.mean(signal_lin)
-    peakinds=scipy.signal.find_peaks(signal_lin)
+    if peak_wavelength is None:
+        peak_wavelength=waves[scipy.signal.find_peaks(signal_lin-transmission)[0][0]]
+        peak_wavelength_lower_bound=0
+        peak_wavelength_higher_bound=np.inf
+    else:
+        peak_wavelength_lower_bound=peak_wavelength-1e-3
+        peak_wavelength_higher_bound=peak_wavelength+1e-3
+    
     width=(waves[-1]-waves[0])/5
     phase=0
     depth=0.001
-    p0=[transmission,phase,waves[peakinds[0][0]],width,depth]
+    initial_guess=[transmission,phase,peak_wavelength,width,depth]
+    bounds=((0,0,peak_wavelength_lower_bound,0,0),(1,2,peak_wavelength_higher_bound,np.inf,np.inf))
     
-    popt, pcov=scipy.optimize.curve_fit(lorenzian,waves,signal,p0=p0)
-    return popt, waves, lorenzian(waves,*popt)
+    popt, pcov=scipy.optimize.curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds)
+    return popt, waves, Fano_lorenzian(waves,*popt)
        
-def lorenzian(w,transmission,phase,w0,width,depth,):
+def Fano_lorenzian(w,transmission,phase,w0,width,depth):
+    '''
+    return log of Fano shape
+    '''
     return 10*np.log10(abs(transmission*np.exp(1j*phase*np.pi) - 1j*depth/(w-w0+1j*width/2))**2) 
 
 if __name__ == "__main__":
@@ -305,7 +353,7 @@ if __name__ == "__main__":
     plt.figure(2)
     waves=np.linspace(1550.64-0.05,1550.64+0.05,400)
     for phase in np.linspace(-np.pi,np.pi,5):
-        plt.plot(waves,lorenzian(waves, 0.5, 1550.64, 0.01, 0.001, phase),label=str(phase))
+        plt.plot(waves,Fano_lorenzian(waves, 0.5, 1550.64, 0.01, 0.001, phase),label=str(phase))
     plt.legend()
     
     # analyzer.extractERV(1,0,15000)

@@ -83,15 +83,11 @@ class Analyzer(QObject,SNAP_experiment.SNAP):
                 print('loading data for analyzer from ',self.single_spectrum_path)
                 Data=(pickle.load(f))
             self.fig_slice=plt.figure()
-            a=Data[:,1]
-            lien2=plt.plot(Data[:,1])
+            plt.plot(Data[:,0],Data[:,1])
             plt.xlabel('Wavelength, nm')
             plt.ylabel('Spectral power density, dBm')
             plt.tight_layout()
-            line = self.fig_slice.gca().get_lines()[0]
-            test=line.get_xydata()
-            signal = line.get_ydata()
-            waves = line.get_xdata()
+
             
         def plot2D(self):
             if self.transmission is None:
@@ -124,25 +120,32 @@ class Analyzer(QObject,SNAP_experiment.SNAP):
                 return
             
             peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),height=MinimumPeakDepth , distance=10)
-            plt.plot(waves[peakind2], signal[peakind2], '.')
-            wave_min,wave_max=self.fig_slice.gca().get_xlim()
-            
-            index_min=np.argmin(abs(waves-wave_min))
-            index_max=np.argmin(abs(waves-wave_max))
-            waves=waves[index_min:index_max]
-            signal=signal[index_min:index_max]
-            try:
-                popt, waves_fitted,signal_fitted=SNAP_experiment.get_lorenzian_fit(waves,signal)
-            except Exception as e:
-                print('Error: {}'.format(e))
-            plt.plot(waves_fitted, signal_fitted, color='red')
-            resutls_text='$|S_0|$={:.2f} \n arg(S)={:.2f} $\pi$  \n $\lambda_0$={:.4f}  nm \n $\Delta \lambda={:.4f}$ nm \n Depth={:.3e} \n Depth/$\Delta \lambda$={:.4f} \n Q factor={:.1e}'.format(*popt,popt[4]/popt[3],popt[2]/popt[3])
-            for t in plt.gca().texts:
-                t.set_visible(False)
-            plt.text(0.8, 0.5,resutls_text,
-                     horizontalalignment='center',
-                     verticalalignment='center',
-                     transform = plt.gca().transAxes)
+            if len(peakind2)>0:
+                plt.plot(waves[peakind2], signal[peakind2], '.')
+                wave_min,wave_max=self.fig_slice.gca().get_xlim()
+                main_peak_index=np.argmax(abs(signal[peakind2]-np.nanmean(signal)))
+                # wavelength_main_peak=waves[peakind2][main_peak_index]
+                peakind2=peakind2[np.argsort(-waves[peakind2])] ##sort in wavelength decreasing
+                wavelength_main_peak=waves[peakind2[0]]
+                
+                index_min=np.argmin(abs(waves-wave_min))
+                index_max=np.argmin(abs(waves-wave_max))
+                waves=waves[index_min:index_max]
+                signal=signal[index_min:index_max]
+                try:
+                    popt, waves_fitted,signal_fitted=SNAP_experiment.get_Fano_fit(waves,signal,wavelength_main_peak)
+                except Exception as e:
+                        print('Error: {}'.format(e))
+                plt.plot(waves_fitted, signal_fitted, color='red')
+                results_text='$|S_0|$={:.2f} \n arg(S)={:.2f} $\pi$  \n $\lambda_0$={:.4f}  nm \n $\Delta \lambda={:.4f}$ nm \n Depth={:.3e} \n Depth/$\Delta \lambda$={:.4f} \n Q factor={:.1e}'.format(*popt,popt[4]/popt[3],popt[2]/popt[3])
+                for t in plt.gca().texts:
+                    t.set_visible(False)
+                plt.text(0.8, 0.5,results_text,
+                         horizontalalignment='center',
+                         verticalalignment='center',
+                         transform = plt.gca().transAxes)
+            else:
+                print('Error: No peaks found')
             plt.tight_layout()
             plt.show()
             plt.draw()
@@ -152,29 +155,35 @@ class Analyzer(QObject,SNAP_experiment.SNAP):
         
             
         
-        def extractERV(self,MinimumPeakDepth,MinWavelength,MaxWavelength,axis_to_process='Z'):
-            positions,peak_wavelengths, ERV, linewidths=SNAP_experiment.SNAP.extract_ERV(self,MinimumPeakDepth,MinWavelength,
+        def extractERV(self,MinimumPeakDepth,MinWavelength=0,MaxWavelength=15000,axis_to_process='Z'):
+            positions,peak_wavelengths, ERV, resonance_parameters=SNAP_experiment.SNAP.extract_ERV(self,MinimumPeakDepth,MinWavelength,
                                                         MaxWavelength, indicate_ERV_on_spectrogram=True)
             path,FileName = os.path.split(self.file_path)
             NewFileName=path+'\\'+FileName.split('.pkl')[0]+'_ERV.txt'
-            np.savetxt(NewFileName,np.transpose(np.vstack((positions,peak_wavelengths,ERV,linewidths))))
+            np.savetxt(NewFileName,np.transpose(np.vstack((positions,peak_wavelengths,ERV,np.transpose(resonance_parameters)))))
+            
+        
         
   
 
 if __name__ == "__main__":
     
     os.chdir('..')
-    analyzer=Analyzer('')
-    analyzer.plotting_parameters_file=os.getcwd()+'\\plotting_parameters.txt'
     
-    analyzer.single_spectrum_path=os.getcwd()+'\\taper_self_scan__new_slice.pkl'
-    analyzer.plot_single_spectrum_from_file()
-    # analyzer=Analyzer(os.getcwd()+'\\taper_self_scan_.pkl')
+
     
+    #%%
+    # analyzer=Analyzer(os.getcwd()+'\\Processed_spectrogram.pkl')
+    # analyzer.plotting_parameters_file=os.getcwd()+'\\plotting_parameters.txt'
     
-    # analyzer.plot2D()
-    # analyzer.plot_slice(1000)
+    # # analyzer.plot2D()
+    # analyzer.plot_slice(800)
     # analyzer.save_slice_data()
     
-    analyzer.analyze_slice(2)
-    # analyzer.extractERV(1,0,15000)
+        #%%
+    analyzer=Analyzer('')
+    analyzer.single_spectrum_path=os.getcwd()+'\\Processed_spectrogram_new_slice.pkl'
+    analyzer.plot_single_spectrum_from_file()
+    
+    analyzer.analyze_slice(1)
+    # analyzer.extractERV(5)
