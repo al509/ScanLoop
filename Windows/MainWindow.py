@@ -193,7 +193,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(
             self.choose_file_for_analyzer)
         self.ui.pushButton_analyzer_choose_plotting_param_file.clicked.connect(
-            self.choose_file_for_analyzer_plotting)
+            self.choose_file_for_analyzer_plotting_parameters)
 
         self.ui.pushButton_analyzer_plot_single_spectrum_from_file.clicked.connect(
             self.plot_single_spectrum_from_file)
@@ -1015,7 +1015,7 @@ class MainWindow(ThreadedMainWindow):
         self.analyzer.load_data(DataFilePath)
        
 
-    def choose_file_for_analyzer_plotting(self):
+    def choose_file_for_analyzer_plotting_parameters(self):
         FilePath= str(QFileDialog.getOpenFileName(
             self, "Select plotting parameters file",'','*.txt')).split("\',")[0].split("('")[1]
         if FilePath is '':

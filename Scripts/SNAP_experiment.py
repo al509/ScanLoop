@@ -4,8 +4,10 @@ Created on Fri Sep 25 16:30:03 2020
 
 @author: Ilya Vatnik
 matplotlib 3.4.2 is needed! 
-v.2
+
 """
+__version__='2.1'
+__data__='2021.11.17'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,7 +29,7 @@ class SNAP():
                  transmission=None,
                  R_0=62.5):
         
-        self.R_0=R_0
+        self.R_0=R_0 # in microns!
         self.refractive_index=1.45
         self.x=x  # in microns! 
         self.wavelengths=wavelengths
@@ -237,10 +239,10 @@ class SNAP():
     
 
     
-    def extract_ERV(self,MinimumPeakDepth,MinWavelength=0,MaxWavelength=1e4, indicate_ERV_on_spectrogram=False):
+    def extract_ERV(self,MinimumPeakDepth,MinWavelength=0,MaxWavelength=1e4, indicate_ERV_on_spectrogram=False, plot_results_separately=False):
         '''
         analyze 2D spectrogram
-        return position of the main resonance (and corresponding ERV), and resonance parameters:
+        return position of the main resonance (and corresponding ERV in nm), and resonance parameters:
             nonresonance transmission, Fano phase shift, depth/width, linewidth
         for each slice along position axis
         
@@ -273,7 +275,7 @@ class SNAP():
 
                 
         lambda_0=np.nanmin(WavelengthArray)
-        ERV=(PeakWavelengthArray-lambda_0)/np.nanmean(PeakWavelengthArray)*self.R_0*self.refractive_index
+        ERV=(PeakWavelengthArray-lambda_0)/np.nanmean(PeakWavelengthArray)*self.R_0*self.refractive_index*1e3 # in nm
         
         if self.fig_spectrogram is not None and indicate_ERV_on_spectrogram:
             self.fig_spectrogram.axes[0].pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix,shading='auto')
@@ -283,29 +285,31 @@ class SNAP():
             self.fig_spectrogram.axes[0].pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix,shading='auto')
         
         resonance_parameters_array=np.array(resonance_parameters_array)
-        plt.figure()
-        plt.plot(Pos,PeakWavelengthArray)
-        plt.xlabel('Distance, $\mu$m')
-        plt.ylabel('Cut-off wavelength, nm')
-        plt.tight_layout()
         
-        plt.figure()
-        plt.plot(Pos,resonance_parameters_array[:,2])
-        plt.xlabel('Distance, $\mu$m')
-        plt.ylabel('Depth',color='blue')
-        plt.gca().tick_params(axis='y', colors='blue')
-        ax2 = plt.gca().twinx()
-        ax2.plot(Pos,resonance_parameters_array[:,3], color='red')
-        ax2.set_ylabel('Linewidth $\Delta \lambda$, nm',color='red')
-        ax2.tick_params(axis='y', colors='red')
-        plt.tight_layout()
-        
-        plt.figure()
-        plt.title('Nonresonanse transmission $|S_0|$')
-        plt.plot(Pos,resonance_parameters_array[:,0])
-        plt.xlabel('Distance, $\mu$m')
-        plt.ylabel('Nonresonance transmission $|S_0|$')
-        plt.tight_layout()
+        if plot_results_separately:
+            plt.figure()
+            plt.plot(Pos,PeakWavelengthArray)
+            plt.xlabel('Distance, $\mu$m')
+            plt.ylabel('Cut-off wavelength, nm')
+            plt.tight_layout()
+            
+            plt.figure()
+            plt.plot(Pos,resonance_parameters_array[:,2])
+            plt.xlabel('Distance, $\mu$m')
+            plt.ylabel('Depth',color='blue')
+            plt.gca().tick_params(axis='y', colors='blue')
+            ax2 = plt.gca().twinx()
+            ax2.plot(Pos,resonance_parameters_array[:,3], color='red')
+            ax2.set_ylabel('Linewidth $\Delta \lambda$, nm',color='red')
+            ax2.tick_params(axis='y', colors='red')
+            plt.tight_layout()
+            
+            plt.figure()
+            plt.title('Nonresonanse transmission $|S_0|$')
+            plt.plot(Pos,resonance_parameters_array[:,0])
+            plt.xlabel('Distance, $\mu$m')
+            plt.ylabel('Nonresonance transmission $|S_0|$')
+            plt.tight_layout()
         
         
         return np.array(Pos),np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
@@ -337,8 +341,13 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
     initial_guess=[transmission,phase,peak_wavelength,width,depth]
     bounds=((0,0,peak_wavelength_lower_bound,0,0),(1,2,peak_wavelength_higher_bound,np.inf,np.inf))
     
-    popt, pcov=scipy.optimize.curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds)
-    return popt, waves, Fano_lorenzian(waves,*popt)
+    try:
+        popt, pcov=scipy.optimize.curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds)
+        return popt, waves, Fano_lorenzian(waves,*popt)
+    except RuntimeError as E:
+        print(E)
+        return initial_guess,waves,Fano_lorenzian(waves,*initial_guess)
+    
        
 def Fano_lorenzian(w,transmission,phase,w0,width,depth):
     '''

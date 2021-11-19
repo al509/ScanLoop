@@ -115,6 +115,11 @@ class Analyzer(QObject,SNAP_experiment.SNAP):
             line = self.fig_slice.gca().get_lines()[0]
             waves = line.get_xdata()
             signal = line.get_ydata()
+            wave_min,wave_max=self.fig_slice.gca().get_xlim()
+            index_min=np.argmin(abs(waves-wave_min))
+            index_max=np.argmin(abs(waves-wave_max))
+            waves=waves[index_min:index_max]
+            signal=signal[index_min:index_max]
             if all(np.isnan(signal)):
                 print('Error. Signal is NAN only')
                 return
@@ -122,16 +127,13 @@ class Analyzer(QObject,SNAP_experiment.SNAP):
             peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),height=MinimumPeakDepth , distance=10)
             if len(peakind2)>0:
                 plt.plot(waves[peakind2], signal[peakind2], '.')
-                wave_min,wave_max=self.fig_slice.gca().get_xlim()
+                
                 main_peak_index=np.argmax(abs(signal[peakind2]-np.nanmean(signal)))
                 # wavelength_main_peak=waves[peakind2][main_peak_index]
                 peakind2=peakind2[np.argsort(-waves[peakind2])] ##sort in wavelength decreasing
                 wavelength_main_peak=waves[peakind2[0]]
                 
-                index_min=np.argmin(abs(waves-wave_min))
-                index_max=np.argmin(abs(waves-wave_max))
-                waves=waves[index_min:index_max]
-                signal=signal[index_min:index_max]
+                
                 try:
                     popt, waves_fitted,signal_fitted=SNAP_experiment.get_Fano_fit(waves,signal,wavelength_main_peak)
                 except Exception as e:
