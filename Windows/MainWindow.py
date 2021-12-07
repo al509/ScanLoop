@@ -213,7 +213,8 @@ class MainWindow(ThreadedMainWindow):
                 float(self.ui.lineEdit_analyzer_resonance_level.text()),
             float(self.ui.lineEdit_analyzer_wavelength_min.text()),
             float(self.ui.lineEdit_analyzer_wavelength_max.text()),
-            self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
+            self.ui.comboBox_axis_to_analyze_along_arb_data.currentText(),
+            plot_results_separately=self.ui.checkBox_analyzer_plot_results_separately.isChecked()))
         self.ui.pushButton_analyzer_save_cropped_data.clicked.connect(
             self.analyzer.save_cropped_data)
 

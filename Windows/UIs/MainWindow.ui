@@ -472,8 +472,8 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-168</y>
-             <width>283</width>
+             <y>0</y>
+             <width>83</width>
              <height>700</height>
             </rect>
            </property>
@@ -1533,8 +1533,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>532</height>
+             <width>83</width>
+             <height>500</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2054,7 +2054,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-68</y>
              <width>283</width>
              <height>600</height>
             </rect>
@@ -2326,6 +2326,19 @@
               </property>
               <property name="text">
                <string>1590</string>
+              </property>
+             </widget>
+             <widget class="QCheckBox" name="checkBox_analyzer_plot_results_separately">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>60</y>
+                <width>131</width>
+                <height>17</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Plot results separately</string>
               </property>
              </widget>
             </widget>

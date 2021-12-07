@@ -157,9 +157,9 @@ class Analyzer(QObject,SNAP_experiment.SNAP):
         
             
         
-        def extractERV(self,MinimumPeakDepth,MinWavelength=0,MaxWavelength=15000,axis_to_process='Z'):
+        def extractERV(self,MinimumPeakDepth,MinWavelength=0,MaxWavelength=15000,axis_to_process='Z',plot_results_separately=False):
             positions,peak_wavelengths, ERV, resonance_parameters=SNAP_experiment.SNAP.extract_ERV(self,MinimumPeakDepth,MinWavelength,
-                                                        MaxWavelength, indicate_ERV_on_spectrogram=True)
+                                                        MaxWavelength, indicate_ERV_on_spectrogram=True,plot_results_separately=plot_results_separately)
             path,FileName = os.path.split(self.file_path)
             NewFileName=path+'\\'+FileName.split('.pkl')[0]+'_ERV.txt'
             np.savetxt(NewFileName,np.transpose(np.vstack((positions,peak_wavelengths,ERV,np.transpose(resonance_parameters)))))

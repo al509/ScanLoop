@@ -285,6 +285,7 @@ class SNAP():
             self.fig_spectrogram.axes[0].pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix,shading='auto')
         
         resonance_parameters_array=np.array(resonance_parameters_array)
+        print(plot_results_separately)
         
         if plot_results_separately:
             plt.figure()
