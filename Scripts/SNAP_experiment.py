@@ -123,9 +123,17 @@ class SNAP():
             Update second axis according with first axis.
             """
             y1, y2 = ax_Wavelengths.get_ylim()
+            print(y1,y2)
             nY1=(y1-self.lambda_0)/w_0*self.R_0*self.refractive_index*1e3
             nY2=(y2-self.lambda_0)/w_0*self.R_0*self.refractive_index*1e3
             ax_Radius.set_ylim(nY1, nY2)
+            
+        def _forward(x):
+            return (x-self.lambda_0)/w_0*self.R_0*self.refractive_index*1e3
+
+        def _backward(x):
+            return self.lambda_0 + w_0*x/self.R_0/self.refractive_index/1e3
+    
     
         
         if (new_figure) or (figsize!=None):
@@ -144,8 +152,8 @@ class SNAP():
         except:
             im = ax_Wavelengths.contourf(self.x,self.wavelengths,self.transmission,50,cmap=cmap,vmin=vmin,vmax=vmax)
         if ERV_axis:
-            ax_Radius = ax_Wavelengths.twinx()
-            ax_Wavelengths.callbacks.connect("ylim_changed", _convert_ax_Wavelength_to_Radius)
+            ax_Radius = ax_Wavelengths.secondary_yaxis('right', functions=(_forward,_backward))
+            # ax_Wavelengths.callbacks.connect("ylim_changed", _convert_ax_Wavelength_to_Radius)
         
         if position_in_steps_axis:
             ax_steps=ax_Wavelengths.twiny()
@@ -157,10 +165,10 @@ class SNAP():
                 clb=fig.colorbar(im,ax=ax_steps,pad=colorbar_pad)
         else:
             try:
-                clb=fig.colorbar(im,ax=ax_Radius,pad=colorbar_pad,location=colorbar_location)
+                clb=fig.colorbar(im,ax=ax_Wavelengths,pad=colorbar_pad,location=colorbar_location)
             except TypeError:
                 print('WARNING: update matplotlib up to 3.4.2 to plot colorbars properly')
-                clb=fig.colorbar(im,ax=ax_Radius,pad=colorbar_pad)
+                clb=fig.colorbar(im,ax=ax_Wavelengths,pad=colorbar_pad)
 
         if language=='eng':
             ax_Wavelengths.set_xlabel(r'Position, $\mu$m')
@@ -195,9 +203,6 @@ class SNAP():
             try:
                 ax_steps.set_xlabel('Расстояние, шаги')
             except: pass 
-        
-        
-            
         plt.tight_layout()
         self.fig_spectrogram=fig
         return fig,im,ax_Wavelengths,ax_Radius
@@ -239,7 +244,7 @@ class SNAP():
     
 
     
-    def extract_ERV(self,MinimumPeakDepth,MinWavelength=0,MaxWavelength=1e4, indicate_ERV_on_spectrogram=False, plot_results_separately=False):
+    def extract_ERV(self,MinimumPeakDepth,MinWavelength=0,MaxWavelength=1e4, indicate_ERV_on_spectrogram=True, plot_results_separately=False):
         '''
         analyze 2D spectrogram
         return position of the main resonance (and corresponding ERV in nm), and resonance parameters:
@@ -285,7 +290,7 @@ class SNAP():
             self.fig_spectrogram.axes[0].pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix,shading='auto')
         
         resonance_parameters_array=np.array(resonance_parameters_array)
-        print(plot_results_separately)
+
         
         if plot_results_separately:
             plt.figure()
@@ -360,12 +365,14 @@ if __name__ == "__main__":
     '''
     testing and debug
     '''
-    plt.figure(2)
-    waves=np.linspace(1550.64-0.05,1550.64+0.05,400)
-    for phase in np.linspace(-np.pi,np.pi,5):
-        plt.plot(waves,Fano_lorenzian(waves, 0.5, 1550.64, 0.01, 0.001, phase),label=str(phase))
-    plt.legend()
+    # plt.figure(2)
+    # waves=np.linspace(1550.64-0.05,1550.64+0.05,400)
+    # for phase in np.linspace(-np.pi,np.pi,5):
+    #     plt.plot(waves,Fano_lorenzian(waves, 0.5, 1550.64, 0.01, 0.001, phase),label=str(phase))
+    # plt.legend()
     
+    SNAP=SNAP('1st_pop_itka.pkl')
+    SNAP.plot_spectrogram(position_in_steps_axis=False,language='ru')
     # analyzer.extractERV(1,0,15000)
 
     
