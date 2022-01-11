@@ -184,7 +184,7 @@ if __name__ == "__main__":
     
         #%%
     analyzer=Analyzer('')
-    analyzer.single_spectrum_path=os.getcwd()+'\\Processed_spectrogram_new_slice.pkl'
+    analyzer.single_spectrum_path=os.getcwd()+'\\test_single_spectrum.pkl'
     analyzer.plot_single_spectrum_from_file()
     
     analyzer.analyze_slice(1)

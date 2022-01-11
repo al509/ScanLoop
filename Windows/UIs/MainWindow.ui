@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1092</width>
-    <height>719</height>
+    <height>794</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -56,7 +56,7 @@
          <x>0</x>
          <y>0</y>
          <width>1072</width>
-         <height>658</height>
+         <height>733</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -178,7 +178,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>532</height>
+             <height>607</height>
             </rect>
            </property>
            <attribute name="label">
@@ -473,7 +473,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>83</width>
+             <width>283</width>
              <height>700</height>
             </rect>
            </property>
@@ -1533,8 +1533,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>83</width>
-             <height>500</height>
+             <width>300</width>
+             <height>607</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2054,9 +2054,9 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-68</y>
-             <width>283</width>
-             <height>600</height>
+             <y>0</y>
+             <width>300</width>
+             <height>607</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2276,22 +2276,22 @@
              <widget class="QPushButton" name="pushButton_analyzer_extractERV">
               <property name="geometry">
                <rect>
-                <x>150</x>
-                <y>50</y>
-                <width>121</width>
+                <x>170</x>
+                <y>20</y>
+                <width>61</width>
                 <height>31</height>
                </rect>
               </property>
               <property name="text">
-               <string>Get ERV and linewidths</string>
+               <string>Get ERV(z)</string>
               </property>
              </widget>
              <widget class="QLineEdit" name="lineEdit_analyzer_wavelength_min">
               <property name="geometry">
                <rect>
-                <x>90</x>
+                <x>70</x>
                 <y>20</y>
-                <width>60</width>
+                <width>41</width>
                 <height>20</height>
                </rect>
               </property>
@@ -2303,8 +2303,8 @@
               <property name="geometry">
                <rect>
                 <x>10</x>
-                <y>14</y>
-                <width>81</width>
+                <y>20</y>
+                <width>61</width>
                 <height>31</height>
                </rect>
               </property>
@@ -2318,9 +2318,9 @@
              <widget class="QLineEdit" name="lineEdit_analyzer_wavelength_max">
               <property name="geometry">
                <rect>
-                <x>160</x>
+                <x>120</x>
                 <y>20</y>
-                <width>60</width>
+                <width>41</width>
                 <height>20</height>
                </rect>
               </property>
@@ -2328,17 +2328,46 @@
                <string>1590</string>
               </property>
              </widget>
-             <widget class="QCheckBox" name="checkBox_analyzer_plot_results_separately">
+             <widget class="QPushButton" name="pushButton_analyzer_analyze_slice">
               <property name="geometry">
                <rect>
                 <x>10</x>
                 <y>60</y>
-                <width>131</width>
-                <height>17</height>
+                <width>75</width>
+                <height>23</height>
                </rect>
               </property>
               <property name="text">
-               <string>Plot results separately</string>
+               <string>Analyze slice</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_17">
+              <property name="geometry">
+               <rect>
+                <x>100</x>
+                <y>50</y>
+                <width>91</width>
+                <height>41</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Level  to peak analyzer</string>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_analyzer_resonance_level">
+              <property name="geometry">
+               <rect>
+                <x>180</x>
+                <y>60</y>
+                <width>41</width>
+                <height>20</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>3</string>
               </property>
              </widget>
             </widget>
@@ -2488,35 +2517,6 @@
                </property>
               </item>
              </widget>
-             <widget class="QLabel" name="label_17">
-              <property name="geometry">
-               <rect>
-                <x>170</x>
-                <y>40</y>
-                <width>91</width>
-                <height>41</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Level  to peak analyzer</string>
-              </property>
-              <property name="wordWrap">
-               <bool>true</bool>
-              </property>
-             </widget>
-             <widget class="QLineEdit" name="lineEdit_analyzer_resonance_level">
-              <property name="geometry">
-               <rect>
-                <x>230</x>
-                <y>50</y>
-                <width>41</width>
-                <height>20</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>3</string>
-              </property>
-             </widget>
              <widget class="QPushButton" name="pushButton_analyzer_save_slice">
               <property name="geometry">
                <rect>
@@ -2528,19 +2528,6 @@
               </property>
               <property name="text">
                <string>Save slice</string>
-              </property>
-             </widget>
-             <widget class="QPushButton" name="pushButton_analyzer_analyze_slice">
-              <property name="geometry">
-               <rect>
-                <x>90</x>
-                <y>50</y>
-                <width>75</width>
-                <height>23</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Analyze slice</string>
               </property>
              </widget>
             </widget>
@@ -2584,6 +2571,27 @@
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QCheckBox" name="checkBox_analyzer_plot_results_separately">
+             <property name="geometry">
+              <rect>
+               <x>250</x>
+               <y>230</y>
+               <width>61</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Plot  separately</string>
+             </property>
+             <property name="tristate">
+              <bool>false</bool>
              </property>
             </widget>
            </widget>
