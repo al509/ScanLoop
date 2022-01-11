@@ -794,10 +794,10 @@ class MainWindow(ThreadedMainWindow):
             FilePrefix=self.ui.EditLine_saveSpectrumName.text()
             if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and 
                     self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
-                        self.OSA.save_binary( f"{self.logger.SpectralDataFolder}"
+                        self.OSA.save_binary( f"{self.logger.SpectralBinaryDataFolder}"
                             + f"Sp_{FilePrefix}_X={X}"
                             + f"_Y={Y}"
-                            + f"_Z={X}_.bin")
+                            + f"_Z={Z}_.bin")
                         print("Saving Luna as bin")
 
             else:
