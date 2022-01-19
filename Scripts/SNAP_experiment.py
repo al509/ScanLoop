@@ -370,10 +370,11 @@ if __name__ == "__main__":
     # for phase in np.linspace(-np.pi,np.pi,5):
     #     plt.plot(waves,Fano_lorenzian(waves, 0.5, 1550.64, 0.01, 0.001, phase),label=str(phase))
     # plt.legend()
-    
-    SNAP=SNAP('1st_pop_itka.pkl')
+    import os
+    os.chdir('..')
+    SNAP=SNAP('Processed_spectrogram.pkl')
     SNAP.plot_spectrogram(position_in_steps_axis=False,language='ru')
-    # analyzer.extractERV(1,0,15000)
+    SNAP.extract_ERV(MinimumPeakDepth=1,plot_results_separately=True)
 
     
     
