@@ -9,18 +9,23 @@ resave from txt to pkl
 
 import numpy as np
 import pickle
-pos_filename='Sp_Positions.txt'
-spectra_filename='SpectraArray.txt'
-waves_filename='WavelengthArray.txt'
 
-f_name='Processed_spectrogram.pkl'
-
-positions=np.loadtxt(pos_filename)
-spectra=np.loadtxt(spectra_filename)
-waves=np.loadtxt(waves_filename)
+folder_path='C:\\!WorkFolder\\!Experiments\\!SNAP system\\!CO2 modification\\19.12.04\\Processed'
 
 
-f=open(f_name,'wb')
+
+pos_filename='\\Sp_Positions.txt'
+spectra_filename='\\SpectraArray.txt'
+waves_filename='\\WavelengthArray.txt'
+
+f_name='\\Processed_spectrogram.pkl'
+
+positions=np.loadtxt(folder_path+pos_filename)
+spectra=np.loadtxt(folder_path+spectra_filename)
+waves=np.loadtxt(folder_path+waves_filename)
+
+
+f=open(folder_path+f_name,'wb')
 D={}
 D['axis']='Z'
 D['Positions']=positions

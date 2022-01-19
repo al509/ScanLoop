@@ -283,11 +283,13 @@ class SNAP():
         ERV=(PeakWavelengthArray-lambda_0)/np.nanmean(PeakWavelengthArray)*self.R_0*self.refractive_index*1e3 # in nm
         
         if self.fig_spectrogram is not None and indicate_ERV_on_spectrogram:
-            self.fig_spectrogram.axes[0].pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix,shading='auto')
+            # self.fig_spectrogram.axes[0].pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix,shading='auto')
             self.fig_spectrogram.canvas.draw()
+            self.fig_spectrogram.axes[0].plot(Pos,PeakWavelengthArray)
         elif self.fig_spectrogram is None and indicate_ERV_on_spectrogram:
             self.plot_spectrogram()
-            self.fig_spectrogram.axes[0].pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix,shading='auto')
+            # self.fig_spectrogram.axes[0].pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix,shading='auto')
+            self.fig_spectrogram.axes[0].plot(Pos,PeakWavelengthArray)
         
         resonance_parameters_array=np.array(resonance_parameters_array)
 
@@ -370,10 +372,13 @@ if __name__ == "__main__":
     # for phase in np.linspace(-np.pi,np.pi,5):
     #     plt.plot(waves,Fano_lorenzian(waves, 0.5, 1550.64, 0.01, 0.001, phase),label=str(phase))
     # plt.legend()
+    #%%
     import os
     os.chdir('..')
     SNAP=SNAP('Processed_spectrogram.pkl')
+    #%%
     SNAP.plot_spectrogram(position_in_steps_axis=False,language='ru')
+    #%%
     SNAP.extract_ERV(MinimumPeakDepth=1,plot_results_separately=True)
 
     
