@@ -6,8 +6,8 @@ Created on Fri Sep 25 16:30:03 2020
 matplotlib 3.4.2 is needed! 
 
 """
-__version__='2.1'
-__data__='2021.11.17'
+__version__='2.2'
+__data__='2022.01.20'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -47,7 +47,7 @@ class SNAP():
             self.lambda_0=None
             
         self.fig_spectrogram=None
-        
+
         if file is not None:
             self.load_data(file)
             self.transmission_scale='log'
@@ -244,83 +244,102 @@ class SNAP():
     
 
     
-    def extract_ERV(self,MinimumPeakDepth,MinWavelength=0,MaxWavelength=1e4, indicate_ERV_on_spectrogram=True, plot_results_separately=False):
+    def extract_ERV(self,number_of_peaks_to_search=1,min_peak_level=1,min_peak_distance=10000,min_wave=0,max_wave=1e4,find_widths=True, indicate_ERV_on_spectrogram=True, plot_results_separately=False):
         '''
         analyze 2D spectrogram
-        return position of the main resonance (and corresponding ERV in nm), and resonance parameters:
+        return position of seeral first (higher-wavelegth) main resonances. Number of resonances is defined by number_of_peaks_to_search
+        return corresponding ERV in nm, and resonance parameters:
             nonresonance transmission, Fano phase shift, depth/width, linewidth
         for each slice along position axis
         
         uses scipy.find_peak
         '''
         NumberOfWavelength,Number_of_positions = self.transmission.shape
-        PeakWavelengthArray=np.zeros(Number_of_positions)
-        PeakWavelengthMatrix=np.zeros(np.shape(self.transmission))
-        PeakWavelengthMatrix[:]=np.nan
         WavelengthArray=self.wavelengths
         Positions=self.x
         
-        PeakWavelengthArray=[]
-        resonance_parameters_array=[]
-        
-        Pos=[]
-        for Zind, Z in enumerate(range(0,Number_of_positions)):
-            peakind,_=scipy.signal.find_peaks(abs(self.transmission[:,Zind]-np.nanmean(self.transmission[:,Zind])),height=MinimumPeakDepth)
-            NewPeakind=np.extract((WavelengthArray[peakind]>MinWavelength) & (WavelengthArray[peakind]<MaxWavelength),peakind)
-            NewPeakind=NewPeakind[np.argsort(-WavelengthArray[NewPeakind])] ##sort in wavelength decreasing
-            
-            if len(NewPeakind)>0:
-                PeakWavelengthArray.append(WavelengthArray[NewPeakind[0]])
-                PeakWavelengthMatrix[NewPeakind[0],Zind]=-self.transmission[NewPeakind[0],Zind]
-                Pos.append(Positions[Zind])
-                fitting_parameters,_,_=get_Fano_fit(WavelengthArray, self.transmission[:,Zind],WavelengthArray[NewPeakind[0]])
-                resonance_parameters_array.append([fitting_parameters[0],fitting_parameters[1],
-                                                  fitting_parameters[4]/fitting_parameters[3],
-                                                  fitting_parameters[3]])
+        PeakWavelengthArray=np.empty((Number_of_positions,number_of_peaks_to_search))
+        resonance_parameters_array=np.empty((Number_of_positions,number_of_peaks_to_search,4))
+        PeakWavelengthArray.fill(np.nan)
+        resonance_parameters_array.fill(np.nan)
 
-                
+        for Zind, Z in enumerate(range(0,Number_of_positions)):
+            peakind,_=scipy.signal.find_peaks(abs(self.transmission[:,Zind]-np.nanmean(self.transmission[:,Zind])),height=min_peak_level,distance=min_peak_distance)
+            NewPeakind=np.extract((WavelengthArray[peakind]>min_wave) & (WavelengthArray[peakind]<max_wave),peakind)
+            NewPeakind=NewPeakind[np.argsort(-WavelengthArray[NewPeakind])] ##sort in wavelength decreasing
+            N_points_for_fitting=50
+            if len(NewPeakind)>0:
+                if len(NewPeakind)>=number_of_peaks_to_search:
+                    shortWavArray=WavelengthArray[NewPeakind[:number_of_peaks_to_search]]
+                elif len(NewPeakind)<number_of_peaks_to_search:
+                    shortWavArray=np.concatenate(WavelengthArray[NewPeakind],np.nan*np.zeros(number_of_peaks_to_search-len(NewPeakind)))
+                PeakWavelengthArray[Zind]=shortWavArray
+                if find_widths:
+                    for ii,peak_wavelength in enumerate(shortWavArray):
+                        if peak_wavelength is not np.nan:
+                            index=NewPeakind[ii]
+                            try:
+                                fitting_parameters,_,_=get_Fano_fit(WavelengthArray[index-N_points_for_fitting:index+N_points_for_fitting], self.transmission[index-N_points_for_fitting:index+N_points_for_fitting,Zind],peak_wavelength)
+                                resonance_parameters_array[Zind,ii]=([fitting_parameters[0],fitting_parameters[1],
+                                                                      fitting_parameters[4]/fitting_parameters[3],fitting_parameters[3]])
+                            except:
+                                print('error while fitting')
         lambda_0=np.nanmin(WavelengthArray)
         ERV=(PeakWavelengthArray-lambda_0)/np.nanmean(PeakWavelengthArray)*self.R_0*self.refractive_index*1e3 # in nm
-        
+                
         if self.fig_spectrogram is not None and indicate_ERV_on_spectrogram:
-            # self.fig_spectrogram.axes[0].pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix,shading='auto')
+            if len(self.fig_spectrogram.axes[0].lines)>1:
+                for line in self.fig_spectrogram.axes[0].lines[1:]: line.remove()
+            for i in range(0,number_of_peaks_to_search):
+                self.fig_spectrogram.axes[0].plot(self.x,PeakWavelengthArray[:,i])
             self.fig_spectrogram.canvas.draw()
-            self.fig_spectrogram.axes[0].plot(Pos,PeakWavelengthArray)
         elif self.fig_spectrogram is None and indicate_ERV_on_spectrogram:
             self.plot_spectrogram()
-            # self.fig_spectrogram.axes[0].pcolormesh(Positions,WavelengthArray,PeakWavelengthMatrix,shading='auto')
-            self.fig_spectrogram.axes[0].plot(Pos,PeakWavelengthArray)
+            for i in range(0,number_of_peaks_to_search):
+                self.fig_spectrogram.axes[0].plot(self.x,PeakWavelengthArray[:,i])
+                line=self.fig_spectrogram.axes[0].plot(self.x,PeakWavelengthArray[:,i])
+                self.fig_spectrogram_ERV_lines.append[line]
+
         
         resonance_parameters_array=np.array(resonance_parameters_array)
 
         
         if plot_results_separately:
             plt.figure()
-            plt.plot(Pos,PeakWavelengthArray)
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(self.x,PeakWavelengthArray[:,i])
             plt.xlabel('Distance, $\mu$m')
             plt.ylabel('Cut-off wavelength, nm')
+            plt.title('Cut-off wavelength')
             plt.tight_layout()
+
             
             plt.figure()
-            plt.plot(Pos,resonance_parameters_array[:,2])
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(self.x,resonance_parameters_array[:,i,2])
             plt.xlabel('Distance, $\mu$m')
             plt.ylabel('Depth',color='blue')
             plt.gca().tick_params(axis='y', colors='blue')
-            ax2 = plt.gca().twinx()
-            ax2.plot(Pos,resonance_parameters_array[:,3], color='red')
-            ax2.set_ylabel('Linewidth $\Delta \lambda$, nm',color='red')
-            ax2.tick_params(axis='y', colors='red')
+            plt.title('Depth of the resonance')
+            
+            plt.figure()
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(self.x,resonance_parameters_array[:,i,3], color='red')
+            plt.xlabel('Distance, $\mu$m')
+            plt.ylabel('Linewidth $\Delta \lambda$, nm',color='red')
+            plt.title('Linewidth $\Delta \lambda$')
             plt.tight_layout()
             
             plt.figure()
             plt.title('Nonresonanse transmission $|S_0|$')
-            plt.plot(Pos,resonance_parameters_array[:,0])
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(self.x,resonance_parameters_array[:,i,0])
             plt.xlabel('Distance, $\mu$m')
             plt.ylabel('Nonresonance transmission $|S_0|$')
             plt.tight_layout()
         
         
-        return np.array(Pos),np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
+        return self.x,np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
     
     
         
@@ -379,8 +398,6 @@ if __name__ == "__main__":
     #%%
     SNAP.plot_spectrogram(position_in_steps_axis=False,language='ru')
     #%%
-    SNAP.extract_ERV(MinimumPeakDepth=1,plot_results_separately=True)
+    SNAP.extract_ERV(min_peak_level=0.7,min_peak_distance=100,number_of_peaks_to_search=3,plot_results_separately=True)
 
-    
-    
 

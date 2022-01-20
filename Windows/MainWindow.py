@@ -205,16 +205,20 @@ class MainWindow(ThreadedMainWindow):
             lambda: self.analyzer.plot_slice(float(self.ui.lineEdit_slice_position.text()),
                                              self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
         self.ui.pushButton_analyzer_save_slice.clicked.connect(self.analyzer.save_slice_data)
-        self.ui.pushButton_analyzer_analyze_slice.clicked.connect(lambda: self.analyzer.analyze_slice(
+        self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(
+                                                                    (self.analyzer.fig_slice if self.analyzer.fig_slice  is not None else self.painter.figure),
                                                                     float(self.ui.lineEdit_analyzer_resonance_level.text())))
             
-        self.ui.pushButton_analyzer_extractERV.clicked.connect(
-            lambda: self.analyzer.extractERV(
-                float(self.ui.lineEdit_analyzer_resonance_level.text()),
-            float(self.ui.lineEdit_analyzer_wavelength_min.text()),
-            float(self.ui.lineEdit_analyzer_wavelength_max.text()),
-            self.ui.comboBox_axis_to_analyze_along_arb_data.currentText(),
-            plot_results_separately=self.ui.checkBox_analyzer_plot_results_separately.isChecked()))
+        self.ui.pushButton_analyzer_extract_ERV.clicked.connect(
+            lambda: self.analyzer.extract_ERV(
+                number_of_peaks_to_search=int(self.ui.lineEdit_analyzer_number_of_peaks.text()),
+                min_peak_level=float(self.ui.lineEdit_analyzer_resonance_level.text()),
+                min_peak_distance=int(self.ui.lineEdit_analyzer_resonance_distance_peaks.text()),
+                min_wave=float(self.ui.lineEdit_analyzer_wavelength_min.text()),
+                max_wave=float(self.ui.lineEdit_analyzer_wavelength_max.text()),
+                find_widths=self.ui.checkBox_analyzer_find_widths.isChecked(),
+                indicate_ERV_on_spectrogram=True,
+                plot_results_separately=self.ui.checkBox_analyzer_plot_results_separately.isChecked()))
         self.ui.pushButton_analyzer_save_cropped_data.clicked.connect(
             self.analyzer.save_cropped_data)
 

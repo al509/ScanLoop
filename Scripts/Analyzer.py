@@ -108,11 +108,11 @@ class Analyzer(QObject,SNAP_experiment.SNAP):
             self.fig_slice=self.plot_spectrum(position,language=parameters_dict['language']) ## plot_spectrum is SNAP_experiment method
             plt.tight_layout()
             
-        def analyze_slice(self,MinimumPeakDepth):
+        def analyze_spectrum(self,fig,min_peak_level):
             '''
             find all minima in represented part of slice and derive parameters of Lorenzian fitting for the minimal minimum
             '''
-            line = self.fig_slice.gca().get_lines()[0]
+            line = fig.gca().get_lines()[0]
             waves = line.get_xdata()
             signal = line.get_ydata()
             wave_min,wave_max=self.fig_slice.gca().get_xlim()
@@ -124,7 +124,7 @@ class Analyzer(QObject,SNAP_experiment.SNAP):
                 print('Error. Signal is NAN only')
                 return
             
-            peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),height=MinimumPeakDepth , distance=10)
+            peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),height=min_peak_level , distance=10)
             if len(peakind2)>0:
                 plt.plot(waves[peakind2], signal[peakind2], '.')
                 
@@ -157,12 +157,17 @@ class Analyzer(QObject,SNAP_experiment.SNAP):
         
             
         
-        def extractERV(self,MinimumPeakDepth,MinWavelength=0,MaxWavelength=15000,axis_to_process='Z',plot_results_separately=False):
-            positions,peak_wavelengths, ERV, resonance_parameters=SNAP_experiment.SNAP.extract_ERV(self,MinimumPeakDepth,MinWavelength,
-                                                        MaxWavelength, indicate_ERV_on_spectrogram=True,plot_results_separately=plot_results_separately)
+        # def extract_ERV(self,N_peaks,min_peak_depth,distance, MinWavelength,MaxWavelength,axis_to_process='Z',plot_results_separately=False):
+        def extract_ERV(self,**kwargs):
+                        # positions,peak_wavelengths, ERV, resonance_parameters=SNAP_experiment.SNAP.extract_ERV(self,min_peak_level,MinWavelength,
+                                                        # MaxWavelength, indicate_ERV_on_spectrogram=True,plot_results_separately=plot_results_separately)
+            positions,peak_wavelengths, ERV, resonance_parameters=SNAP_experiment.SNAP.extract_ERV(self,**kwargs)
             path,FileName = os.path.split(self.file_path)
-            NewFileName=path+'\\'+FileName.split('.pkl')[0]+'_ERV.txt'
-            np.savetxt(NewFileName,np.transpose(np.vstack((positions,peak_wavelengths,ERV,np.transpose(resonance_parameters)))))
+            NewFileName=path+'\\'+FileName.split('.pkl')[0]+'_ERV.pkl'
+            with open(NewFileName,'wb') as f:
+                temp=[positions,peak_wavelengths,ERV,resonance_parameters]
+                pickle.dump(temp, f)
+            # np.savetxt(NewFileName,np.transpose(np.vstack((positions,peak_wavelengths,ERV,np.transpose(resonance_parameters)))))
             
         
         
@@ -175,17 +180,17 @@ if __name__ == "__main__":
 
     
     #%%
-    # analyzer=Analyzer(os.getcwd()+'\\Processed_spectrogram.pkl')
-    # analyzer.plotting_parameters_file=os.getcwd()+'\\plotting_parameters.txt'
+    analyzer=Analyzer(os.getcwd()+'\\Processed_spectrogram.pkl')
+    analyzer.plotting_parameters_file=os.getcwd()+'\\plotting_parameters.txt'
     
-    # # analyzer.plot2D()
+    analyzer.plot2D()
     # analyzer.plot_slice(800)
-    # analyzer.save_slice_data()
+    analyzer.extract_ERV()
     
         #%%
-    analyzer=Analyzer('')
-    analyzer.single_spectrum_path=os.getcwd()+'\\test_single_spectrum.pkl'
-    analyzer.plot_single_spectrum_from_file()
+    # analyzer=Analyzer('')
+    # analyzer.single_spectrum_path=os.getcwd()+'\\test_single_spectrum.pkl'
+    # analyzer.plot_single_spectrum_from_file()
     
-    analyzer.analyze_slice(1)
+    # analyzer.analyze_slice(1)
     # analyzer.extractERV(5)
