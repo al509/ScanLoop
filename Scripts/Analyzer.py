@@ -165,7 +165,7 @@ class Analyzer(QObject,SNAP_experiment.SNAP):
             path,FileName = os.path.split(self.file_path)
             NewFileName=path+'\\'+FileName.split('.pkl')[0]+'_ERV.pkl'
             with open(NewFileName,'wb') as f:
-                temp=[positions,peak_wavelengths,ERV,resonance_parameters]
+                temp={'positions':positions,'peak_wavelengths':peak_wavelengths,'ERVs':ERV,'resonance_parameters':resonance_parameters,'fitting_parameters':(kwargs)}
                 pickle.dump(temp, f)
             # np.savetxt(NewFileName,np.transpose(np.vstack((positions,peak_wavelengths,ERV,np.transpose(resonance_parameters)))))
             

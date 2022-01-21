@@ -284,9 +284,9 @@ class SNAP():
                                                                       fitting_parameters[4]/fitting_parameters[3],fitting_parameters[3]])
                             except:
                                 print('error while fitting')
-        lambda_0=np.nanmin(WavelengthArray)
-        ERV=(PeakWavelengthArray-lambda_0)/np.nanmean(PeakWavelengthArray)*self.R_0*self.refractive_index*1e3 # in nm
-                
+        lambdas_0=np.amin(PeakWavelengthArray,axis=0)
+        ERV=(PeakWavelengthArray-lambdas_0)/np.nanmean(PeakWavelengthArray,axis=0)*self.R_0*self.refractive_index*1e3 # in nm
+        print('Analyze finished')
         if self.fig_spectrogram is not None and indicate_ERV_on_spectrogram:
             if len(self.fig_spectrogram.axes[0].lines)>1:
                 for line in self.fig_spectrogram.axes[0].lines[1:]: line.remove()
@@ -398,6 +398,6 @@ if __name__ == "__main__":
     #%%
     SNAP.plot_spectrogram(position_in_steps_axis=False,language='ru')
     #%%
-    SNAP.extract_ERV(min_peak_level=0.7,min_peak_distance=100,number_of_peaks_to_search=3,plot_results_separately=True)
+    SNAP.extract_ERV(min_peak_level=0.7,min_peak_distance=100,number_of_peaks_to_search=3,plot_results_separately=True,find_widths=False)
 
 
