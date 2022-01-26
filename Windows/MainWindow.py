@@ -327,6 +327,7 @@ class MainWindow(ThreadedMainWindow):
             self.ui.checkBox_HighRes.setChecked(self.OSA.IsHighRes)
             self.ui.comboBox_APEX_mode.setEnabled(True)
             self.ui.comboBox_APEX_mode.setCurrentIndex(self.OSA.GetMode()-2)
+            self.ui.checkBox_processing_isInterpolating.setChecked(True)
 
         self.add_thread([self.OSA])
         self.OSA.received_spectrum.connect(self.painter.set_data)
@@ -861,15 +862,16 @@ class MainWindow(ThreadedMainWindow):
         self.processSpectra.Source_DirName=self.path_to_main+'\\SpectralData\\'
         self.processSpectra.run(
             StepSize=float(self.ui.lineEdit_ScanningStep.text()),
-            Averaging=self.ui.checkBox_IsAveragingWhileProcessing.isChecked(),
-            Shifting=self.ui.checkBox_IsShiftingWhileProcessing.isChecked(),
-            axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText())
+            Averaging=self.ui.checkBox_processing_isAveraging.isChecked(),
+            Shifting=self.ui.checkBox_processing_isShifting.isChecked(),
+            axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText(),
+            interpolation=self.ui.checkBox_processingArbData_isInterpolating.isChecked())
 
     def on_Push_Button_ProcessTD(self):
         from Scripts.ProcessAndPlotTD import ProcessAndPlotTD
         self.ProcessTD=ProcessAndPlotTD()
         Thread=self.add_thread([self.ProcessTD])
-        self.ProcessTD.run(Averaging=self.ui.checkBox_IsAveragingWhileProcessing.isChecked(),
+        self.ProcessTD.run(Averaging=self.ui.checkBox_processing_isAveraging.isChecked(),
             DirName='TimeDomainData',
             axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText(),
             channel_number=self.ui.comboBox_TD_channel_to_plot.currentIndex())
@@ -904,8 +906,8 @@ class MainWindow(ThreadedMainWindow):
         Dict['IsHighRes']=str(self.ui.checkBox_HighRes.isChecked())
         Dict['SearchingContact?']=str(self.ui.checkBox_searchContact.isChecked())
         Dict['AverageShapeWhileProcessing?']=str(
-            self.ui.checkBox_IsAveragingWhileProcessing.isChecked())
-        Dict['ShiftingWhileProcessing?']=str(self.ui.checkBox_IsShiftingWhileProcessing.isChecked())
+            self.ui.checkBox_processing_isAveraging.isChecked())
+        Dict['ShiftingWhileProcessing?']=str(self.ui.checkBox_processing_isShifting.isChecked())
         Dict['axis_to_plot_along']=str(self.ui.comboBox_axis_to_plot_along.currentIndex())
         Dict['Channel_TD_to_plot']=str(self.ui.comboBox_TD_channel_to_plot.currentIndex())
         Dict['analyzer_axis_to_plot_along']=str(
@@ -941,9 +943,9 @@ class MainWindow(ThreadedMainWindow):
         self.ui.CheckBox_ApplyFFTFilter.setChecked(Dict['ApplyFFT']=='True')
         self.ui.checkBox_SqueezeSpan.setChecked(Dict['SqueezeSpan?']=='True')
         self.ui.checkBox_searchContact.setChecked(Dict['SearchingContact?']=='True')
-        self.ui.checkBox_IsAveragingWhileProcessing.setChecked(
+        self.ui.checkBox_processing_isAveraging.setChecked(
             Dict['AverageShapeWhileProcessing?']=='True')
-        self.ui.checkBox_IsShiftingWhileProcessing.setChecked(
+        self.ui.checkBox_processing_isShifting.setChecked(
             Dict['ShiftingWhileProcessing?']=='True')
         self.ui.checkBox_save_out_of_contact.setChecked(Dict['save_out_of_contact?']=='True')
         self.ui.lineEdit_numberOfScans.setText(str(Dict['NumberOfScans']))
@@ -988,16 +990,17 @@ class MainWindow(ThreadedMainWindow):
         except ValueError:
             StepSize=float(self.ui.lineEdit_ScanningStep.text())
         self.processSpectra.run(StepSize=StepSize,
-            Averaging=self.ui.checkBox_IsAveragingWhileProcessingArbData.isChecked(),
-            Shifting=self.ui.checkBox_IsShiftingWhileProcessingArbData.isChecked(),
+            Averaging=self.ui.checkBox_processingArbData_isAveraging.isChecked(),
+            Shifting=self.ui.checkBox_processingArbData_isShifting.isChecked(),
             axis_to_plot_along=self.ui.comboBox_axis_to_plot_along_arb_data.currentText(),
-            type_of_data=self.ui.comboBox_type_of_data.currentText())
+            type_of_data=self.ui.comboBox_type_of_data.currentText(),
+            interpolation=self.ui.checkBox_processingArbData_isInterpolating.isChecked())
 
     def process_arb_TD_data_clicked(self):
         from Scripts.ProcessAndPlotTD import ProcessAndPlotTD
         self.ProcessTD=ProcessAndPlotTD()
         Thread=self.add_thread([self.ProcessTD])
-        self.ProcessTD.run(Averaging=self.ui.checkBox_IsAveragingWhileProcessingArbData.isChecked(),
+        self.ProcessTD.run(Averaging=self.ui.checkBox_processingArbData_isAveraging.isChecked(),
             DirName=self.Folder,
             axis_to_plot_along=self.ui.comboBox_axis_to_plot_along_arb_data.currentText(),
             channel_number=self.ui.comboBox_TD_channel_to_plot_arb_data.currentIndex())

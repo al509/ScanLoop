@@ -14,11 +14,12 @@ class ProcessSpectra(QObject):
     
     axes_number={'X':0,'Y':1,'Z':2,'W':3,'p':4}
 
-    def __init__(self, path_to_main):
+    def __init__(self, path_to_main:str):
         QObject.__init__(self)
         self.ProcessedDataFolder=path_to_main+'\\ProcessedData\\'
         self.Source_DirName=path_to_main+'\\SpectralData\\'
         self.out_of_contact_data=False
+        
 
     skip_Header=3
     LowFreqEdge=0.000 ##For FFT filter. Set <0 to avoid
@@ -153,7 +154,7 @@ class ProcessSpectra(QObject):
 
 
 
-    def run(self,StepSize,Averaging:bool,Shifting:bool,axis_to_plot_along='X',type_of_data='bin'):
+    def run(self,StepSize,Averaging:bool,Shifting:bool,axis_to_plot_along='X',type_of_data='bin', interpolation=True):
         self.type_of_data=type_of_data
         self.axis_to_plot_along=axis_to_plot_along
         AccuracyOfWavelength=self.AccuracyOfWavelength
@@ -219,7 +220,10 @@ class ProcessSpectra(QObject):
                 # OutOfContactFileName='Sp_out_of_contact_X'+FileNameListAtPoint[0].split('_X')[1]
                 try:
                     OutOfContactData=pickle.load(open(self.Source_DirName +OutOfContactFileName, "rb"))
-                    OutOfContactSignal=self.InterpolateInDesiredPoint(OutOfContactData[:,1],OutOfContactData[:,0],MainWavelengths)
+                    if interpolation:
+                        OutOfContactSignal=self.InterpolateInDesiredPoint(OutOfContactData[:,1],OutOfContactData[:,0],MainWavelengths)
+                    else:
+                        OutOfContactSignal=OutOfContactData[:,1]
                 except:
                     OutOfContactSignal=np.zeros((1,NumberOfWavelengthPoints))
                     print('out of contact file {} is not found'.format(OutOfContactFileName))
@@ -234,7 +238,10 @@ class ProcessSpectra(QObject):
                         Data = np.genfromtxt(self.Source_DirName +FileName,skip_header=self.skip_Header)
                 except UnicodeDecodeError:
                     print('Error while getting data from file {}'.format(FileName))
-                SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(Data[:,1],Data[:,0],MainWavelengths)-OutOfContactSignal
+                if interpolation:
+                    SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(Data[:,1],Data[:,0],MainWavelengths)-OutOfContactSignal
+                else:
+                    SmallSignalArray[:,jj]=Data[:,1]
           
             SignalLog=np.zeros(NumberOfWavelengthPoints)
             MeanLevel=np.mean(SmallSignalArray)

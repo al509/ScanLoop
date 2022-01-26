@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1092</width>
+    <width>1183</width>
     <height>742</height>
    </rect>
   </property>
@@ -55,7 +55,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1072</width>
+         <width>1163</width>
          <height>681</height>
         </rect>
        </property>
@@ -472,7 +472,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-145</y>
              <width>283</width>
              <height>700</height>
             </rect>
@@ -1017,11 +1017,11 @@
               <string>Process TD</string>
              </property>
             </widget>
-            <widget class="QCheckBox" name="checkBox_IsShiftingWhileProcessing">
+            <widget class="QCheckBox" name="checkBox_processing_isShifting">
              <property name="geometry">
               <rect>
                <x>150</x>
-               <y>80</y>
+               <y>70</y>
                <width>81</width>
                <height>16</height>
               </rect>
@@ -1030,11 +1030,11 @@
               <string>Shift spectra</string>
              </property>
             </widget>
-            <widget class="QCheckBox" name="checkBox_IsAveragingWhileProcessing">
+            <widget class="QCheckBox" name="checkBox_processing_isAveraging">
              <property name="geometry">
               <rect>
-               <x>230</x>
-               <y>81</y>
+               <x>150</x>
+               <y>90</y>
                <width>61</width>
                <height>16</height>
               </rect>
@@ -1159,6 +1159,19 @@
              </property>
              <property name="text">
               <string>Plot sample shape</string>
+             </property>
+            </widget>
+            <widget class="QCheckBox" name="checkBox_processing_isInterpolating">
+             <property name="geometry">
+              <rect>
+               <x>240</x>
+               <y>80</y>
+               <width>51</width>
+               <height>31</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Interpolating</string>
              </property>
             </widget>
            </widget>
@@ -2054,7 +2067,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-45</y>
+             <y>0</y>
              <width>283</width>
              <height>600</height>
             </rect>
@@ -2111,30 +2124,10 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="0">
-              <widget class="QCheckBox" name="checkBox_IsShiftingWhileProcessingArbData">
-               <property name="toolTip">
-                <string>Calculate the averaged position of the spectrum (mainly for Apex)</string>
-               </property>
-               <property name="text">
-                <string>Shifting</string>
-               </property>
-              </widget>
-             </item>
              <item row="4" column="0">
               <widget class="QLabel" name="label_9">
                <property name="text">
                 <string>Plot along</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QCheckBox" name="checkBox_IsAveragingWhileProcessingArbData">
-               <property name="toolTip">
-                <string>Straightforward averaging of all spectra at the point</string>
-               </property>
-               <property name="text">
-                <string>Averaging</string>
                </property>
               </widget>
              </item>
@@ -2245,6 +2238,33 @@
                  <string>txt</string>
                 </property>
                </item>
+              </widget>
+             </item>
+             <item row="2" column="3">
+              <widget class="QCheckBox" name="checkBox_processingArbData_isAveraging">
+               <property name="toolTip">
+                <string>Straightforward averaging of all spectra at the point</string>
+               </property>
+               <property name="text">
+                <string>Averaging</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QCheckBox" name="checkBox_processingArbData_isShifting">
+               <property name="toolTip">
+                <string>Calculate the averaged position of the spectrum (mainly for Apex)</string>
+               </property>
+               <property name="text">
+                <string>Shifting</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QCheckBox" name="checkBox_processingArbData_isInterpolating">
+               <property name="text">
+                <string>Interpolation</string>
+               </property>
               </widget>
              </item>
             </layout>
@@ -2836,14 +2856,27 @@
           <widget class="QCheckBox" name="CheckBox_FreezeSpectrum">
            <property name="geometry">
             <rect>
-             <x>218</x>
-             <y>22</y>
-             <width>56</width>
-             <height>17</height>
+             <x>330</x>
+             <y>20</y>
+             <width>60</width>
+             <height>20</height>
             </rect>
            </property>
            <property name="text">
             <string>Freeze</string>
+           </property>
+          </widget>
+          <widget class="QPushButton" name="pushButton_setMAXrange">
+           <property name="geometry">
+            <rect>
+             <x>220</x>
+             <y>20</y>
+             <width>91</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Set MAX range</string>
            </property>
           </widget>
          </widget>
@@ -2859,7 +2892,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1092</width>
+     <width>1183</width>
      <height>21</height>
     </rect>
    </property>
