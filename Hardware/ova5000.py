@@ -17,6 +17,8 @@ class Luna(QObject):
     class ScanError(Exception):
         '''Exception that is thrown whrn there is a scan error'''
     received_spectrum = pyqtSignal(np.ndarray,list,list)
+    min_wavelength=1525
+    max_wavelength=1610
 
     def __init__(self, host='localhost', port=1):
         QObject.__init__(self)
@@ -28,6 +30,8 @@ class Luna(QObject):
         self._Center = 1550
         self._StartWavelength=self._Center-self._Span/2
         self._StopWavelength=self._Center+self._Span/2
+        self.min_wavelength=1525
+        self.max_wavelength=1610
 
 
     def recvall(self):

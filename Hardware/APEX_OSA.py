@@ -22,12 +22,16 @@ class APEX_OSA_with_additional_features(OSA,QObject):
     received_spectra = pyqtSignal(object,object)
     received_spectrum = pyqtSignal(np.ndarray,list,list)
     connected = pyqtSignal(int)
+    
 
     def __init__(self,host: str):
         QObject.__init__(self)
         OSA.__init__(self,host)
 
-
+        
+        self.min_wavelength=1526
+        self.max_wavelength=1567
+        
         self.__SamplingRateForHighRes=20e-6 # in nm
         self.__SamplingRateForLowRes=3e-4 # in nm
         
