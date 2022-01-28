@@ -144,12 +144,12 @@ class MainWindow(ThreadedMainWindow):
         self.ui.CheckBox_ApplyFFTFilter.stateChanged.connect(self.on_stateChangeOfApplyFFTBox)
         self.ui.checkBox_HighRes.stateChanged.connect(self.on_stateChangeOfIsHighResolution)
         self.ui.pushButton_getRange.pressed.connect(self.on_pushButton_getRange)
-        self.ui.EditLine_StartWavelength.editingFinished[str].connect(
-            lambda S: self.OSA.change_range(start_wavelength=float(S))
-            if (isfloat(S) and float(S)>1500 and float(S)<1600) else 0)
-        self.ui.EditLine_StopWavelength.editingFinished[str].connect(
-            lambda S: self.OSA.change_range(stop_wavelength=float(S))
-            if (isfloat(S) and float(S)>1500 and float(S)<1600) else 0)
+        self.ui.EditLine_StartWavelength.editingFinished.connect(
+            lambda:self.OSA.change_range(start_wavelength=float(self.ui.EditLine_StartWavelength.text())) 
+            if (isfloat(self.ui.EditLine_StartWavelength.text())) else 0)
+        self.ui.EditLine_StopWavelength.editingFinished.connect(
+            lambda:self.OSA.change_range(stop_wavelength=float(self.ui.EditLine_StartWavelength.text())) 
+            if (isfloat(self.ui.EditLine_StartWavelength.text())) else 0)
 
 # =============================================================================
 #         saving interface

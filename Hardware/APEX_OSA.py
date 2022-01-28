@@ -69,10 +69,10 @@ class APEX_OSA_with_additional_features(OSA,QObject):
 
 
     def change_range(self,start_wavelength=None,stop_wavelength=None):
-        if start_wavelength is not None:
+        if (start_wavelength is not None) and (start_wavelength>=self.min_wavelength):
             self.SetStartWavelength(start_wavelength)
             time.sleep(0.1)
-        if stop_wavelength is not None:
+        if (stop_wavelength is not None) and (stop_wavelength<=self.max_wavelength):
             self.SetStopWavelength(stop_wavelength)
             time.sleep(0.1)
         if self.IsHighRes:

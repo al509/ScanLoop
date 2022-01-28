@@ -92,9 +92,9 @@ class Luna(QObject):
 
     def change_range(self, start_wavelength=None, stop_wavelength=None):
         '''Set the wavelength range'''
-        if start_wavelength is None:
+        if (start_wavelength is None) or (start_wavelength<self.min_wavelength):
             start_wavelength=self._StartWavelength
-        if stop_wavelength is None:
+        if (stop_wavelength is None) or  (stop_wavelength>self.max_wavelength):
             stop_wavelength=self._StopWavelength
         self._Center = (start_wavelength + stop_wavelength)/2
         self._Span =  (stop_wavelength - start_wavelength)
