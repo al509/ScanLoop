@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1163</width>
-         <height>681</height>
+         <width>1159</width>
+         <height>667</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -178,7 +178,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>555</height>
+             <height>521</height>
             </rect>
            </property>
            <attribute name="label">
@@ -472,8 +472,8 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-145</y>
-             <width>283</width>
+             <y>-179</y>
+             <width>279</width>
              <height>700</height>
             </rect>
            </property>
@@ -1070,8 +1070,8 @@
               <rect>
                <x>100</x>
                <y>110</y>
-               <width>32</width>
-               <height>20</height>
+               <width>37</width>
+               <height>22</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1106,8 +1106,8 @@
               <rect>
                <x>100</x>
                <y>80</y>
-               <width>36</width>
-               <height>20</height>
+               <width>42</width>
+               <height>22</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1547,7 +1547,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>555</height>
+             <height>521</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2068,7 +2068,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>600</height>
             </rect>
            </property>
@@ -2264,6 +2264,9 @@
               <widget class="QCheckBox" name="checkBox_processingArbData_isInterpolating">
                <property name="text">
                 <string>Interpolation</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -2582,8 +2585,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>33</width>
-                <height>20</height>
+                <width>38</width>
+                <height>22</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -2745,43 +2748,6 @@
           </widget>
          </widget>
         </item>
-        <item row="0" column="2" colspan="2">
-         <widget class="QGroupBox" name="groupBox_spectrum">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>2</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="sizeIncrement">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="baseSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="toolTip">
-           <string comment="Plot results on new figures" extracomment="Plot results on new figures">10</string>
-          </property>
-          <property name="toolTipDuration">
-           <number>10</number>
-          </property>
-          <property name="title">
-           <string>Graph</string>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="2">
          <widget class="QGroupBox" name="groupBox_9">
           <property name="sizePolicy">
@@ -2881,6 +2847,43 @@
           </widget>
          </widget>
         </item>
+        <item row="0" column="2" colspan="2">
+         <widget class="QGroupBox" name="groupBox_spectrum">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>2</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="sizeIncrement">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string comment="Plot results on new figures" extracomment="Plot results on new figures">10</string>
+          </property>
+          <property name="toolTipDuration">
+           <number>10</number>
+          </property>
+          <property name="title">
+           <string>Graph</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </widget>
@@ -2893,7 +2896,7 @@
      <x>0</x>
      <y>0</y>
      <width>1183</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

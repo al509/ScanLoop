@@ -865,7 +865,7 @@ class MainWindow(ThreadedMainWindow):
             Averaging=self.ui.checkBox_processing_isAveraging.isChecked(),
             Shifting=self.ui.checkBox_processing_isShifting.isChecked(),
             axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText(),
-            interpolation=self.ui.checkBox_processingArbData_isInterpolating.isChecked())
+            interpolation=self.ui.checkBox_processing_isInterpolating.isChecked())
 
     def on_Push_Button_ProcessTD(self):
         from Scripts.ProcessAndPlotTD import ProcessAndPlotTD
