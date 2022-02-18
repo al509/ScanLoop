@@ -32,7 +32,7 @@ class ProcessSpectra(QObject):
     axis_to_plot_along='X'
     number_of_axis={'X':0,'Y':1,'Z':2,'W':3,'p':4}
     AccuracyOfWavelength=0.008 # in nm. Maximum expected shift to define the correlation window
-    type_of_data='bin'
+    type_of_data='pkl'
     Cmap='jet'
 #
     def define_file_naming_style(self,FileName): # legacy code
@@ -154,7 +154,7 @@ class ProcessSpectra(QObject):
 
 
 
-    def run(self,StepSize,Averaging:bool,Shifting:bool,axis_to_plot_along='X',type_of_data='bin', interpolation=True):
+    def run(self,StepSize=0,Averaging=False,Shifting=False,axis_to_plot_along='X',type_of_data='pkl', interpolation=True,remove_background_out_of_contact=False):
         self.type_of_data=type_of_data
         self.axis_to_plot_along=axis_to_plot_along
         AccuracyOfWavelength=self.AccuracyOfWavelength
@@ -164,10 +164,9 @@ class ProcessSpectra(QObject):
         ContactFileList=[]
         if '.gitignore' in AllFilesList:AllFilesList.remove('.gitignore')
         for file in AllFilesList:
-            if 'out_of_contact' in file:
+            if 'out_of_contact' in file and remove_background_out_of_contact:
                 OutOfContactFileList.append(file)
-                self.out_of_contact_data=True
-            else:
+            elif 'out_of_contact' not in file :
                 ContactFileList.append(file)
         self.define_file_naming_style(ContactFileList[0])
         """
@@ -181,26 +180,30 @@ class ProcessSpectra(QObject):
         """
         Create main wavelength array
         """
-        MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(self.Source_DirName +ContactFileList[0])
-        if type_of_data=='bin':
-            Data = pickle.load(open(self.Source_DirName +ContactFileList[0], "rb"))[:,0]
+        if type_of_data=='pkl':
+            Wavelengths = pickle.load(open(self.Source_DirName +ContactFileList[0], "rb"))[:,0]
         elif type_of_data=='txt':
-            Data=np.genfromtxt(self.Source_DirName +ContactFileList[0],skip_header=self.skip_Header)[:,0]
-        WavelengthStep=np.max(np.diff(Data))
-        for File in ContactFileList:
-            try:
-                minw,maxw=self.get_min_max_wavelengths_from_file(self.Source_DirName +File)
-            except UnicodeDecodeError:
-                print('Error while getting wavelengths from file {}'.format(File))
-
-            if minw<MinWavelength:
-                MinWavelength=minw
-            if maxw>MaxWavelength:
-                MaxWavelength=maxw
-        MainWavelengths=np.arange(MinWavelength,MaxWavelength,WavelengthStep)
+            Wavelengths=np.genfromtxt(self.Source_DirName +ContactFileList[0],skip_header=self.skip_Header)[:,0]
+            
+        if interpolation:
+            MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(self.Source_DirName +ContactFileList[0])
+            WavelengthStep=np.max(np.diff(Wavelengths))
+            for File in ContactFileList:
+                try:
+                    minw,maxw=self.get_min_max_wavelengths_from_file(self.Source_DirName +File)
+                except UnicodeDecodeError:
+                    print('Error while getting wavelengths from file {}'.format(File))
+    
+                if minw<MinWavelength:
+                    MinWavelength=minw
+                if maxw>MaxWavelength:
+                    MaxWavelength=maxw
+            MainWavelengths=np.arange(MinWavelength,MaxWavelength,WavelengthStep)
+        else:
+            MainWavelengths=Wavelengths
         NumberOfWavelengthPoints=len(MainWavelengths)
         SignalArray=np.zeros((NumberOfWavelengthPoints,NumberOfPointsZ))
-
+        
 
         """
         Process files at each group
@@ -232,7 +235,7 @@ class ProcessSpectra(QObject):
  
             for jj, FileName in enumerate(FileNameListAtPoint):
                 try:
-                    if type_of_data=='bin':
+                    if type_of_data=='pkl':
                         Data = pickle.load(open(self.Source_DirName +FileName, "rb"))
                     elif type_of_data=='txt':
                         Data = np.genfromtxt(self.Source_DirName +FileName,skip_header=self.skip_Header)
@@ -340,9 +343,9 @@ class ProcessSpectra(QObject):
 if __name__ == "__main__":
     os.chdir('..')
     path= os.getcwd()
-    
+    # path='G:\!Projects\!SNAP system\Bending\2022.02.18 Luna meas'
     p=ProcessSpectra(path)
 #    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
 #                                     axis_to_plot_along='Z')
 
-    p.run(StepSize=10,Shifting=False, Averaging=False,axis_to_plot_along='Y',type_of_data='bin')
+    p.run(axis_to_plot_along='p',interpolation=False)

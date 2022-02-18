@@ -141,7 +141,7 @@ class MainWindow(ThreadedMainWindow):
         self.painter = MyPainter(self.ui.groupBox_spectrum)
         self.add_thread([self.painter])
         self.ui.CheckBox_FreezeSpectrum.stateChanged.connect(self.on_stateChangeOfFreezeSpectrumBox)
-        self.ui.CheckBox_ApplyFFTFilter.stateChanged.connect(self.on_stateChangeOfApplyFFTBox)
+        self.ui.checkBox_ApplyFFTFilter.stateChanged.connect(self.on_stateChangeOfApplyFFTBox)
         self.ui.checkBox_HighRes.stateChanged.connect(self.on_stateChangeOfIsHighResolution)
         self.ui.pushButton_getRange.pressed.connect(self.on_pushButton_getRange)
         self.ui.EditLine_StartWavelength.editingFinished.connect(
@@ -219,6 +219,11 @@ class MainWindow(ThreadedMainWindow):
                 find_widths=self.ui.checkBox_analyzer_find_widths.isChecked(),
                 indicate_ERV_on_spectrogram=True,
                 plot_results_separately=self.ui.checkBox_analyzer_plot_results_separately.isChecked()))
+        
+        self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(lambda: self.analyzer.apply_FFT_filter(
+                                                                                                            LowFreqEdge=float(self.ui.EditLine_FilterLowFreqEdge.text()),
+                                                                                                            HighFreqEdge=float(self.ui.EditLine_FilterHighFreqEdge.text())))
+        
         self.ui.pushButton_analyzer_save_cropped_data.clicked.connect(
             self.analyzer.save_cropped_data)
 
@@ -380,16 +385,16 @@ class MainWindow(ThreadedMainWindow):
                 lambda :self.setStageMoving('Z',int(self.ui.lineEdit_StepZ.text())))
             self.ui.pushButton_MoveMinusZ.pressed.connect(
                 lambda :self.setStageMoving('Z',-1*int(self.ui.lineEdit_StepZ.text())))
-            self.ui.pushButton_zeroingPositions.pressed.connect(self.zeroingPosition)
+            self.ui.pushButton_zeroingPositions.pressed.connect(self.on_pushButton_zeroingPositions)
             self.force_stage_move[str,int].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
             self.stages.stopped.connect(self.updatePositions)
             self.ui.groupBox_stand.setEnabled(True)
             self.ui.pushButton_zeroing_stages.pressed.connect(
-                self.on_pushBatton_pushButton_zeroing_stages)
+                self.on_pushButton_zeroing_stages)
 
             self.enableScanningProcess()
 
-    def on_pushBatton_pushButton_zeroing_stages(self):
+    def on_pushButton_zeroing_stages(self):
         '''
         move stages to zero position
 
@@ -624,7 +629,7 @@ class MainWindow(ThreadedMainWindow):
 
 
 
-    def zeroingPosition(self):
+    def on_pushButton_zeroingPositions(self):
         self.X_0=(self.stages.position['X'])
         self.Y_0=(self.stages.position['Y'])
         self.Z_0=(self.stages.position['Z'])
@@ -835,7 +840,7 @@ class MainWindow(ThreadedMainWindow):
             self.painter.savedY=[None]*8
 
     def on_stateChangeOfApplyFFTBox(self):
-        if self.ui.CheckBox_ApplyFFTFilter.isChecked():
+        if self.ui.checkBox_ApplyFFTFilter.isChecked():
             self.painter.ApplyFFTFilter=True
             self.painter.FilterLowFreqEdge=float(self.ui.EditLine_FilterLowFreqEdge.text())
             self.painter.FilterHighFreqEdge=float(self.ui.EditLine_FilterHighFreqEdge.text())
@@ -865,7 +870,8 @@ class MainWindow(ThreadedMainWindow):
             Averaging=self.ui.checkBox_processing_isAveraging.isChecked(),
             Shifting=self.ui.checkBox_processing_isShifting.isChecked(),
             axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText(),
-            interpolation=self.ui.checkBox_processing_isInterpolating.isChecked())
+            interpolation=self.ui.checkBox_processing_isInterpolating.isChecked(),
+            remove_background_out_of_contact=self.ui.checkBox_save_out_of_contact.isChecked())
 
     def on_Push_Button_ProcessTD(self):
         from Scripts.ProcessAndPlotTD import ProcessAndPlotTD
@@ -900,7 +906,7 @@ class MainWindow(ThreadedMainWindow):
         Dict['FFTPointsToCut']=int(self.ui.EditLine_FilterPointsToCut.text())
         Dict['FFTLowerEdge']=float(self.ui.EditLine_FilterLowFreqEdge.text())
         Dict['FFTHigherEdge']=float(self.ui.EditLine_FilterHighFreqEdge.text())
-        Dict['ApplyFFT']=str(self.ui.CheckBox_ApplyFFTFilter.isChecked())
+        Dict['ApplyFFT']=str(self.ui.checkBox_ApplyFFTFilter.isChecked())
         Dict['SqueezeSpan?']=str(self.ui.checkBox_SqueezeSpan.isChecked())
         Dict['NumberOfScans']=int(self.ui.lineEdit_numberOfScans.text())
         Dict['IsHighRes']=str(self.ui.checkBox_HighRes.isChecked())
@@ -940,7 +946,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.EditLine_FilterPointsToCut.setText(str(Dict['FFTPointsToCut']))
         self.ui.EditLine_FilterLowFreqEdge.setText(str(Dict['FFTLowerEdge']))
         self.ui.EditLine_FilterHighFreqEdge.setText(str(Dict['FFTHigherEdge']))
-        self.ui.CheckBox_ApplyFFTFilter.setChecked(Dict['ApplyFFT']=='True')
+        self.ui.checkBox_ApplyFFTFilter.setChecked(Dict['ApplyFFT']=='True')
         self.ui.checkBox_SqueezeSpan.setChecked(Dict['SqueezeSpan?']=='True')
         self.ui.checkBox_searchContact.setChecked(Dict['SearchingContact?']=='True')
         self.ui.checkBox_processing_isAveraging.setChecked(
@@ -994,7 +1000,9 @@ class MainWindow(ThreadedMainWindow):
             Shifting=self.ui.checkBox_processingArbData_isShifting.isChecked(),
             axis_to_plot_along=self.ui.comboBox_axis_to_plot_along_arb_data.currentText(),
             type_of_data=self.ui.comboBox_type_of_data.currentText(),
-            interpolation=self.ui.checkBox_processingArbData_isInterpolating.isChecked())
+            interpolation=self.ui.checkBox_processingArbData_isInterpolating.isChecked(),
+            remove_background_out_of_contact=self.ui.checkBox_processingArbData_out_of_contact.isChecked())
+            
 
     def process_arb_TD_data_clicked(self):
         from Scripts.ProcessAndPlotTD import ProcessAndPlotTD

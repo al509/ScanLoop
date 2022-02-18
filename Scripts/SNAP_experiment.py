@@ -18,6 +18,7 @@ import bottleneck as bn
 from scipy import interpolate
 import scipy.signal
 from  scipy.ndimage import center_of_mass
+from scipy.fftpack import rfft, irfft, fftfreq
 import scipy.optimize
 # from mpl_toolkits.mplot3d import Axes3D
 
@@ -107,6 +108,19 @@ class SNAP():
         ind=np.where(self.wavelengths==np.max(self.mode_wavelengths))[0][0]
         t_f=np.sum(self.transmission[ind-2:ind+2,:],axis=0)
         return (np.sum(t_f*self.x)/np.sum(t_f))
+    
+    
+    def apply_FFT_filter(self,LowFreqEdge=0.00001,HighFreqEdge=0.001):
+        def FFTFilter(y_array):
+            W=fftfreq(y_array.size)
+            f_array = rfft(y_array)
+            Indexes=[i for  i,w  in enumerate(W) if all([abs(w)>LowFreqEdge,abs(w)<HighFreqEdge])]
+            f_array[Indexes] = 0
+#            f_array[] = 0
+            return irfft(f_array)
+        for ii,spectrum in enumerate(np.transpose(self.transmission)):
+            self.transmission[:,ii]=FFTFilter(spectrum)
+    
 
     def plot_spectrogram(self,new_figure=True,figsize=(8,4),font_size=11,title=False,vmin=None,vmax=None,
                          cmap='jet',language='eng',enable_offset=True, 
@@ -243,7 +257,7 @@ class SNAP():
         return fig
     
 
-    
+    # @numba.njit
     def extract_ERV(self,number_of_peaks_to_search=1,min_peak_level=1,min_peak_distance=10000,min_wave=0,max_wave=1e4,find_widths=True, indicate_ERV_on_spectrogram=True, plot_results_separately=False):
         '''
         analyze 2D spectrogram
@@ -313,7 +327,7 @@ class SNAP():
             plt.title('Cut-off wavelength')
             plt.tight_layout()
 
-            
+        if plot_results_separately and find_widths:    
             plt.figure()
             for i in range(0,number_of_peaks_to_search):
                 plt.plot(self.x,resonance_parameters_array[:,i,2])
@@ -393,11 +407,19 @@ if __name__ == "__main__":
     # plt.legend()
     #%%
     import os
+    import time
+    
     os.chdir('..')
+    
     SNAP=SNAP('Processed_spectrogram.pkl')
     #%%
     SNAP.plot_spectrogram(position_in_steps_axis=False,language='ru')
+    
     #%%
-    SNAP.extract_ERV(min_peak_level=0.7,min_peak_distance=100,number_of_peaks_to_search=3,plot_results_separately=True,find_widths=False)
-
+    time1=time.time()
+    # SNAP.extract_ERV(min_peak_level=0.7,min_peak_distance=100,number_of_peaks_to_search=3,plot_results_separately=True,find_widths=False)
+    time2=time.time()
+    SNAP.apply_FFT_filter()
+    SNAP.plot_spectrogram(position_in_steps_axis=False,language='ru')
+    print(time2-time1)
 
