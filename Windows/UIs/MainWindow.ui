@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1159</width>
-         <height>667</height>
+         <width>1163</width>
+         <height>681</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -170,7 +170,7 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
@@ -178,7 +178,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>521</height>
+             <height>555</height>
             </rect>
            </property>
            <attribute name="label">
@@ -472,8 +472,8 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-179</y>
-             <width>279</width>
+             <y>0</y>
+             <width>283</width>
              <height>700</height>
             </rect>
            </property>
@@ -1070,8 +1070,8 @@
               <rect>
                <x>100</x>
                <y>110</y>
-               <width>37</width>
-               <height>22</height>
+               <width>32</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1106,8 +1106,8 @@
               <rect>
                <x>100</x>
                <y>80</y>
-               <width>42</width>
-               <height>22</height>
+               <width>36</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1353,6 +1353,11 @@
                <string>Along X, get contact along Z</string>
               </property>
              </item>
+             <item>
+              <property name="text">
+               <string>Along X, get contact along Y</string>
+              </property>
+             </item>
             </widget>
             <widget class="QLineEdit" name="lineEdit_LevelToDetectContact">
              <property name="geometry">
@@ -1546,8 +1551,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>521</height>
+             <width>98</width>
+             <height>500</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2068,7 +2073,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>279</width>
+             <width>98</width>
              <height>600</height>
             </rect>
            </property>
@@ -2585,8 +2590,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>38</width>
-                <height>22</height>
+                <width>33</width>
+                <height>20</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -2896,7 +2901,7 @@
      <x>0</x>
      <y>0</y>
      <width>1183</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

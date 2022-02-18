@@ -90,6 +90,9 @@ class ScanningProcess(QObject):
         elif ScanningType==3:
             self.AxisToScan='X'
             self.AxisToGetContact='Z'
+        elif ScanningType==4:
+            self.AxisToScan='X'
+            self.AxisToGetContact='Y'
 
     def set_OSA_to_Searching_Contact_State(self): #set rough resolution and narrowband span
         print(self.OSA._Span)
@@ -146,8 +149,9 @@ class ScanningProcess(QObject):
         print('\nContact lost\n')
 
     def checkIfContact(self, spectrum):  ## take measured spectrum and decide if there is contact between the taper and the sample
-        Min=np.min(spectrum)
-        if Min<self.LevelToDistinctContact:
+        mean=np.mean(spectrum)
+        print(mean)
+        if mean<self.LevelToDistinctContact:
             return True
         else:
             return False
