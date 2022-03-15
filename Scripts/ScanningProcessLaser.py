@@ -35,7 +35,8 @@ class LaserScanningProcess(QObject):
                  laser_power:float,
                  scanstep:float,
                  wavelength_start:float,
-                 wavelength_stop:float):
+                 wavelength_stop:float,
+                 file_to_save:str):
         super().__init__()
         
         self.OSA=OSA
@@ -47,16 +48,24 @@ class LaserScanningProcess(QObject):
         self.powermeter=powermeter
         self.short_pause=0.1
         self.long_pause=2
-
-    def run(self):
-        self.is_running=True
+        self.tuning=0
+        self.hold_wavelength=False
+        self.file_to_save=file_to_save
+        
+    def initialize_laser(self):
         self.laser.setPower(self.Power)
         self.laser.setMode('Whisper')
         self.laser.setWavelength(self.wavelength)
         self.laser.setOn()
         time.sleep(self.long_pause)
-        tuning=0
+
+    def run(self):
+        self.is_running=True
+        self.tuning=0
         PowerVSWavelength=[]
+        time_start=time.time()
+        file=open(self.file_to_save,'a')
+        
         while self.is_running and (self.wavelength-self.wavelength_stop)*np.sign(self.step)<0:
             print(self.wavelength)
             if self.OSA is not None:
@@ -65,27 +74,28 @@ class LaserScanningProcess(QObject):
                 Data=np.stack((wavelengthdata, spectrum),axis=1)
                 self.S_saveData.emit(Data,'W='+str(self.wavelength)) # save spectrum to file
             if self.powermeter is not None:
-                Data=np.stack((self.wavelength, self.powermeter.get_power()))
-                PowerVSWavelength.append(Data)
+                Data=np.stack((time.time()-time_start,self.wavelength, self.powermeter.get_power()))
+                file.write(str(Data))
             # if not self.is_running:
             #     self.S_add_powers_to_file.emit(PowerVSWavelength)
             #     self.laser.setOff()
             #     print('Scanning stopped')
             #     self.S_toggle_button.emit()
             #     break
-            tuning+=self.step
-            self.wavelength+=self.step*1e-3
-            if tuning<self.laser.maximum_tuning:
-                self.laser.fineTuning(tuning)
-                time.sleep(self.short_pause)
-            else:
-                tuning=0
-                self.laser.setOff()
-                self.laser.setWavelength(self.wavelength)
-                self.laser.fineTuning(0)
-                self.laser.setOn()
-                time.sleep(self.long_pause)
-            self.S_updateCurrentWavelength.emit(str(self.wavelength))
+            if not self.hold_wavelength:
+                self.tuning+=self.step
+                self.wavelength+=self.step*1e-3
+                if self.tuning<self.laser.maximum_tuning:
+                    self.laser.fineTuning(self.tuning)
+                    time.sleep(self.short_pause)
+                else:
+                    self.tuning=0
+                    self.laser.setOff()
+                    self.laser.setWavelength(self.wavelength)
+                    self.laser.fineTuning(0)
+                    self.laser.setOn()
+                    time.sleep(self.long_pause)
+                self.S_updateCurrentWavelength.emit(str(self.wavelength))
 
             # if self.is_running and (self.wavelength-self.wavelength_stop)*np.sign(self.step)>0:
             #     self.S_add_powers_to_file.emit(PowerVSWavelength)
@@ -93,7 +103,7 @@ class LaserScanningProcess(QObject):
             #     self.S_toggle_button.emit()
             #     print('\nScanning finished\n')
             #     self.laser.setOff()
-        if self.powermeter is not None: self.S_add_powers_to_file.emit(PowerVSWavelength)
+
         if (self.wavelength-self.wavelength_stop)*np.sign(self.step)>0 : self.S_toggle_button.emit()
         self.laser.setOff()
         print('\nScanning finished\n')

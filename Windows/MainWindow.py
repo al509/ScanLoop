@@ -235,6 +235,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.comboBox_laser_mode.currentIndexChanged.connect(self.change_laser_mode)
         self.ui.lineEdit_laser_fine_tune.textChanged.connect(self.laser_fine_tuning)
         self.ui.pushButton_scan_laser_wavelength.clicked[bool].connect(self.laser_scanning)
+        self.ui.pushButton_hold_laser_wavelength.clicked[bool].connect(self.laser_scaning_hold_wavelength)
         self.ui.pushButton_sweep_laser_wavelength.clicked[bool].connect(self.laser_sweeping)
 
 # =============================================================================
@@ -521,15 +522,14 @@ class MainWindow(ThreadedMainWindow):
                 laser_power=float(self.ui.lineEdit_laser_power.text()),
                 scanstep=float(self.ui.lineEdit_laser_lambda_scanning_step.text()),
                 wavelength_start=float(self.ui.lineEdit_laser_lambda_scanning_min.text()),
-                wavelength_stop=float(self.ui.lineEdit_laser_lambda_scanning_max.text()))
+                wavelength_stop=float(self.ui.lineEdit_laser_lambda_scanning_max.text()),
+                file_to_save='ProcessedData\\Power_from_powermeter_VS_laser_wavelength.txt')
             self.add_thread([self.laser_scanning_process])
             self.laser_scanning_process.S_updateCurrentWavelength.connect(
                 lambda S:self.ui.label_current_scanning_laser_wavelength.setText(S))
-            self.force_laser_scanning_process.connect(self.laser_scanning_process.run)
+            
             self.laser_scanning_process.S_saveData.connect(
                 lambda Data,prefix: self.logger.save_data(Data,prefix,0,0,0,'FromOSA'))
-            self.laser_scanning_process.S_add_powers_to_file.connect(
-                lambda PowerVSWavelength: np.savetxt('ProcessedData\\Power_from_powermeter_VS_laser_wavelength.txt',PowerVSWavelength))
             print('Start laser scanning')
             self.laser_scanning_process.S_toggle_button.connect(lambda:
                 self.ui.pushButton_scan_laser_wavelength.setChecked(False))
@@ -537,6 +537,9 @@ class MainWindow(ThreadedMainWindow):
             self.ui.tabWidget_instruments.setEnabled(False)
             self.ui.pushButton_Scanning.setEnabled(False)
             self.ui.pushButton_sweep_laser_wavelength.setEnabled(False)
+            self.ui.pushButton_pause_scan_laser.setEnabled(True)
+            self.laser_scanning_process.initialize_laser()
+            self.force_laser_scanning_process.connect(self.laser_scanning_process.run)
             self.force_laser_scanning_process.emit()
 
         else:
@@ -545,7 +548,25 @@ class MainWindow(ThreadedMainWindow):
             self.ui.tabWidget_instruments.setEnabled(True)
             self.ui.pushButton_Scanning.setEnabled(True)
             self.ui.pushButton_sweep_laser_wavelength.setEnabled(True)
+            self.ui.pushButton_pause_scan_laser.setEnabled(False)
             del self.laser_scanning_process
+            
+    def laser_scaning_hold_wavelength(self,pressed:bool):
+        '''
+        hold PurePhotonics laser scanning process, and current wavelength unchanged, and save data continously
+
+        Parameters
+        ----------
+        pressed : bool
+            DESCRIPTION. Current state of the hold button within scanning proccess
+
+        Returns
+        -------
+        None.
+       
+        '''
+        self.laser_scanning_process.hold_wavelength=pressed
+   
 
     def laser_sweeping(self,pressed:bool):
         '''

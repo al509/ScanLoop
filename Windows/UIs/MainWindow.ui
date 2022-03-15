@@ -170,7 +170,7 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
@@ -1744,6 +1744,22 @@
              </property>
              <property name="checked">
               <bool>false</bool>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_pause_scan_laser">
+             <property name="geometry">
+              <rect>
+               <x>200</x>
+               <y>130</y>
+               <width>75</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Hold</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
              </property>
             </widget>
            </widget>
