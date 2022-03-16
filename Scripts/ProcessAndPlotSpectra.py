@@ -10,30 +10,46 @@ from PyQt5.QtCore import QObject
 import pickle
 
 
-class ProcessSpectra(QObject):
+class Spectral_processor(QObject):
     
-    axes_number={'X':0,'Y':1,'Z':2,'W':3,'p':4}
 
     def __init__(self, path_to_main:str):
         QObject.__init__(self)
         self.ProcessedDataFolder=path_to_main+'\\ProcessedData\\'
         self.Source_DirName=path_to_main+'\\SpectralData\\'
         self.out_of_contact_data=False
+        self.StepSize=30*2.5 # um, Step in Z direction
+        self.isAveraging=False
+        self.isShifting=False
+        self.isInterpolation=True
+        self.axis_to_plot_along='Z'
+        self.type_of_data='pkl'
+        self.is_remove_background_out_of_contact=False
+        self.file_naming_style='new'
         
 
     skip_Header=3
-    LowFreqEdge=0.000 ##For FFT filter. Set <0 to avoid
-    HighFreqEdge=30 ##For FFT filter. Set >1 to avoid
-    StepSize=30*2.5 # um, Step in Z direction
 
-    MinimumPeakDepth=2  ## For peak searching
-    MinimumPeakDistance=500 ## For peak searching
-    file_naming_style='new'
-    axis_to_plot_along='X'
     number_of_axis={'X':0,'Y':1,'Z':2,'W':3,'p':4}
     AccuracyOfWavelength=0.008 # in nm. Maximum expected shift to define the correlation window
-    type_of_data='pkl'
+
     Cmap='jet'
+    
+    def set_parameters(self,dictionary):
+        for key in dictionary:
+            try:
+                self.__setattr__(key, dictionary[key])
+            except:
+                pass
+                
+    def get_parameters(self)->dict:
+        '''
+        Returns
+        -------
+        Seriazible attributes of the object
+        '''
+        d=dict(vars(self)) #make a copy of the vars dictionary
+        return d
 #
     def define_file_naming_style(self,FileName): # legacy code
         if FileName.find('X=')==-1:
@@ -135,12 +151,12 @@ class ProcessSpectra(QObject):
         Output=f(XNewarray)
         return Output
 
-    def plot_sample_shape(self,axis_to_plot_along):
+    def plot_sample_shape(self):
         from mpl_toolkits.mplot3d import Axes3D
         FileList=os.listdir(self.Source_DirName)
         if '.gitignore' in FileList:FileList.remove('.gitignore')
-        FileList=sorted(FileList,key=lambda s:self.get_position_from_file_name(s,axis=axis_to_plot_along))
-        StructuredFileList,Positions=self.Create2DListOfFiles(FileList,axis=axis_to_plot_along)
+        FileList=sorted(FileList,key=lambda s:self.get_position_from_file_name(s,axis=self.axis_to_plot_along))
+        StructuredFileList,Positions=self.Create2DListOfFiles(FileList,axis=self.axis_to_plot_along)
         Positions=np.array(Positions)
         plt.figure()
         ax = plt.axes(projection='3d')
@@ -154,9 +170,7 @@ class ProcessSpectra(QObject):
 
 
 
-    def run(self,StepSize=0,Averaging=False,Shifting=False,axis_to_plot_along='X',type_of_data='pkl', interpolation=True,remove_background_out_of_contact=False):
-        self.type_of_data=type_of_data
-        self.axis_to_plot_along=axis_to_plot_along
+    def run(self):
         AccuracyOfWavelength=self.AccuracyOfWavelength
         time1=time.time()
         AllFilesList=os.listdir(self.Source_DirName)
@@ -172,20 +186,20 @@ class ProcessSpectra(QObject):
         """
         group files at each point
         """
-        ContactFileList=sorted(ContactFileList,key=lambda s:self.get_position_from_file_name(s,axis=axis_to_plot_along))
-        StructuredFileList,Positions=self.Create2DListOfFiles(ContactFileList,axis=axis_to_plot_along)
+        ContactFileList=sorted(ContactFileList,key=lambda s:self.get_position_from_file_name(s,axis=self.axis_to_plot_along))
+        StructuredFileList,Positions=self.Create2DListOfFiles(ContactFileList,axis=self.axis_to_plot_along)
         NumberOfPointsZ=len(StructuredFileList)
         #Data = np.loadtxt(DirName+ '\\Signal' + '\\' +FileList[0])
         print(self.Source_DirName+ ContactFileList[0])
         """
         Create main wavelength array
         """
-        if type_of_data=='pkl':
+        if self.type_of_data=='pkl':
             Wavelengths = pickle.load(open(self.Source_DirName +ContactFileList[0], "rb"))[:,0]
-        elif type_of_data=='txt':
+        elif self.type_of_data=='txt':
             Wavelengths=np.genfromtxt(self.Source_DirName +ContactFileList[0],skip_header=self.skip_Header)[:,0]
             
-        if interpolation:
+        if self.isInterpolation:
             MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(self.Source_DirName +ContactFileList[0])
             WavelengthStep=np.max(np.diff(Wavelengths))
             for File in ContactFileList:
@@ -217,13 +231,13 @@ class ProcessSpectra(QObject):
             if self.out_of_contact_data:
                 for file in OutOfContactFileList:
                     OutOfContactFileName=''
-                    if axis_to_plot_along+'='+str(Positions[ii][self.axes_number[axis_to_plot_along]]) in file:
+                    if self.axis_to_plot_along+'='+str(Positions[ii][self.number_of_axis[self.axis_to_plot_along]]) in file:
                         OutOfContactFileName=file
                         break
                 # OutOfContactFileName='Sp_out_of_contact_X'+FileNameListAtPoint[0].split('_X')[1]
                 try:
                     OutOfContactData=pickle.load(open(self.Source_DirName +OutOfContactFileName, "rb"))
-                    if interpolation:
+                    if self.isInterpolation:
                         OutOfContactSignal=self.InterpolateInDesiredPoint(OutOfContactData[:,1],OutOfContactData[:,0],MainWavelengths)
                     else:
                         OutOfContactSignal=OutOfContactData[:,1]
@@ -235,13 +249,13 @@ class ProcessSpectra(QObject):
  
             for jj, FileName in enumerate(FileNameListAtPoint):
                 try:
-                    if type_of_data=='pkl':
+                    if self.type_of_data=='pkl':
                         Data = pickle.load(open(self.Source_DirName +FileName, "rb"))
-                    elif type_of_data=='txt':
+                    elif self.type_of_data=='txt':
                         Data = np.genfromtxt(self.Source_DirName +FileName,skip_header=self.skip_Header)
                 except UnicodeDecodeError:
                     print('Error while getting data from file {}'.format(FileName))
-                if interpolation:
+                if self.isInterpolation:
                     SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(Data[:,1],Data[:,0],MainWavelengths)-OutOfContactSignal
                 else:
                     SmallSignalArray[:,jj]=Data[:,1]
@@ -249,8 +263,8 @@ class ProcessSpectra(QObject):
             SignalLog=np.zeros(NumberOfWavelengthPoints)
             MeanLevel=np.mean(SmallSignalArray)
             ShiftArray=np.zeros(NumberOfArraysToAverage)
-            if Averaging or Shifting:
-                if Shifting:
+            if self.isAveraging or self.isShifting:
+                if self.isShifting:
                     """
                     Apply cross-correlation for more accurate absolute wavelength determination
                     """
@@ -263,22 +277,22 @@ class ProcessSpectra(QObject):
                                 ShiftIndexesMatrix[kk,jj]=-ShiftIndexesMatrix[jj,kk]
                     ShiftArray=(np.mean(ShiftIndexesMatrix,1))
                    
-                if Averaging:
+                if self.isAveraging:
                     """
-                    Apply averaging across the spectra at one point
+                    Apply self.isAveraging across the spectra at one point
                     """
                     for jj, FileName in enumerate(FileNameListAtPoint):
                         Temp=np.ones(NumberOfWavelengthPoints)*MeanLevel
                         Temp[int(AccuracyOfWavelength/WavelengthStep)+int(ShiftArray[jj]):-int(AccuracyOfWavelength/WavelengthStep)+int(ShiftArray[jj])]=SmallSignalArray[int(AccuracyOfWavelength/WavelengthStep):-int(AccuracyOfWavelength/WavelengthStep),jj]
                         SignalLog+=Temp
                     SignalArray[:,ii]=SignalLog/NumberOfArraysToAverage#-np.nanmax(SignalLog)
-                elif Shifting:
+                elif self.isShifting:
                     Temp=np.ones(NumberOfWavelengthPoints)*MeanLevel
                     Temp[int(AccuracyOfWavelength/WavelengthStep)+int(ShiftArray[0]):-int(AccuracyOfWavelength/WavelengthStep)+int(ShiftArray[0])]=SmallSignalArray[int(AccuracyOfWavelength/WavelengthStep):-int(AccuracyOfWavelength/WavelengthStep),0]
                     SignalArray[:,ii]=Temp
             else:
                 """
-                    If shifting and averaging are OFF, just take the first spectrum from the bundle correpsonding to a measuring point
+                    If self.isShifting and self.isAveraging are OFF, just take the first spectrum from the bundle correpsonding to a measuring point
                 """
                 SignalArray[:,ii]=SmallSignalArray[:,0]
 
@@ -290,7 +304,7 @@ class ProcessSpectra(QObject):
             f_name='Processed_spectrogram.pkl'     
         f=open(self.ProcessedDataFolder+f_name,'wb')
         D={}
-        D['axis']=axis_to_plot_along
+        D['axis']=self.axis_to_plot_along
         D['Positions']=Positions
         D['Wavelengths']=MainWavelengths
         D['Signal']=SignalArray
@@ -300,7 +314,7 @@ class ProcessSpectra(QObject):
         if self.file_naming_style=='old': # legacy code
             plt.figure()
             X_0=0
-            X_max=StepSize*NumberOfPointsZ
+            X_max=self.StepSize*NumberOfPointsZ
             plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap=self.Cmap,extent=[X_0,X_max,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
 
             plt.show()
@@ -309,10 +323,10 @@ class ProcessSpectra(QObject):
             plt.ylabel('Wavelength, nm')
             ax2=(plt.gca()).twiny()
             ax2.set_xlabel(r'Distance, $\mu$m')
-            ax2.set_xlim([0,StepSize*NumberOfPointsZ*2.5])
+            ax2.set_xlim([0,self.StepSize*NumberOfPointsZ*2.5])
             plt.tight_layout()
             plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
-            Positions=[np.linspace(0, StepSize*NumberOfPointsZ,NumberOfPointsZ),np.linspace(0, StepSize*NumberOfPointsZ,NumberOfPointsZ),np.linspace(0, StepSize*NumberOfPointsZ,NumberOfPointsZ)]
+            Positions=[np.linspace(0, self.StepSize*NumberOfPointsZ,NumberOfPointsZ),np.linspace(0, self.StepSize*NumberOfPointsZ,NumberOfPointsZ),np.linspace(0, self.StepSize*NumberOfPointsZ,NumberOfPointsZ)]
             Positions=np.transpose(Positions)
             np.savetxt(self.ProcessedDataFolder+'Sp_Positions.txt', Positions)
 
@@ -346,6 +360,6 @@ if __name__ == "__main__":
     # path='G:\!Projects\!SNAP system\Bending\2022.02.18 Luna meas'
     p=ProcessSpectra(path)
 #    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
-#                                     axis_to_plot_along='Z')
+#                                     self.axis_to_plot_along='Z')
 
-    p.run(axis_to_plot_along='p',interpolation=False)
+    p.run()

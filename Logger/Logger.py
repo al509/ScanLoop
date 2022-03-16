@@ -43,17 +43,26 @@ class Logger(QObject):
             f.close()
         print('\nData saved\n')
 
-    def SaveParameters(self, Dict):
+    def save_parameters(self, list_dictionaries):
         f=open(self.ParametersFileName,'w')
-        json.dump(Dict,f)
+        json.dump(list_dictionaries,f)
         f.close()
         print('\nParameters saved\n')
 
-    def LoadParameters(self):
-        f=open(self.ParametersFileName)
-        dictionary=json.load(f)
-        f.close()
-        return dictionary
+    def load_parameters(self):
+        '''
+        load dictionaries of the parameters from file to dict
+        '''
+        try:
+            f=open(self.ParametersFileName)
+            Dicts=json.load(f)
+            f.close()
+            print('\nParameters loaded\n')
+            return Dicts
+        except FileNotFoundError:
+            print('Parameters file not found')
+            return None
+        
     
     def save_zero_position(self,X:int,Y:int,Z:int):
         Dict={}

@@ -1,6 +1,6 @@
 
-__version__='18.7.6'
-__date__='15.03.2021'
+__version__='19.0.0'
+__date__='16.03.2021'
 
 
 import sys
@@ -26,4 +26,4 @@ def main():
 
 if __name__ == '__main__': 
 
-    m_sl = main()
+    m = main()

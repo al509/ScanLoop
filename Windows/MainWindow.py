@@ -2,10 +2,13 @@
 
 
 import os
+if __name__=='__main__':
+    os.chdir('..')
 import numpy as np
+import matplotlib.pyplot as plt
 
 from PyQt5.QtCore import pyqtSignal, QThread
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog,QLineEdit,QComboBox,QCheckBox
 
 from Common.Consts import Consts
 from Hardware.Config import Config
@@ -39,11 +42,7 @@ class ThreadedMainWindow(QMainWindow):
         # Handle threads
         self.threads = []
         self.destroyed.connect(self.kill_threads)
-        self.stages=None
-        self.OSA=None
-        self.scope=None
-        self.laser=None
-        self.powermeter=None
+
 
     def add_thread(self, objects):
         """
@@ -95,19 +94,52 @@ class MainWindow(ThreadedMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.setWindowTitle("ScanLoop V."+version)
-
+       
+        self.stages=None
+        self.OSA=None
+        self.scope=None
+        self.laser=None
+        self.powermeter=None
+        
+        self.painter = MyPainter(self.ui.groupBox_spectrum)
+        self.analyzer=Analyzer.Analyzer(os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl')
+        self.logger = Logger(parent=None)
+        self.spectral_processor=ProcessAndPlotSpectra.Spectral_processor(self.path_to_main)
+        self.add_thread([self.painter,self.logger,self.analyzer,self.spectral_processor])
+        
+        
         self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
-
+        self.init_OSA_interface()
+        self.init_analyzer_interface()
+        self.init_laser_interface()
+        self.init_logger_interface()
+        self.init_painter_interface()
+        self.init_power_meter_interface()
+        self.init_processing_interface()
+        self.init_scanning_interface()
+        self.init_scope_interface()
+        self.init_stages_interface()
+        self.init_menu_bar()
+        
+        self.load_parameters_from_file()
+        
+        
+    def init_menu_bar(self):
+        self.ui.action_save_parameters.triggered.connect(self.save_parameters_to_file)
+        self.ui.action_load_parameters.triggered.connect(self.load_parameters_from_file)
+        self.ui.action_delete_all_figures.triggered.connect(lambda:plt.close(plt.close('all')))
 
 # =============================================================================
 #         Stages interface
 # =============================================================================
+    def init_stages_interface(self):
         self.ui.pushButton_StagesConnect.pressed.connect(self.connectStages)
         self.X_0,self.Y_0,self.Z_0=[0,0,0]
 
 # =============================================================================
 #         # OSA interface
 # =============================================================================
+    def init_OSA_interface(self):        
         self.ui.pushButton_OSA_connect.pressed.connect(self.connectOSA)
         self.ui.pushButton_OSA_Acquire.pressed.connect(
             self.on_pushButton_acquireSpectrum_pressed)
@@ -124,7 +156,8 @@ class MainWindow(ThreadedMainWindow):
 # =============================================================================
 #         # scope interface
 # =============================================================================
-        self.ui.pushButton_scope_connect.pressed.connect(self.connectScope)
+    def init_scope_interface(self):   
+        self.ui.pushButton_scope_connect.pressed.connect(self.connect_scope)
         self.ui.pushButton_scope_single.pressed.connect(
             self.on_pushButton_scope_single_measurement_pressed)
         self.ui.pushButton_scope_repeat.clicked[bool].connect(
@@ -133,63 +166,60 @@ class MainWindow(ThreadedMainWindow):
 # =============================================================================
 #         powermeter interface
 # =============================================================================
+    def init_power_meter_interface(self):        
         self.ui.pushButton_powermeter_connect.pressed.connect(self.connect_powermeter)
+
 
 # =============================================================================
 #         # painter and drawing interface
 # =============================================================================
-        self.painter = MyPainter(self.ui.groupBox_spectrum)
-        self.add_thread([self.painter])
-        self.ui.CheckBox_FreezeSpectrum.stateChanged.connect(self.on_stateChangeOfFreezeSpectrumBox)
+    def init_painter_interface(self):
+
+        self.ui.checkBox_FreezeSpectrum.stateChanged.connect(self.on_stateChangeOfFreezeSpectrumBox)
         self.ui.checkBox_ApplyFFTFilter.stateChanged.connect(self.on_stateChangeOfApplyFFTBox)
         self.ui.checkBox_HighRes.stateChanged.connect(self.on_stateChangeOfIsHighResolution)
         self.ui.pushButton_getRange.pressed.connect(self.on_pushButton_getRange)
-        self.ui.EditLine_StartWavelength.editingFinished.connect(
-            lambda:self.OSA.change_range(start_wavelength=float(self.ui.EditLine_StartWavelength.text())) 
-            if (isfloat(self.ui.EditLine_StartWavelength.text())) else 0)
-        self.ui.EditLine_StopWavelength.editingFinished.connect(
-            lambda:self.OSA.change_range(stop_wavelength=float(self.ui.EditLine_StartWavelength.text())) 
-            if (isfloat(self.ui.EditLine_StartWavelength.text())) else 0)
+        self.ui.lineEdit_StartWavelength.editingFinished.connect(
+            lambda:self.OSA.change_range(start_wavelength=float(self.ui.lineEdit_StartWavelength.text())) 
+            if (isfloat(self.ui.lineEdit_StartWavelength.text())) else 0)
+        self.ui.lineEdit_StopWavelength.editingFinished.connect(
+            lambda:self.OSA.change_range(stop_wavelength=float(self.ui.lineEdit_StartWavelength.text())) 
+            if (isfloat(self.ui.lineEdit_StartWavelength.text())) else 0)
 
 # =============================================================================
 #         saving interface
 # =============================================================================
-        self.logger = Logger(parent=None)
-        self.add_thread([self.logger])
-        self.ui.pushButton_SaveParameters.pressed.connect(self.saveParametersToFile)
-        self.ui.pushButton_LoadParameters.pressed.connect(self.loadParametersFromFile)
+    def init_logger_interface(self):
         self.ui.pushButton_save_data.pressed.connect(self.on_pushButton_save_data)
 
 # =============================================================================
 #         #scanning process
 # =============================================================================
+    def init_scanning_interface(self):        
         self.ui.checkBox_searchContact.stateChanged.connect(self.on_stateSearchContact)
         self.ui.pushButton_Scanning.clicked[bool].connect(self.on_pushButton_Scanning_pressed)
 
 # =============================================================================
 #         # processing
 # =============================================================================
-        self.processSpectra=ProcessAndPlotSpectra.ProcessSpectra(self.path_to_main)
-        self.add_thread([self.processSpectra])
-        self.ui.pushButton_processSpectralData.pressed.connect(self.on_Push_Button_ProcessSpectra)
-        self.ui.pushButton_processTDData.pressed.connect(self.on_Push_Button_ProcessTD)
-        self.ui.pushButton_choose_folder_to_process.clicked.connect(self.choose_folder_to_process)
+    def init_processing_interface(self):
+        self.ui.pushButton_process_measured_spectral_data.pressed.connect(self.on_Push_Button_ProcessSpectra)
+        self.ui.pushButton_processTDData.pressed.connect(self.on_pushButton_ProcessTD)
+        self.ui.pushButton_choose_folder_to_process.clicked.connect(self.choose_folder_for_spectral_processor)
                 
         self.ui.pushButton_process_arb_spectral_data.clicked.connect(
             self.process_arb_spectral_data_clicked)
         self.ui.pushButton_process_arb_TD_data.clicked.connect(self.process_arb_TD_data_clicked)
-        self.ui.pushButton_plotSampleShape.clicked.connect(
-            lambda: self.plotSampleShape(DirName='SpectralData',
-            axis=self.ui.comboBox_axis_to_plot_along.currentText()))
-        self.ui.pushButton_plotSampleShape_arb_data.clicked.connect(
-            lambda: self.plotSampleShape(DirName=self.Folder,
-            axis=self.ui.comboBox_axis_to_plot_along_arb_data.currentText()))
+        self.ui.pushButton_plotSampleShape.clicked.connect(lambda:self.spectral_processor.plot_sample_shape())
+            
+        self.ui.pushButton_plotSampleShape_arb_data.clicked.connect(lambda:self.spectral_processor.plot_sample_shape())
+        self.ui.pushButton_set_spectral_processor_parameters.clicked.connect(self.on_pushButton_set_spectral_processor_parameters)
+        self.ui.pushButton_set_spectral_processor_parameters_2.clicked.connect(self.on_pushButton_set_spectral_processor_parameters)
 # =============================================================================
 #         # analyzer logic
 # =============================================================================
-        self.analyzer=Analyzer.Analyzer(
-            os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl')
-        self.add_thread([self.analyzer])
+
+    def init_analyzer_interface(self):
         self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(
             self.choose_file_for_analyzer)
         self.ui.pushButton_analyzer_choose_plotting_param_file.clicked.connect(
@@ -209,27 +239,21 @@ class MainWindow(ThreadedMainWindow):
                                                                     (self.analyzer.fig_slice if self.analyzer.fig_slice  is not None else self.painter.figure),
                                                                     float(self.ui.lineEdit_analyzer_resonance_level.text())))
             
-        self.ui.pushButton_analyzer_extract_ERV.clicked.connect(
-            lambda: self.analyzer.extract_ERV(
-                number_of_peaks_to_search=int(self.ui.lineEdit_analyzer_number_of_peaks.text()),
-                min_peak_level=float(self.ui.lineEdit_analyzer_resonance_level.text()),
-                min_peak_distance=int(self.ui.lineEdit_analyzer_resonance_distance_peaks.text()),
-                min_wave=float(self.ui.lineEdit_analyzer_wavelength_min.text()),
-                max_wave=float(self.ui.lineEdit_analyzer_wavelength_max.text()),
-                find_widths=self.ui.checkBox_analyzer_find_widths.isChecked(),
-                indicate_ERV_on_spectrogram=True,
-                plot_results_separately=self.ui.checkBox_analyzer_plot_results_separately.isChecked()))
+        self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
         
         self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(lambda: self.analyzer.apply_FFT_filter(
-                                                                                                            LowFreqEdge=float(self.ui.EditLine_FilterLowFreqEdge.text()),
-                                                                                                            HighFreqEdge=float(self.ui.EditLine_FilterHighFreqEdge.text())))
+                                                                                                            LowFreqEdge=float(self.ui.lineEdit_FilterLowFreqEdge.text()),
+                                                                                                            HighFreqEdge=float(self.ui.lineEdit_FilterHighFreqEdge.text())))
         
         self.ui.pushButton_analyzer_save_cropped_data.clicked.connect(
             self.analyzer.save_cropped_data)
+        
+        self.ui.pushButton_set_analyzer_parameters.clicked.connect(self.on_pushButton_set_analyzer_parameters)
 
 # =============================================================================
 #         Pure Photonics Tunable laser
 # =============================================================================
+    def init_laser_interface(self):        
         self.ui.pushButton_laser_connect.clicked.connect(self.connect_laser)
         self.ui.pushButton_laser_On.clicked[bool].connect(self.on_pushButton_laser_On)
         self.ui.comboBox_laser_mode.currentIndexChanged.connect(self.change_laser_mode)
@@ -241,7 +265,7 @@ class MainWindow(ThreadedMainWindow):
 # =============================================================================
 #   interface methods
 # =============================================================================
-    def connectScope(self):
+    def connect_scope(self):
         '''
         create connection to scope
 
@@ -341,8 +365,8 @@ class MainWindow(ThreadedMainWindow):
         self.force_OSA_acquire.connect(self.OSA.acquire_spectrum)
         self.ui.tabWidget_instruments.setEnabled(True)
         self.ui.tabWidget_instruments.setCurrentIndex(0)
-        self.ui.EditLine_StartWavelength.setText(str(self.OSA._StartWavelength))
-        self.ui.EditLine_StopWavelength.setText(str(self.OSA._StopWavelength))
+        self.ui.lineEdit_StartWavelength.setText(str(self.OSA._StartWavelength))
+        self.ui.lineEdit_StopWavelength.setText(str(self.OSA._StopWavelength))
 
         self.ui.groupBox_OSA_control.setEnabled(True)
         self.ui.checkBox_OSA_for_laser_scanning.setEnabled(True)
@@ -822,7 +846,7 @@ class MainWindow(ThreadedMainWindow):
                 if YDataColumn is not None:
                     Data=np.column_stack((Data, YDataColumn))
 
-            FilePrefix=self.ui.EditLine_saveSpectrumName.text()
+            FilePrefix=self.ui.lineEdit_saveSpectrumName.text()
             if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and 
                     self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
                         self.OSA.save_binary( f"{self.logger.SpectralBinaryDataFolder}"
@@ -838,8 +862,8 @@ class MainWindow(ThreadedMainWindow):
 
     def on_pushButton_getRange(self):
         Range=(self.painter.ax.get_xlim())
-        self.ui.EditLine_StartWavelength.setText(f'{Range[0]}:.1f')
-        self.ui.EditLine_StopWavelength.setText(f'{Range[1]}:.1f')
+        self.ui.lineEdit_StartWavelength.setText(f'{Range[0]}:.1f')
+        self.ui.lineEdit_StopWavelength.setText(f'{Range[1]}:.1f')
         try:
             self.OSA.change_range(start_wavelength=float(Range[0]),stop_wavelength=float(Range[1]))
             print('Range is taken')
@@ -854,7 +878,7 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_stateChangeOfFreezeSpectrumBox(self):
-        if self.ui.CheckBox_FreezeSpectrum.isChecked():
+        if self.ui.checkBox_FreezeSpectrum.isChecked():
             self.painter.savedY=list(self.painter.Ydata)
             self.painter.savedX=list(self.painter.Xdata)
         else:
@@ -863,9 +887,9 @@ class MainWindow(ThreadedMainWindow):
     def on_stateChangeOfApplyFFTBox(self):
         if self.ui.checkBox_ApplyFFTFilter.isChecked():
             self.painter.ApplyFFTFilter=True
-            self.painter.FilterLowFreqEdge=float(self.ui.EditLine_FilterLowFreqEdge.text())
-            self.painter.FilterHighFreqEdge=float(self.ui.EditLine_FilterHighFreqEdge.text())
-            self.painter.FFTPointsToCut=int(self.ui.EditLine_FilterPointsToCut.text())
+            self.painter.FilterLowFreqEdge=float(self.ui.lineEdit_FilterLowFreqEdge.text())
+            self.painter.FilterHighFreqEdge=float(self.ui.lineEdit_FilterHighFreqEdge.text())
+            self.painter.FFTPointsToCut=int(self.ui.lineEdit_FilterPointsToCut.text())
         else:
             self.painter.ApplyFFTFilter=False
 
@@ -884,17 +908,11 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_Push_Button_ProcessSpectra(self):
-        self.processSpectra.ProcessedDataFolder=self.path_to_main+'\\ProcessedData\\'
-        self.processSpectra.Source_DirName=self.path_to_main+'\\SpectralData\\'
-        self.processSpectra.run(
-            StepSize=float(self.ui.lineEdit_ScanningStep.text()),
-            Averaging=self.ui.checkBox_processing_isAveraging.isChecked(),
-            Shifting=self.ui.checkBox_processing_isShifting.isChecked(),
-            axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText(),
-            interpolation=self.ui.checkBox_processing_isInterpolating.isChecked(),
-            remove_background_out_of_contact=self.ui.checkBox_save_out_of_contact.isChecked())
+        self.spectral_processor.ProcessedDataFolder=self.path_to_main+'\\ProcessedData\\'
+        self.spectral_processor.Source_DirName=self.path_to_main+'\\SpectralData\\'
+        self.spectral_processor.run()
 
-    def on_Push_Button_ProcessTD(self):
+    def on_pushButton_ProcessTD(self):
         from Scripts.ProcessAndPlotTD import ProcessAndPlotTD
         self.ProcessTD=ProcessAndPlotTD()
         Thread=self.add_thread([self.ProcessTD])
@@ -905,124 +923,43 @@ class MainWindow(ThreadedMainWindow):
         Thread.quit()
 
     def plotSampleShape(self,DirName,axis):
-        self.processSpectra.plot_sample_shape(axis_to_plot_along=axis)
+        self.spectral_processor.plot_sample_shape()
+
+    def save_parameters_to_file(self):
+        D={}
+        D['MainWindow']=get_widget_values(self)
+        D['Analyzer']=self.analyzer.get_parameters()
+        D['Spectral_processor']=self.spectral_processor.get_parameters()
+        self.logger.save_parameters(D)
+        
+        
+    def load_parameters_from_file(self):
+        Dicts=self.logger.load_parameters()
+        if Dicts is not None:
+            set_widget_values(self, Dicts['MainWindow'])
+            self.analyzer.set_parameters(Dicts['Analyzer'])
+            self.spectral_processor.set_parameters(Dicts['Spectral_processor'])
+
+    
 
 
-    def saveParametersToFile(self):
-        Dict={}
-        Dict['saveSpectrumName']=(self.ui.EditLine_saveSpectrumName.text())
-        Dict['StartWavelength']=float(self.ui.EditLine_StartWavelength.text())
-        Dict['StopWavelength']=float(self.ui.EditLine_StopWavelength.text())
-        Dict['StepX']=int(self.ui.lineEdit_StepX.text())
-        Dict['StepY']=int(self.ui.lineEdit_StepY.text())
-        Dict['StepZ']=int(self.ui.lineEdit_StepZ.text())
-        Dict['channel_num']=int(self.ui.comboBox_interrogatorChannel.currentIndex())
-        Dict['Scanning_type']=int(self.ui.comboBox_ScanningType.currentIndex())
-        Dict['ScanningStep']=int(self.ui.lineEdit_ScanningStep.text())
-        Dict['SearchingStep']=int(self.ui.lineEdit_SearchingStep.text())
-        Dict['BackStep']=int(self.ui.lineEdit_BackStep.text())
-        Dict['LevelToDetectContact']=float(self.ui.lineEdit_LevelToDetectContact.text())
-        Dict['CurrentFile']=int(self.ui.lineEdit_CurrentFile.text())
-        Dict['StopFile']=int(self.ui.lineEdit_StopFile.text())
-        Dict['FFTPointsToCut']=int(self.ui.EditLine_FilterPointsToCut.text())
-        Dict['FFTLowerEdge']=float(self.ui.EditLine_FilterLowFreqEdge.text())
-        Dict['FFTHigherEdge']=float(self.ui.EditLine_FilterHighFreqEdge.text())
-        Dict['ApplyFFT']=str(self.ui.checkBox_ApplyFFTFilter.isChecked())
-        Dict['SqueezeSpan?']=str(self.ui.checkBox_SqueezeSpan.isChecked())
-        Dict['NumberOfScans']=int(self.ui.lineEdit_numberOfScans.text())
-        Dict['IsHighRes']=str(self.ui.checkBox_HighRes.isChecked())
-        Dict['SearchingContact?']=str(self.ui.checkBox_searchContact.isChecked())
-        Dict['AverageShapeWhileProcessing?']=str(
-            self.ui.checkBox_processing_isAveraging.isChecked())
-        Dict['ShiftingWhileProcessing?']=str(self.ui.checkBox_processing_isShifting.isChecked())
-        Dict['axis_to_plot_along']=str(self.ui.comboBox_axis_to_plot_along.currentIndex())
-        Dict['Channel_TD_to_plot']=str(self.ui.comboBox_TD_channel_to_plot.currentIndex())
-        Dict['analyzer_axis_to_plot_along']=str(
-            self.ui.comboBox_axis_to_analyze_along_arb_data.currentIndex())
-        Dict['analyzer_min_wavelength']=float(self.ui.lineEdit_analyzer_wavelength_min.text())
-        Dict['analyzer_max_wavelength']=float(self.ui.lineEdit_analyzer_wavelength_max.text())
-        Dict['analyzer_resonance_level']=float(self.ui.lineEdit_analyzer_resonance_level.text())
-        Dict['save_out_of_contact?']=str(self.ui.checkBox_save_out_of_contact.isChecked())
 
-        self.logger.SaveParameters(Dict)
-
-    def loadParametersFromFile(self):
-        Dict=self.logger.LoadParameters()
-        self.ui.EditLine_saveSpectrumName.setText(str(Dict['saveSpectrumName']))
-        self.ui.EditLine_StartWavelength.setText('{:.5f}'.format(Dict['StartWavelength']))
-        self.ui.EditLine_StopWavelength.setText('{:.5f}'.format(Dict['StopWavelength']))
-
-
-        self.ui.lineEdit_StepX.setText(str(Dict['StepX']))
-        self.ui.lineEdit_StepY.setText(str(Dict['StepY']))
-        self.ui.lineEdit_StepZ.setText(str(Dict['StepZ']))
-        self.ui.comboBox_interrogatorChannel.setCurrentIndex(int(Dict['channel_num']))
-        self.ui.comboBox_ScanningType.setCurrentIndex(int(Dict['Scanning_type']))
-        self.ui.lineEdit_ScanningStep.setText(str(Dict['ScanningStep']))
-        self.ui.lineEdit_SearchingStep.setText(str(Dict['SearchingStep']))
-        self.ui.lineEdit_BackStep.setText(str(Dict['BackStep']))
-        self.ui.lineEdit_LevelToDetectContact.setText(str(Dict['LevelToDetectContact']))
-        self.ui.lineEdit_CurrentFile.setText(str(Dict['CurrentFile']))
-        self.ui.lineEdit_StopFile.setText(str(Dict['StopFile']))
-        self.ui.EditLine_FilterPointsToCut.setText(str(Dict['FFTPointsToCut']))
-        self.ui.EditLine_FilterLowFreqEdge.setText(str(Dict['FFTLowerEdge']))
-        self.ui.EditLine_FilterHighFreqEdge.setText(str(Dict['FFTHigherEdge']))
-        self.ui.checkBox_ApplyFFTFilter.setChecked(Dict['ApplyFFT']=='True')
-        self.ui.checkBox_SqueezeSpan.setChecked(Dict['SqueezeSpan?']=='True')
-        self.ui.checkBox_searchContact.setChecked(Dict['SearchingContact?']=='True')
-        self.ui.checkBox_processing_isAveraging.setChecked(
-            Dict['AverageShapeWhileProcessing?']=='True')
-        self.ui.checkBox_processing_isShifting.setChecked(
-            Dict['ShiftingWhileProcessing?']=='True')
-        self.ui.checkBox_save_out_of_contact.setChecked(Dict['save_out_of_contact?']=='True')
-        self.ui.lineEdit_numberOfScans.setText(str(Dict['NumberOfScans']))
-
-        self.ui.comboBox_axis_to_plot_along.setCurrentIndex(int(Dict['axis_to_plot_along']))
-        self.ui.comboBox_TD_channel_to_plot.setCurrentIndex(int(Dict['Channel_TD_to_plot']))
-
-        self.ui.comboBox_axis_to_analyze_along_arb_data.setCurrentIndex(
-            int(Dict['analyzer_axis_to_plot_along']))
-        self.ui.lineEdit_analyzer_wavelength_min.setText(
-            '{:.2f}'.format(Dict['analyzer_min_wavelength']))
-        self.ui.lineEdit_analyzer_wavelength_max.setText(
-            '{:.2f}'.format(Dict['analyzer_max_wavelength']))
-        self.ui.lineEdit_analyzer_resonance_level.setText(
-            '{:.2f}'.format(Dict['analyzer_resonance_level']))
-
-        if Dict['IsHighRes']=='True':
-            self.ui.checkBox_HighRes.setChecked(True)
-            if self.OSA is not None:
-                self.OSA.SetWavelengthResolution('High')
-                self.OSA.change_range(float(Dict['StartWavelength']), float(Dict['StopWavelength']))
-                self.force_OSA_acquire.emit()
-        else:
-            self.ui.checkBox_HighRes.setChecked(False)
-            if self.OSA is not None:
-                self.OSA.SetWavelengthResolution('Low')
-                self.OSA.change_range(float(Dict['StartWavelength']), float(Dict['StopWavelength']))
-                self.force_OSA_acquire.emit()
-        print('Parameters loaded')
-
-    def choose_folder_to_process(self):
-        self.processSpectra.Source_DirName = str(
+    def choose_folder_for_spectral_processor(self):
+        self.spectral_processor.Source_DirName = str(
             QFileDialog.getExistingDirectory(self, "Select Directory"))+'\\'
-        self.processSpectra.ProcessedDataFolder=os.path.dirname(
-            os.path.dirname(self.processSpectra.Source_DirName))+'\\'
-        self.ui.label_folder_to_process_files.setText(self.processSpectra.Source_DirName+'\\')
+        self.spectral_processor.ProcessedDataFolder=os.path.dirname(
+            os.path.dirname(self.spectral_processor.Source_DirName))+'\\'
+        self.ui.label_folder_to_process_files.setText(self.spectral_processor.Source_DirName+'\\')
+        
+       
 
     def process_arb_spectral_data_clicked(self):
-        Folder=self.processSpectra.Source_DirName
+        Folder=self.spectral_processor.Source_DirName
         try:
-            StepSize=int(Folder[Folder.index('Step=')+len('Step='):len(Folder)])
+            self.spectral_processor.StepSize=int(Folder[Folder.index('Step=')+len('Step='):len(Folder)])
         except ValueError:
-            StepSize=float(self.ui.lineEdit_ScanningStep.text())
-        self.processSpectra.run(StepSize=StepSize,
-            Averaging=self.ui.checkBox_processingArbData_isAveraging.isChecked(),
-            Shifting=self.ui.checkBox_processingArbData_isShifting.isChecked(),
-            axis_to_plot_along=self.ui.comboBox_axis_to_plot_along_arb_data.currentText(),
-            type_of_data=self.ui.comboBox_type_of_data.currentText(),
-            interpolation=self.ui.checkBox_processingArbData_isInterpolating.isChecked(),
-            remove_background_out_of_contact=self.ui.checkBox_processingArbData_out_of_contact.isChecked())
+            self.spectral_processor.StepSize=float(self.ui.lineEdit_ScanningStep.text())
+        self.spectral_processor.run()
             
 
     def process_arb_TD_data_clicked(self):
@@ -1060,9 +997,34 @@ class MainWindow(ThreadedMainWindow):
         self.analyzer.plotting_parameters_file=FilePath
         self.ui.label_analyzer_plotting_file.setText(FilePath)
         
-            
-
-                   
+    def on_pushButton_set_analyzer_parameters(self):
+        '''
+        open dialog with analyzer parameters
+        '''
+        d=self.analyzer.get_parameters()
+        from Windows.UIs.analyzer_dialogUI import Ui_Dialog
+        analyzer_dialog = QDialog()
+        ui = Ui_Dialog()
+        ui.setupUi(analyzer_dialog)
+        set_widget_values(analyzer_dialog,d)
+        if analyzer_dialog.exec_() == QDialog.Accepted:
+            params=get_widget_values(analyzer_dialog)
+            self.analyzer.set_parameters(params)
+   
+    def on_pushButton_set_spectral_processor_parameters(self):
+        '''
+        open dialog with analyzer parameters
+        '''
+        d=self.spectral_processor.get_parameters()
+        from Windows.UIs.processing_dialogUI import Ui_Dialog
+        dialog = QDialog()
+        ui = Ui_Dialog()
+        ui.setupUi(dialog)
+        set_widget_values(dialog,d)
+        if dialog.exec_() == QDialog.Accepted:
+            params=get_widget_values(dialog)
+            self.spectral_processor.set_parameters(params)
+    
         
 
     def closeEvent(self, event):
@@ -1078,8 +1040,11 @@ class MainWindow(ThreadedMainWindow):
         print('Logger is deleted')
         del self.analyzer
         print('Analyzer is deleted')
-        del self.powermeter
-        print('powermeter is deleted')
+        try:
+            del self.powermeter
+            print('powermeter is deleted')
+        except:
+            pass    
         try:
             self.laser.setOff()
             del self.laser
@@ -1091,22 +1056,59 @@ class MainWindow(ThreadedMainWindow):
             print('Scanning object is deleted')
         except:
             pass
-        del self.processSpectra
+        del self.spectral_processor
         print('Processing is deleted')
         super(QMainWindow, self).closeEvent(event)
+        
 
+def get_widget_values(window)->dict:
+    '''
+    collect all data from all widgets in a window
+    '''
+    D={}
+    for w in window.findChildren(QLineEdit):
+        s=w.text()
+        key=w.objectName().split('lineEdit_')[1]
+        try:
+            f=float(s) if '.' in s else int(s)
+        except ValueError:
+            f=s
+        D[key]=f
+    for w in window.findChildren(QCheckBox):
+        f=w.isChecked()
+        key=w.objectName().split('checkBox_')[1]
+        D[key]=f
+        
+    for w in window.findChildren(QComboBox):
+        s=w.currentText()
+        key=w.objectName().split('comboBox_')[1]
+        D[key]=s
+    return D
 
-# class CustomDialog(QDialog, Ui_Dialog):
-#     def __init__(self):
-#         super(CustomDialog, self).__init__()
-#         self.setupUi(self)
-#         # set initials values to widgets
+def set_widget_values(window,d:dict)->None:
+     for w in window.findChildren(QLineEdit):
+         key=w.objectName().split('lineEdit_')[1]
+         try:
+             s=d[key]
+             w.setText(str(s))
+         except KeyError:
+             print('error')
+             pass
+     for w in window.findChildren(QCheckBox):
+         key=w.objectName().split('checkBox_')[1]
+         try:
+             s=d[key]
+             w.setChecked(s)
+         except KeyError:
+             print('error')
+             print(key)
+             print(d)
+     for w in window.findChildren(QComboBox):
+         key=w.objectName().split('comboBox_')[1]
+         try:
+             s=d[key]
+             w.setCurrentText(s)
+         except KeyError:
+             pass
+         
 
-#     def getResults(self):
-#         if self.exec_() == QDialog.Accepted:
-#             # get all values
-#             val = self.some_widget.some_function()
-#             val2 = self.some_widget2.some_another_function()
-#             return val1, val2, ...
-#         else:
-#             return None

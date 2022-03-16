@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>analyzer_params</class>
- <widget class="QDialog" name="analyzer_params">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -29,7 +29,7 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QGroupBox" name="groupBox_2">
+  <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -41,7 +41,7 @@
    <property name="title">
     <string>Analyzer options</string>
    </property>
-   <widget class="QLineEdit" name="lineEdit_analyzer_wavelength_min">
+   <widget class="QLineEdit" name="lineEdit_min_wave">
     <property name="geometry">
      <rect>
       <x>70</x>
@@ -70,7 +70,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_analyzer_wavelength_max">
+   <widget class="QLineEdit" name="lineEdit_max_wave">
     <property name="geometry">
      <rect>
       <x>70</x>
@@ -99,23 +99,23 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_analyzer_resonance_level">
+   <widget class="QLineEdit" name="lineEdit_min_peak_level">
     <property name="geometry">
      <rect>
-      <x>180</x>
-      <y>90</y>
+      <x>170</x>
+      <y>80</y>
       <width>31</width>
-      <height>20</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
      <string>3</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkBox_analyzer_plot_results_separately">
+   <widget class="QCheckBox" name="checkBox_plot_results_separately">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>140</x>
       <y>30</y>
       <width>91</width>
       <height>20</height>
@@ -152,13 +152,13 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_analyzer_number_of_peaks">
+   <widget class="QLineEdit" name="lineEdit_number_of_peaks_to_search">
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>90</y>
-      <width>21</width>
-      <height>20</height>
+      <y>80</y>
+      <width>31</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
@@ -181,23 +181,23 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_analyzer_resonance_distance_peaks">
+   <widget class="QLineEdit" name="lineEdit_min_peak_distance">
     <property name="geometry">
      <rect>
-      <x>290</x>
-      <y>90</y>
+      <x>280</x>
+      <y>79</y>
       <width>31</width>
-      <height>20</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>6000</string>
+     <string>60</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkBox_analyzer_find_widths">
+   <widget class="QCheckBox" name="checkBox_find_widths">
     <property name="geometry">
      <rect>
-      <x>250</x>
+      <x>240</x>
       <y>30</y>
       <width>91</width>
       <height>20</height>
@@ -241,7 +241,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>analyzer_params</receiver>
+   <receiver>Dialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -257,7 +257,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>analyzer_params</receiver>
+   <receiver>Dialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

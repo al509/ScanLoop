@@ -24,7 +24,7 @@ import scipy.optimize
 
 
 class SNAP():
-    def __init__(self,file=None,
+    def __init__(self,
                  x=None,
                  wavelengths=None,
                  transmission=None,
@@ -49,28 +49,8 @@ class SNAP():
             
         self.fig_spectrogram=None
 
-        if file is not None:
-            self.load_data(file)
-            self.transmission_scale='log'
         
-    def load_data(self,file_name):
-              
-        print('loading data for analyzer from ',file_name)
-        f=open(file_name,'rb')
-        D=(pickle.load(f))
-        f.close()
-        self.axis=D['axis']
-        Positions=np.array(D['Positions'])
-        wavelengths,exp_data=D['Wavelengths'],D['Signal']
-        x=Positions[:,self.axes_number[self.axis]]*2.5
-        
-        self.x=x
-        self.wavelengths=wavelengths
-        self.transmission=exp_data
-        
-        self.lambda_0=np.min(wavelengths)
-        self.positions=Positions
-        return x,wavelengths,exp_data
+
     
     def remove_nans(self):
         indexes_of_nan=list()
@@ -222,16 +202,7 @@ class SNAP():
         return fig,im,ax_Wavelengths,ax_Radius
     
     
-    def plot_sample_shape(self):
-        fig=plt.figure()
-        ax = plt.axes(projection='3d')
-        ax.plot(self.positions[:,2],self.positions[:,0],self.positions[:,1])
-        ax.set_xlabel('Z,steps')
-        ax.set_ylabel('X,steps')
-        ax.set_zlabel('Y,steps')
-        plt.gca().invert_zaxis()
-        plt.gca().invert_xaxis()
-        return fig
+
     
     
 
@@ -355,7 +326,25 @@ class SNAP():
         
         return self.x,np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
     
-    
+def load_data(file_name):
+              
+        print('loading data for analyzer from ',file_name)
+        f=open(file_name,'rb')
+        D=(pickle.load(f))
+        f.close()
+        SNAP_object=SNAP()
+        SNAP_object.axis=D['axis']
+        Positions=np.array(D['Positions'])
+        wavelengths,exp_data=D['Wavelengths'],D['Signal']
+        x=Positions[:,SNAP_object.axes_number[SNAP_object.axis]]*2.5
+        
+        SNAP_object.x=x
+        SNAP_object.wavelengths=wavelengths
+        SNAP_object.transmission=exp_data
+        
+        SNAP_object.lambda_0=np.min(wavelengths)
+        SNAP_object.positions=Positions
+        return SNAP_object
         
 def get_Fano_fit(waves,signal,peak_wavelength=None):
     '''
