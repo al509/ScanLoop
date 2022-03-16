@@ -624,7 +624,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-249</y>
+             <y>-10</y>
              <width>283</width>
              <height>700</height>
             </rect>
@@ -651,7 +651,7 @@
              </rect>
             </property>
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="groupBox_OSA_control">
              <attribute name="title">

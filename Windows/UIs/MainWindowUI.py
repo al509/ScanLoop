@@ -201,7 +201,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.groupBox_3)
         self.Toolbox.addItem(self.page, "")
         self.page_2 = QtWidgets.QWidget()
-        self.page_2.setGeometry(QtCore.QRect(0, -249, 283, 700))
+        self.page_2.setGeometry(QtCore.QRect(0, -10, 283, 700))
         self.page_2.setMinimumSize(QtCore.QSize(0, 700))
         self.page_2.setObjectName("page_2")
         self.tabWidget_instruments = QtWidgets.QTabWidget(self.page_2)
@@ -776,7 +776,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         self.Toolbox.setCurrentIndex(0)
-        self.tabWidget_instruments.setCurrentIndex(1)
+        self.tabWidget_instruments.setCurrentIndex(0)
         self.comboBox_axis_to_analyze_along_arb_data.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
