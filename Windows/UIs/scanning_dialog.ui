@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>441</width>
-    <height>252</height>
+    <width>506</width>
+    <height>245</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,10 +16,10 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>360</x>
+     <x>410</x>
      <y>20</y>
      <width>81</width>
-     <height>241</height>
+     <height>201</height>
     </rect>
    </property>
    <property name="orientation">
@@ -37,7 +37,7 @@
     <rect>
      <x>10</x>
      <y>20</y>
-     <width>341</width>
+     <width>391</width>
      <height>211</height>
     </rect>
    </property>
@@ -70,7 +70,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Searching step</string>
+     <string>Contact step</string>
     </property>
     <property name="scaledContents">
      <bool>false</bool>
@@ -79,11 +79,11 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_CurrentFile">
+   <widget class="QLineEdit" name="lineEdit_current_file_index">
     <property name="geometry">
      <rect>
       <x>50</x>
-      <y>150</y>
+      <y>160</y>
       <width>31</width>
       <height>20</height>
      </rect>
@@ -99,7 +99,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>152</y>
+      <y>160</y>
       <width>34</width>
       <height>16</height>
      </rect>
@@ -108,7 +108,7 @@
      <string>from _ </string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_SearchingStep">
+   <widget class="QLineEdit" name="lineEdit_seeking_step">
     <property name="geometry">
      <rect>
       <x>80</x>
@@ -127,7 +127,7 @@
    <widget class="QLabel" name="label_7">
     <property name="geometry">
      <rect>
-      <x>218</x>
+      <x>310</x>
       <y>49</y>
       <width>63</width>
       <height>39</height>
@@ -140,7 +140,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_ScanningStep">
+   <widget class="QLineEdit" name="lineEdit_scanning_step">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -156,7 +156,7 @@
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QComboBox" name="comboBox_ScanningType">
+   <widget class="QComboBox" name="comboBox_scanning_type">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -191,10 +191,10 @@
      </property>
     </item>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_LevelToDetectContact">
+   <widget class="QLineEdit" name="lineEdit_level_to_detect_contact">
     <property name="geometry">
      <rect>
-      <x>218</x>
+      <x>310</x>
       <y>94</y>
       <width>51</width>
       <height>20</height>
@@ -207,7 +207,7 @@
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_StopFile">
+   <widget class="QLineEdit" name="lineEdit_stop_file_index">
     <property name="geometry">
      <rect>
       <x>110</x>
@@ -227,7 +227,7 @@
     <property name="geometry">
      <rect>
       <x>90</x>
-      <y>152</y>
+      <y>160</y>
       <width>16</width>
       <height>16</height>
      </rect>
@@ -239,7 +239,7 @@
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>149</x>
+      <x>240</x>
       <y>49</y>
       <width>63</width>
       <height>39</height>
@@ -252,10 +252,10 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_BackStep">
+   <widget class="QLineEdit" name="lineEdit_backstep">
     <property name="geometry">
      <rect>
-      <x>149</x>
+      <x>240</x>
       <y>94</y>
       <width>63</width>
       <height>20</height>
@@ -271,8 +271,8 @@
    <widget class="QCheckBox" name="checkBox_save_out_of_contact">
     <property name="geometry">
      <rect>
-      <x>170</x>
-      <y>160</y>
+      <x>268</x>
+      <y>163</y>
       <width>161</width>
       <height>17</height>
      </rect>
@@ -284,11 +284,11 @@
      <string>Save out of contact</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkBox_searchContact">
+   <widget class="QCheckBox" name="checkBox_is_seeking_contact">
     <property name="geometry">
      <rect>
-      <x>160</x>
-      <y>126</y>
+      <x>150</x>
+      <y>96</y>
       <width>101</width>
       <height>17</height>
      </rect>
@@ -297,15 +297,15 @@
      <string>Search contact at each scanning point</string>
     </property>
     <property name="text">
-     <string>Search contact</string>
+     <string>Seek contact</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkBox_SqueezeSpan">
+   <widget class="QCheckBox" name="checkBox_is_squeeze_span">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>127</y>
-      <width>62</width>
+      <x>269</x>
+      <y>130</y>
+      <width>111</width>
       <height>17</height>
      </rect>
     </property>
@@ -313,7 +313,7 @@
      <string>Squeeze Span while search contact</string>
     </property>
     <property name="text">
-     <string>Squeeze Span</string>
+     <string>Squeeze span while seek</string>
     </property>
     <property name="iconSize">
      <size>
@@ -329,20 +329,20 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>120</y>
+      <y>128</y>
       <width>31</width>
       <height>28</height>
      </rect>
     </property>
     <property name="text">
-     <string>#sweeps</string>
+     <string># sweeps</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_numberOfScans">
+   <widget class="QLineEdit" name="lineEdit_number_of_scans_at_point">
     <property name="geometry">
      <rect>
-      <x>45</x>
-      <y>122</y>
+      <x>50</x>
+      <y>131</y>
       <width>31</width>
       <height>20</height>
      </rect>
@@ -354,12 +354,12 @@
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkBox_followPeak">
+   <widget class="QCheckBox" name="checkBox_is_follow_peak">
     <property name="geometry">
      <rect>
-      <x>87</x>
-      <y>123</y>
-      <width>61</width>
+      <x>180</x>
+      <y>160</y>
+      <width>81</width>
       <height>21</height>
      </rect>
     </property>

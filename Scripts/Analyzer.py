@@ -26,7 +26,7 @@ class Analyzer(QObject):
             super().__init__(None)
             self.single_spectrum_path=None
             self.file_path=path
-            self.plotting_parameters_file=os.path.dirname(sys.argv[0])+'\\plotting_parameters.txt'
+            self.plotting_parameters_file_path=os.path.dirname(sys.argv[0])+'\\plotting_parameters.txt'
             self.fig_slice=None
             self.number_of_peaks_to_search=1
             self.min_peak_level=1
@@ -123,7 +123,7 @@ class Analyzer(QObject):
             if self.SNAP is None:
                 self.SNAP=SNAP_experiment.load_data(self.file_path)
             
-            with open(self.plotting_parameters_file,'r') as f:
+            with open(self.plotting_parameters_file_path,'r') as f:
                 parameters_dict=json.load(f)
             self.SNAP.plot_spectrogram(**parameters_dict)
             
@@ -138,18 +138,18 @@ class Analyzer(QObject):
             plt.gca().invert_xaxis()
             return fig
             
-        def plot_slice(self,position,axis_to_process='Z'):
+        def plot_slice(self,position):
             '''
             plot slice using SNAP object parameters
             '''
             if self.SNAP.transmission is None:
                 self.SNAP=SNAP_experiment.load_data(self.file_path)
-            with open(self.plotting_parameters_file,'r') as f:
+            with open(self.plotting_parameters_file_path,'r') as f:
                 parameters_dict=json.load(f)
             self.fig_slice=self.SNAP.plot_spectrum(position,language=parameters_dict['language']) ## plot_spectrum is SNAP_experiment method
             plt.tight_layout()
             
-        def analyze_spectrum(self,fig,min_peak_level):
+        def analyze_spectrum(self,fig):
             '''
             find all minima in represented part of slice and derive parameters of Lorenzian fitting for the minimal minimum
             '''
@@ -165,7 +165,7 @@ class Analyzer(QObject):
                 print('Error. Signal is NAN only')
                 return
             
-            peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),height=min_peak_level , distance=10)
+            peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),height=self.min_peak_level , distance=self.min_peak_distance)
             if len(peakind2)>0:
                 plt.plot(waves[peakind2], signal[peakind2], '.')
                 
@@ -207,9 +207,9 @@ class Analyzer(QObject):
             path,FileName = os.path.split(self.file_path)
             NewFileName=path+'\\'+FileName.split('.pkl')[0]+'_ERV.pkl'
             with open(NewFileName,'wb') as f:
-                temp={'positions':positions,'peak_wavelengths':peak_wavelengths,'ERVs':ERV,'resonance_parameters':resonance_parameters,'fitting_parameters':(kwargs)}
+                temp={'positions':positions,'peak_wavelengths':peak_wavelengths,'ERVs':ERV,'resonance_parameters':resonance_parameters,'fitting_parameters':self.get_parameters()}
                 pickle.dump(temp, f)
-            # np.savetxt(NewFileName,np.transpose(np.vstack((positions,peak_wavelengths,ERV,np.transpose(resonance_parameters)))))
+            
             
         
         
@@ -223,7 +223,7 @@ if __name__ == "__main__":
     
     #%%
     analyzer=Analyzer(os.getcwd()+'\\Processed_spectrogram.pkl')
-    analyzer.plotting_parameters_file=os.getcwd()+'\\plotting_parameters.txt'
+    analyzer.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
     
     analyzer.plot2D()
     # analyzer.plot_slice(800)

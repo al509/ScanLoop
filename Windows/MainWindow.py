@@ -23,7 +23,7 @@ from Utils.PyQtUtils import pyqtSlotWExceptions
 from Windows.UIs.MainWindowUI import Ui_MainWindow
 # from Scripts import AnalyzerForSpectrogram
 from Scripts import Analyzer
-from Scripts import ProcessAndPlotSpectra
+from Scripts import Spectral_processor
 import sys
 
 
@@ -74,7 +74,7 @@ class ThreadedMainWindow(QMainWindow):
 #            thread.wait()
             thread.quit()
 
-#save_out_of_contact
+
 
 class MainWindow(ThreadedMainWindow):
     force_OSA_acquireAll = pyqtSignal()
@@ -104,7 +104,10 @@ class MainWindow(ThreadedMainWindow):
         self.painter = MyPainter(self.ui.groupBox_spectrum)
         self.analyzer=Analyzer.Analyzer(os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl')
         self.logger = Logger(parent=None)
-        self.spectral_processor=ProcessAndPlotSpectra.Spectral_processor(self.path_to_main)
+        self.spectral_processor=Spectral_processor.Spectral_processor(self.path_to_main)
+        from Scripts.ScanningProcessOSA import ScanningProcess
+        self.scanningProcess=ScanningProcess(OSA=None,Stages=None)
+        self.add_thread([self.scanningProcess])
         self.add_thread([self.painter,self.logger,self.analyzer,self.spectral_processor])
         
         
@@ -151,7 +154,10 @@ class MainWindow(ThreadedMainWindow):
             lambda x: self.OSA.SetMode(x+3))
         self.ui.label_Luna_mode.setVisible(False)
         self.ui.comboBox_Luna_mode.setVisible(False)
+        self.ui.comboBox_Luna_mode.currentTextChanged.connect(self.enable_scanning_process)
         self.ui.comboBox_Type_of_OSA.currentTextChanged.connect(self.features_visibility)
+        
+        
 
 # =============================================================================
 #         # scope interface
@@ -159,7 +165,7 @@ class MainWindow(ThreadedMainWindow):
     def init_scope_interface(self):   
         self.ui.pushButton_scope_connect.pressed.connect(self.connect_scope)
         self.ui.pushButton_scope_single.pressed.connect(
-            self.on_pushButton_scope_single_measurement_pressed)
+            self.on_pushButton_scope_single_measurement)
         self.ui.pushButton_scope_repeat.clicked[bool].connect(
             self.on_pushButton_scope_repeat__pressed)
         
@@ -196,8 +202,8 @@ class MainWindow(ThreadedMainWindow):
 #         #scanning process
 # =============================================================================
     def init_scanning_interface(self):        
-        self.ui.checkBox_searchContact.stateChanged.connect(self.on_stateSearchContact)
-        self.ui.pushButton_Scanning.clicked[bool].connect(self.on_pushButton_Scanning_pressed)
+        self.ui.pushButton_scanning_position.clicked[bool].connect(self.on_pushButton_scanning_position)
+        self.ui.pushButton_set_scanning_parameters.clicked.connect(self.on_pushButton_set_scanning_parameters)
 
 # =============================================================================
 #         # processing
@@ -231,13 +237,9 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(
             self.analyzer.plot_sample_shape)
         self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot2D())
-        self.ui.pushButton_analyzer_plotSlice.clicked.connect(
-            lambda: self.analyzer.plot_slice(float(self.ui.lineEdit_slice_position.text()),
-                                             self.ui.comboBox_axis_to_analyze_along_arb_data.currentText()))
+        self.ui.pushButton_analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plot_slice(float(self.ui.lineEdit_slice_position.text())))
         self.ui.pushButton_analyzer_save_slice.clicked.connect(self.analyzer.save_slice_data)
-        self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(
-                                                                    (self.analyzer.fig_slice if self.analyzer.fig_slice  is not None else self.painter.figure),
-                                                                    float(self.ui.lineEdit_analyzer_resonance_level.text())))
+        self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(self.analyzer.fig_slice if self.analyzer.fig_slice  is not None else self.painter.figure))
             
         self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
         
@@ -280,7 +282,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.tabWidget_instruments.setEnabled(True)
         self.ui.tabWidget_instruments.setCurrentIndex(1)
         self.ui.groupBox_scope_control.setEnabled(True)
-        self.enableScanningProcess()
+        self.enable_scanning_process()
         widgets = (self.ui.horizontalLayout_3.itemAt(i).widget()
                    for i in range(self.ui.horizontalLayout_3.count()))
         for i,widget in enumerate(widgets):
@@ -372,7 +374,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.checkBox_OSA_for_laser_scanning.setEnabled(True)
         print('Connected with OSA')
         self.on_pushButton_acquireSpectrum_pressed()
-        self.enableScanningProcess()
+        self.enable_scanning_process()
         self.painter.TypeOfData='FromOSA'
 
     def connectStages(self):
@@ -417,7 +419,7 @@ class MainWindow(ThreadedMainWindow):
             self.ui.pushButton_zeroing_stages.pressed.connect(
                 self.on_pushButton_zeroing_stages)
 
-            self.enableScanningProcess()
+            self.enable_scanning_process()
 
     def on_pushButton_zeroing_stages(self):
         '''
@@ -559,7 +561,7 @@ class MainWindow(ThreadedMainWindow):
                 self.ui.pushButton_scan_laser_wavelength.setChecked(False))
             self.laser_scanning_process.S_toggle_button.connect(lambda : self.laser_scanning(False))
             self.ui.tabWidget_instruments.setEnabled(False)
-            self.ui.pushButton_Scanning.setEnabled(False)
+            self.ui.pushButton_scanning_position.setEnabled(False)
             self.ui.pushButton_sweep_laser_wavelength.setEnabled(False)
             self.ui.pushButton_hold_laser_wavelength.setEnabled(True)
             self.laser_scanning_process.initialize_laser()
@@ -570,7 +572,7 @@ class MainWindow(ThreadedMainWindow):
             self.ui.pushButton_laser_On.setEnabled(True)
             self.laser_scanning_process.is_running=False
             self.ui.tabWidget_instruments.setEnabled(True)
-            self.ui.pushButton_Scanning.setEnabled(True)
+            self.ui.pushButton_scanning_position.setEnabled(True)
             self.ui.pushButton_sweep_laser_wavelength.setEnabled(True)
             self.ui.pushButton_hold_laser_wavelength.setEnabled(False)
             del self.laser_scanning_process
@@ -634,7 +636,7 @@ class MainWindow(ThreadedMainWindow):
             del self.laser_sweeping_process
 
     @pyqtSlotWExceptions()
-    def enableScanningProcess(self):
+    def enable_scanning_process(self):
         '''
         check whether both stages and measuring equipment have been connected to enable scanning features
 
@@ -644,10 +646,25 @@ class MainWindow(ThreadedMainWindow):
 
         '''
         if (self.ui.groupBox_stand.isEnabled() and self.ui.tabWidget_instruments.isEnabled()):
+
             self.ui.groupBox_Scanning.setEnabled(True)
             self.ui.tabWidget_instruments.setCurrentIndex(0)
-            self.ui.lineEdit_BackStep.setEnabled(False)
-            self.ui.lineEdit_LevelToDetectContact.setEnabled(False)
+            self.scanningProcess.S_saveData.connect(
+                        lambda Data,prefix: self.logger.save_data(Data,prefix,
+                            self.stages.position['X']-self.X_0, self.stages.position['Y']-self.Y_0,
+                            self.stages.position['Z']-self.Z_0,'FromOSA'))
+            self.scanningProcess.S_finished.connect(self.ui.pushButton_scanning_position.toggle)
+            self.scanningProcess.S_finished.connect(
+                    lambda : self.on_pushButton_scanning_position(False))
+            self.scanningProcess.S_update_status.connect(lambda S: self.ui.label_scanning_position_status.setText(S))
+            
+            if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
+                self.scanningProcess.LunaJonesMeasurement=True
+                self.scanningProcess.S_saveData.connect(lambda data, name: self.OSA.save_binary(
+                    f"{self.logger.SpectralBinaryDataFolder}"
+                    + f"Sp_{name}_X={self.stages.position['X']-self.X_0}"
+                    + f"_Y={self.stages.position['Y']-self.Y_0}"
+                    + f"_Z={self.stages.position['Z']-self.Z_0}_.bin"))
 
 
     @pyqtSlotWExceptions()
@@ -685,20 +702,20 @@ class MainWindow(ThreadedMainWindow):
     Interface logic
     '''
 
-    def on_pushButton_scope_single_measurement_pressed(self):
+    def on_pushButton_scope_single_measurement(self):
         self.scope.acquire()
 
     def on_pushButton_scope_repeat__pressed(self,pressed):
         if pressed:
             self.painter.ReplotEnded.connect(self.scope.acquire)
             self.ui.pushButton_scope_single.setEnabled(False)
-            self.ui.pushButton_Scanning.setEnabled(False)
+            self.ui.pushButton_scanning_position.setEnabled(False)
             self.scope.acquire()
         else:
             self.painter.ReplotEnded.disconnect(self.scope.acquire)
 #            self.painter.ReplotEnded.disconnect(self.force_scope_acquire)
             self.ui.pushButton_scope_single.setEnabled(True)
-            self.ui.pushButton_Scanning.setEnabled(True)
+            self.ui.pushButton_scanning_position.setEnabled(True)
 
     @pyqtSlotWExceptions()
     def on_pushButton_AcquireAllSpectra_pressed(self):
@@ -715,14 +732,14 @@ class MainWindow(ThreadedMainWindow):
             self.painter.ReplotEnded.connect(self.force_OSA_acquire)
             self.ui.pushButton_OSA_Acquire.setEnabled(False)
             self.ui.pushButton_OSA_AcquireAll.setEnabled(False)
-            self.ui.pushButton_Scanning.setEnabled(False)
+            self.ui.pushButton_scanning_position.setEnabled(False)
             self.ui.pushButton_scan_laser_wavelength.setEnabled(False)
             self.force_OSA_acquire.emit()
         else:
             self.painter.ReplotEnded.disconnect(self.force_OSA_acquire)
             self.ui.pushButton_OSA_Acquire.setEnabled(True)
             self.ui.pushButton_OSA_AcquireAll.setEnabled(True)
-            self.ui.pushButton_Scanning.setEnabled(True)
+            self.ui.pushButton_scanning_position.setEnabled(True)
             self.ui.pushButton_scan_laser_wavelength.setEnabled(True)
 
 #
@@ -734,7 +751,7 @@ class MainWindow(ThreadedMainWindow):
 #            self.ui.pushButton_OSA_AcquireAll.setEnabled(False)
 #            self.ui.pushButton_OSA_Acquire.setEnabled(False)
 #            self.ui.pushButton_OSA_AcquireRep.setEnabled(False)
-#            self.ui.pushButton_Scanning.setEnabled(False)
+#            self.ui.pushButton_scanning_position.setEnabled(False)
 #            self.force_OSA_acquireAll.emit()
 #
 #        else:
@@ -743,43 +760,16 @@ class MainWindow(ThreadedMainWindow):
 #            self.ui.pushButton_OSA_AcquireAll.setEnabled(True)
 #            self.ui.pushButton_OSA_Acquire.setEnabled(True)
 #            self.ui.pushButton_OSA_AcquireRep.setEnabled(True)
-#            self.ui.pushButton_Scanning.setEnabled(True)
-
-    def on_stateSearchContact(self):
-        if self.ui.checkBox_searchContact.isChecked():
-            self.ui.lineEdit_BackStep.setEnabled(True)
-            self.ui.lineEdit_LevelToDetectContact.setEnabled(True)
-        else:
-            self.ui.lineEdit_BackStep.setEnabled(False)
-            self.ui.lineEdit_LevelToDetectContact.setEnabled(False)
+#            self.ui.pushButton_scanning_position.setEnabled(True)
 
 
-    def on_pushButton_Scanning_pressed(self,pressed:bool):
+
+
+    def on_pushButton_scanning_position(self,pressed:bool):
         try:
             if pressed:
                 if self.ui.tabWidget_instruments.currentIndex()==0: ## if OSA is active, scanning
-                                                                    ## with OSA
-                    from Scripts.ScanningProcessOSA import ScanningProcess
-                    self.scanningProcess=ScanningProcess(OSA=self.OSA,Stages=self.stages,
-                        scanstep=int(self.ui.lineEdit_ScanningStep.text()),
-                        seekcontactstep=int(self.ui.lineEdit_SearchingStep.text()),
-                        backstep=int(self.ui.lineEdit_BackStep.text()),
-                        seekcontactvalue=float(self.ui.lineEdit_LevelToDetectContact.text()),
-                        ScanningType=int(self.ui.comboBox_ScanningType.currentIndex()),
-                        SqueezeSpanWhileSearchingContact=self.ui.checkBox_SqueezeSpan.isChecked(),
-                        CurrentFileIndex=int(self.ui.lineEdit_CurrentFile.text()),
-                        StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
-                        numberofscans=int(self.ui.lineEdit_numberOfScans.text()),
-                        searchcontact=self.ui.checkBox_searchContact.isChecked(),
-                        followPeak=self.ui.checkBox_followPeak.isChecked(),
-                        save_out_of_contact=self.ui.checkBox_save_out_of_contact.isChecked())
-                    self.scanningProcess.S_saveData.connect(
-                        lambda Data,prefix: self.logger.save_data(Data,prefix,
-                            self.stages.position['X']-self.X_0, self.stages.position['Y']-self.Y_0,
-                            self.stages.position['Z']-self.Z_0,'FromOSA'))
-                    self.scanningProcess.S_saveSpectrumToOSA.connect(
-                        lambda FilePrefix: self.OSA.SaveToFile(
-                            'D:'+'Sp_'+FilePrefix, TraceNumber=1, Type="txt"))
+                      print()                                              ## with OSA
     
                 elif self.ui.tabWidget_instruments.currentIndex()==1: ## if scope is active,
                                                                       ## scanning with scope
@@ -799,22 +789,9 @@ class MainWindow(ThreadedMainWindow):
                             self.stages.position['X']-self.X_0,
                             self.stages.position['Y']-self.Y_0,
                             self.stages.position['Z']-self.Z_0, 'FromScope'))
-                #TODO: if luna_bin checked ->  self.scanningProcess.S_saveData.connect(ova_savebin)
-                if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and 
-                    self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
-                     self.scanningProcess.LunaJonesMeasurement=True
-                     self.scanningProcess.S_saveData.connect(lambda data, name: self.OSA.save_binary(
-                         f"{self.logger.SpectralBinaryDataFolder}"
-                         + f"Sp_{name}_X={self.stages.position['X']-self.X_0}"
-                         + f"_Y={self.stages.position['Y']-self.Y_0}"
-                         + f"_Z={self.stages.position['Z']-self.Z_0}_.bin"
-    ))
-                self.scanningProcess.S_finished.connect(self.ui.pushButton_Scanning.toggle)
-                self.scanningProcess.S_finished.connect(
-                    lambda : self.on_pushButton_Scanning_pressed(False))
-                self.scanningProcess.S_updateCurrentFileName.connect(
-                    lambda S: self.ui.lineEdit_CurrentFile.setText(S))
-                self.add_thread([self.scanningProcess])
+                
+              
+
                 self.ui.tabWidget_instruments.setEnabled(False)
                 self.ui.groupBox_stand.setEnabled(False)
                 self.force_scanning_process.connect(self.scanningProcess.run)
@@ -823,7 +800,6 @@ class MainWindow(ThreadedMainWindow):
     
             else:
                 self.scanningProcess.is_running=False
-                del self.scanningProcess
                 self.ui.tabWidget_instruments.setEnabled(True)
                 self.ui.groupBox_scope_control.setEnabled(True)
                 self.ui.groupBox_stand.setEnabled(True)
@@ -926,19 +902,37 @@ class MainWindow(ThreadedMainWindow):
         self.spectral_processor.plot_sample_shape()
 
     def save_parameters_to_file(self):
+        '''
+        save all parameters and values except paths to file
+
+        Returns
+        -------
+        None.
+
+        '''
         D={}
         D['MainWindow']=get_widget_values(self)
         D['Analyzer']=self.analyzer.get_parameters()
         D['Spectral_processor']=self.spectral_processor.get_parameters()
+        D['Scanning_position_process']=self.scanningProcess.get_parameters()
+        #remove all parameters that are absolute paths 
+        for k in D:
+            l=[key for key in list(D[k].keys()) if ('path' in key)]
+            for key in l:
+                del D[k][key]
         self.logger.save_parameters(D)
         
         
     def load_parameters_from_file(self):
         Dicts=self.logger.load_parameters()
         if Dicts is not None:
-            set_widget_values(self, Dicts['MainWindow'])
-            self.analyzer.set_parameters(Dicts['Analyzer'])
-            self.spectral_processor.set_parameters(Dicts['Spectral_processor'])
+            try:
+                set_widget_values(self, Dicts['MainWindow'])
+                self.analyzer.set_parameters(Dicts['Analyzer'])
+                self.spectral_processor.set_parameters(Dicts['Spectral_processor'])
+                self.scanningProcess.set_parameters(Dicts['Scanning_position_process'])
+            except KeyError:
+                pass
 
     
 
@@ -954,11 +948,11 @@ class MainWindow(ThreadedMainWindow):
        
 
     def process_arb_spectral_data_clicked(self):
-        Folder=self.spectral_processor.Source_DirName
+        Folder=self.spectral_processor.source_dir_path
         try:
             self.spectral_processor.StepSize=int(Folder[Folder.index('Step=')+len('Step='):len(Folder)])
         except ValueError:
-            self.spectral_processor.StepSize=float(self.ui.lineEdit_ScanningStep.text())
+            self.spectral_processor.StepSize=0
         self.spectral_processor.run()
             
 
@@ -1013,7 +1007,7 @@ class MainWindow(ThreadedMainWindow):
    
     def on_pushButton_set_spectral_processor_parameters(self):
         '''
-        open dialog with analyzer parameters
+        open dialog with  parameters
         '''
         d=self.spectral_processor.get_parameters()
         from Windows.UIs.processing_dialogUI import Ui_Dialog
@@ -1024,6 +1018,21 @@ class MainWindow(ThreadedMainWindow):
         if dialog.exec_() == QDialog.Accepted:
             params=get_widget_values(dialog)
             self.spectral_processor.set_parameters(params)
+            
+    def on_pushButton_set_scanning_parameters(self):
+        '''
+        open dialog with  parameters
+        '''
+        d=self.scanningProcess.get_parameters()
+        from Windows.UIs.scanning_dialogUI import Ui_Dialog
+        dialog = QDialog()
+        ui = Ui_Dialog()
+        ui.setupUi(dialog)
+        set_widget_values(dialog,d)
+        
+        if dialog.exec_() == QDialog.Accepted:
+            params=get_widget_values(dialog)
+            self.scanningProcess.set_parameters(params)
     
         
 

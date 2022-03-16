@@ -15,8 +15,8 @@ class Spectral_processor(QObject):
 
     def __init__(self, path_to_main:str):
         QObject.__init__(self)
-        self.ProcessedDataFolder=path_to_main+'\\ProcessedData\\'
-        self.Source_DirName=path_to_main+'\\SpectralData\\'
+        self.processedData_dir_path=path_to_main+'\\ProcessedData\\'
+        self.source_dir_path=path_to_main+'\\SpectralData\\'
         self.out_of_contact_data=False
         self.StepSize=30*2.5 # um, Step in Z direction
         self.isAveraging=False
@@ -153,7 +153,7 @@ class Spectral_processor(QObject):
 
     def plot_sample_shape(self):
         from mpl_toolkits.mplot3d import Axes3D
-        FileList=os.listdir(self.Source_DirName)
+        FileList=os.listdir(self.source_dir_path)
         if '.gitignore' in FileList:FileList.remove('.gitignore')
         FileList=sorted(FileList,key=lambda s:self.get_position_from_file_name(s,axis=self.axis_to_plot_along))
         StructuredFileList,Positions=self.Create2DListOfFiles(FileList,axis=self.axis_to_plot_along)
@@ -173,12 +173,12 @@ class Spectral_processor(QObject):
     def run(self):
         AccuracyOfWavelength=self.AccuracyOfWavelength
         time1=time.time()
-        AllFilesList=os.listdir(self.Source_DirName)
+        AllFilesList=os.listdir(self.source_dir_path)
         OutOfContactFileList=[]
         ContactFileList=[]
         if '.gitignore' in AllFilesList:AllFilesList.remove('.gitignore')
         for file in AllFilesList:
-            if 'out_of_contact' in file and remove_background_out_of_contact:
+            if 'out_of_contact' in file and self.is_remove_background_out_of_contact:
                 OutOfContactFileList.append(file)
             elif 'out_of_contact' not in file :
                 ContactFileList.append(file)
@@ -190,21 +190,21 @@ class Spectral_processor(QObject):
         StructuredFileList,Positions=self.Create2DListOfFiles(ContactFileList,axis=self.axis_to_plot_along)
         NumberOfPointsZ=len(StructuredFileList)
         #Data = np.loadtxt(DirName+ '\\Signal' + '\\' +FileList[0])
-        print(self.Source_DirName+ ContactFileList[0])
+        print(self.source_dir_path+ ContactFileList[0])
         """
         Create main wavelength array
         """
         if self.type_of_data=='pkl':
-            Wavelengths = pickle.load(open(self.Source_DirName +ContactFileList[0], "rb"))[:,0]
+            Wavelengths = pickle.load(open(self.source_dir_path +ContactFileList[0], "rb"))[:,0]
         elif self.type_of_data=='txt':
-            Wavelengths=np.genfromtxt(self.Source_DirName +ContactFileList[0],skip_header=self.skip_Header)[:,0]
+            Wavelengths=np.genfromtxt(self.source_dir_path +ContactFileList[0],skip_header=self.skip_Header)[:,0]
             
         if self.isInterpolation:
-            MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(self.Source_DirName +ContactFileList[0])
+            MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(self.source_dir_path +ContactFileList[0])
             WavelengthStep=np.max(np.diff(Wavelengths))
             for File in ContactFileList:
                 try:
-                    minw,maxw=self.get_min_max_wavelengths_from_file(self.Source_DirName +File)
+                    minw,maxw=self.get_min_max_wavelengths_from_file(self.source_dir_path +File)
                 except UnicodeDecodeError:
                     print('Error while getting wavelengths from file {}'.format(File))
     
@@ -236,7 +236,7 @@ class Spectral_processor(QObject):
                         break
                 # OutOfContactFileName='Sp_out_of_contact_X'+FileNameListAtPoint[0].split('_X')[1]
                 try:
-                    OutOfContactData=pickle.load(open(self.Source_DirName +OutOfContactFileName, "rb"))
+                    OutOfContactData=pickle.load(open(self.source_dir_path +OutOfContactFileName, "rb"))
                     if self.isInterpolation:
                         OutOfContactSignal=self.InterpolateInDesiredPoint(OutOfContactData[:,1],OutOfContactData[:,0],MainWavelengths)
                     else:
@@ -250,9 +250,9 @@ class Spectral_processor(QObject):
             for jj, FileName in enumerate(FileNameListAtPoint):
                 try:
                     if self.type_of_data=='pkl':
-                        Data = pickle.load(open(self.Source_DirName +FileName, "rb"))
+                        Data = pickle.load(open(self.source_dir_path +FileName, "rb"))
                     elif self.type_of_data=='txt':
-                        Data = np.genfromtxt(self.Source_DirName +FileName,skip_header=self.skip_Header)
+                        Data = np.genfromtxt(self.source_dir_path +FileName,skip_header=self.skip_Header)
                 except UnicodeDecodeError:
                     print('Error while getting data from file {}'.format(FileName))
                 if self.isInterpolation:
@@ -302,7 +302,7 @@ class Spectral_processor(QObject):
             f_name='Processed_spectrogram_at_spot.pkl'     
         else:
             f_name='Processed_spectrogram.pkl'     
-        f=open(self.ProcessedDataFolder+f_name,'wb')
+        f=open(self.processedData_dir_path+f_name,'wb')
         D={}
         D['axis']=self.axis_to_plot_along
         D['Positions']=Positions
@@ -325,10 +325,10 @@ class Spectral_processor(QObject):
             ax2.set_xlabel(r'Distance, $\mu$m')
             ax2.set_xlim([0,self.StepSize*NumberOfPointsZ*2.5])
             plt.tight_layout()
-            plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
+            plt.savefig(self.processedData_dir_path+'Scanned WGM spectra')
             Positions=[np.linspace(0, self.StepSize*NumberOfPointsZ,NumberOfPointsZ),np.linspace(0, self.StepSize*NumberOfPointsZ,NumberOfPointsZ),np.linspace(0, self.StepSize*NumberOfPointsZ,NumberOfPointsZ)]
             Positions=np.transpose(Positions)
-            np.savetxt(self.ProcessedDataFolder+'Sp_Positions.txt', Positions)
+            np.savetxt(self.processedData_dir_path+'Sp_Positions.txt', Positions)
 
         if self.file_naming_style=='new':
             plt.figure()
@@ -350,7 +350,7 @@ class Spectral_processor(QObject):
                 
             plt.colorbar()
             plt.tight_layout()
-            plt.savefig(self.ProcessedDataFolder+'Scanned WGM spectra')
+            plt.savefig(self.processedData_dir_path+'Scanned WGM spectra')
             time2=time.time()
         print('Time used =', time2-time1 ,' s')
 
@@ -358,7 +358,7 @@ if __name__ == "__main__":
     os.chdir('..')
     path= os.getcwd()
     # path='G:\!Projects\!SNAP system\Bending\2022.02.18 Luna meas'
-    p=ProcessSpectra(path)
+    p=Spectral_processor(path)
 #    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
 #                                     self.axis_to_plot_along='Z')
 

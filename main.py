@@ -1,6 +1,6 @@
 
-__version__='19.0.0'
-__date__='16.03.2021'
+__version__='19.0.1'
+__date__='17.03.2021'
 
 
 import sys
@@ -20,7 +20,7 @@ def main():
     main_app = MainWindow(version=__version__)
     main_app.show()
     # Uncomment only if application doesn't finish properly 
-    #sys.exit(app.exec())
+    # sys.exit(app.exec())
     return main_app
 
 

@@ -14,31 +14,9 @@ import time
 
 
 class ScanningProcess(QObject):
-    is_running=False  ## Variable is "True" during scanning process. Pushing on "scanning" button in main window sets is_running True and start scanning process.
-    ### Another pushing on "scanning" button during the scanning proccess set is_running to "False" and interrupt the scanning process
+  
 
-    AxisToScan='Z' # 'X',or 'Y', or 'Z'. Axis to scan along
-    AxisToGetContact='X' # 'X',or 'Y', or 'Z'. The script will be searching for contactbetween the taper and the microresonator with moving along AxisToGetContact
-
-    LevelToDistinctContact=-15 # dBm, used to determine if there is contact between the taper and the sample. see function checkIfContact for details
-
-    ScanStep=30 #in stage steps, Step to move stage "AxisToScan"
-    SeekContactStep=30 #in stage steps, Step to move stage AxisToGetContact to find the contact
-    BackStep=50   #in stage steps, Step to move stage AxisToGetContact to loose the contact
-
-    CurrentFileIndex=1
-    StopFileIndex=100
-
-    SqueezeSpanWhileSearchingContact=False ## if true, span is set to small value of "SpanForScanning" each time when contact is being sought.
-    SpanForScanning=0.05 #nm, Value of span in searching_contact function. Used if SqueezeSpanWhileSearchingContact==True
-
-    IsInContact=False # True - when taper is in contact with the sample
-
-    NumberOfScans=1 # Number of spectra acquired at each point along the sample
-    IsHighRes=False # if true and high resolution of OSA is used, spectra have to be saved on OSA hardDrive
-
-
-    S_updateCurrentFileName=pyqtSignal(str) #signal to initiate update the index of the current file in lineEdit_CurrentFile of main window
+    S_update_status=pyqtSignal(str) #signal to initiate update the index of the current file in lineEdit_CurrentFile of main window
     S_saveData=pyqtSignal(object,str) #signal to initiate saving measured spectrum to a file
     S_saveSpectrumToOSA=pyqtSignal(str) # signal used if high resolution needed. Initiate saving spectral data to inner hard drive of OSA
     S_addPosition_and_FilePrefix=pyqtSignal(str) #signal to initiate saving current position of the stages and current file index to file "Positions.txt"
@@ -46,53 +24,67 @@ class ScanningProcess(QObject):
 
     minimumPeakHight=1
 
-    def __init__(self,
-                 OSA:QObject,
-                 Stages:QObject,
-                 scanstep:int,seekcontactstep:int,backstep:int,seekcontactvalue:float,ScanningType:int,SqueezeSpanWhileSearchingContact:bool,
-                 CurrentFileIndex:int,StopFileIndex:int,numberofscans:int,searchcontact:bool,followPeak:bool,
-                 save_out_of_contact:bool):
+    def __init__(self,OSA:QObject,Stages:QObject):
         super().__init__()
         self.OSA=OSA # add Optical Spectral Analyzer
-        self.FullSpan=self.OSA._Span
+        try:
+            self.FullSpan=self.OSA._Span
+        except:
+            self.FullSpan=10
         try:
             self.IsHighRes=self.OSA.IsHighRes
         except:
             self.IsHighRes=False
         self.stages=Stages # add all three stages
-        self.set_ScanningType(ScanningType)
 
-        self.ScanStep=scanstep
-        self.SeekContactStep=seekcontactstep
-        self.BackStep=-1*backstep
-        self.LevelToDistinctContact=seekcontactvalue
-        self.CurrentFileIndex=CurrentFileIndex
-        self.StopFileIndex=StopFileIndex
-        self.SqueezeSpanWhileSearchingContact=SqueezeSpanWhileSearchingContact
-        self.NumberOfScans=numberofscans
-        self.searchcontact=searchcontact
-        self.followPeak=followPeak
+
+        self.scanning_step=30
+        self.seeking_step=30
+        self.backstep=30    #in stage steps, Step to move stage axis_to_get_contact to loose the contact
+        self.level_to_detect_contact=-3  # dBm, used to determine if there is contact between the taper and the sample. see function checkIfContact for details
+        self.current_file_index=1
+        self.stop_file_index=100
+        self.number_of_scans_at_point=1
+        self.is_squeeze_span=False
+        self.is_seeking_contact=False
+        self.is_follow_peak=False
         
-        self.save_out_of_contact=save_out_of_contact
+        self.save_out_of_contact=False
         self.LunaJonesMeasurement=False
+        
+        self.scanning_type='Along Z, get contact along X'
+        self.axis_to_scan='Z'
+        self.axis_to_get_contact='X'
+        
+        is_running=False  ## Variable is "True" during scanning process. Pushing on "scanning" button in main window sets is_running True and start scanning process.
+    ### Another pushing on "scanning" button during the scanning proccess set is_running to "False" and interrupt the scanning process
+
+        span_for_scanning=0.05 #nm, Value of span in searching_contact function. Used if is_squeeze_span==True
+
+        IsInContact=False # True - when taper is in contact with the sample
+        
+    def set_parameters(self,dictionary):
+        for key in dictionary:
+            try:
+                self.__setattr__(key, dictionary[key])
+            except:
+                pass
+                
+    def get_parameters(self)->dict:
+        '''
+        Returns
+        -------
+        Seriazible attributes of the object
+        '''
+        d=dict(vars(self)) #make a copy of the vars dictionary
+        return d
 
 
-    def set_ScanningType(self,ScanningType:int): # set axis depending on choice in MainWindow
-        if ScanningType==0:
-            self.AxisToScan='Z'
-            self.AxisToGetContact='X'
-        elif ScanningType==1:
-            self.AxisToScan='Y'
-            self.AxisToGetContact='X'
-        elif ScanningType==2:
-            self.AxisToScan='Y'
-            self.AxisToGetContact='Z'
-        elif ScanningType==3:
-            self.AxisToScan='X'
-            self.AxisToGetContact='Z'
-        elif ScanningType==4:
-            self.AxisToScan='X'
-            self.AxisToGetContact='Y'
+    def set_scanning_axes(self): # set axis depending on choice in MainWindow
+        s=self.scanning_type
+        self.axis_to_get_contact=s.split(', get contact along ')[1]
+        self.axis_to_scan=s.split(', get contact along ')[0].split('Along ')[1]
+       
 
     def set_OSA_to_Searching_Contact_State(self): #set rough resolution and narrowband span
         print(self.OSA._Span)
@@ -100,7 +92,7 @@ class ScanningProcess(QObject):
         self.IsHighRes=self.OSA.IsHighRes
 
         self.OSA.SetMode(3) # set APEX OSA to O.S.A. mode - it works faster
-        self.OSA.SetSpan(self.SpanForScanning)
+        self.OSA.SetSpan(self.span_for_scanning)
 
         if self.IsHighRes:
             self.OSA.SetWavelengthResolution('Low')
@@ -121,13 +113,13 @@ class ScanningProcess(QObject):
         time.sleep(0.05)
         self.IsInContact=self.checkIfContact(spectrum) #check if there is contact already
         while not self.IsInContact:
-            self.stages.shiftOnArbitrary(self.AxisToGetContact,self.SeekContactStep)
+            self.stages.shiftOnArbitrary(self.axis_to_get_contact,self.self.seeking_step)
             print('Moved to Sample')
             wavelengthdata, spectrum=self.OSA.acquire_spectrum()
             time.sleep(0.05)
             self.IsInContact=self.checkIfContact(spectrum)
             if not self.is_running : ##if scanning process is interrupted,stop searching contact
-                if self.SqueezeSpanWhileSearchingContact:
+                if self.is_squeeze_span:
                     self.set_OSA_to_Measuring_State()
                     self.OSA.acquire_spectrum()
                 return 0
@@ -136,13 +128,13 @@ class ScanningProcess(QObject):
 
     def losing_contact(self): ##move taper away from sample until contact is lost
         while self.IsInContact:
-            self.stages.shiftOnArbitrary(self.AxisToGetContact,self.BackStep)
+            self.stages.shiftOnArbitrary(self.axis_to_get_contact,-self.backstep)
             print('Moved Back from Sample')
             wavelengthdata,spectrum=self.OSA.acquire_spectrum()
             time.sleep(0.05)
             self.IsInContact=self.checkIfContact(spectrum)
             if not self.is_running : ##if scanning process is interrupted,stop searching contact
-                if self.SqueezeSpanWhileSearchingContact:
+                if self.is_squeeze_span:
                     self.set_OSA_to_Measuring_State()
                     self.OSA.acquire_spectrum()
                 return 0
@@ -151,7 +143,7 @@ class ScanningProcess(QObject):
     def checkIfContact(self, spectrum):  ## take measured spectrum and decide if there is contact between the taper and the sample
         mean=np.mean(spectrum)
         print(mean)
-        if mean<self.LevelToDistinctContact:
+        if mean<self.level_to_detect_contact:
             return True
         else:
             return False
@@ -164,39 +156,39 @@ class ScanningProcess(QObject):
         time.sleep(0.05)
         self.is_running=True
         ### main loop
-
-        if self.SqueezeSpanWhileSearchingContact:  ## to speed up the process of the getting contact, the very narrow span of OSA can be set
+        self.set_scanning_axes()
+        if self.is_squeeze_span:  ## to speed up the process of the getting contact, the very narrow span of OSA can be set
             self.set_OSA_to_Searching_Contact_State()
-        while self.is_running and self.CurrentFileIndex<self.StopFileIndex+1:
+        while self.is_running and self.current_file_index<self.stop_file_index+1:
          
             if self.save_out_of_contact:
                 wavelengths_background,background_signal=self.OSA.acquire_spectrum()
-                self.S_saveData.emit(np.stack((wavelengths_background, background_signal),axis=1),'p='+str(self.CurrentFileIndex)+'_out_of_contact') # save Jones matrixes to Luna for out of contact
+                self.S_saveData.emit(np.stack((wavelengths_background, background_signal),axis=1),'p='+str(self.current_file_index)+'_out_of_contact') # save Jones matrixes to Luna for out of contact
                                 
 
             time0=time.time()
             ## Getting in contact between the taper and the sample
-            if self.searchcontact:
+            if self.is_seeking_contact:
                 self.search_contact()
             else:
-                self.stages.shiftOnArbitrary(self.AxisToGetContact,self.SeekContactStep)
+                self.stages.shiftOnArbitrary(self.axis_to_get_contact,self.self.seeking_step)
 
-            if self.SqueezeSpanWhileSearchingContact:   ## after contact is found, set the span of OSA back to span of interest
+            if self.is_squeeze_span:   ## after contact is found, set the span of OSA back to span of interest
                 self.set_OSA_to_Measuring_State()
 
             ## Acquring and saving data
-            for jj in range(0,self.NumberOfScans):
+            for jj in range(0,self.number_of_scans_at_point):
                 print('saving sweep # ', jj+1)
                 wavelengthdata, spectrum=self.OSA.acquire_spectrum()
                 time.sleep(0.05)
                 
                 Data=np.stack((wavelengthdata, spectrum),axis=1)
-                self.S_saveData.emit(Data,'p='+str(self.CurrentFileIndex)+'_j='+str(jj)) # save spectrum to file
+                self.S_saveData.emit(Data,'p='+str(self.current_file_index)+'_j='+str(jj)) # save spectrum to file
                 if not self.is_running: break
 
             #update indexes in MainWindow and save positions into "Positions.txt"
 
-            if self.followPeak and max(spectrum)-min(spectrum)>self.minimumPeakHight:
+            if self.is_follow_peak and max(spectrum)-min(spectrum)>self.minimumPeakHight:
                 self.OSA.SetCenter(wavelengthdata[np.argmin(spectrum)])
 
 
@@ -205,35 +197,35 @@ class ScanningProcess(QObject):
             if not self.is_running:
                 break
 
-            if self.SqueezeSpanWhileSearchingContact: ## to speed up the process of losing contact, the very narrow span of OSA can be set
+            if self.is_squeeze_span: ## to speed up the process of losing contact, the very narrow span of OSA can be set
                 self.set_OSA_to_Searching_Contact_State()
 
-            if self.searchcontact:
+            if self.is_seeking_contact:
                 self.losing_contact()
             else:
-                self.stages.shiftOnArbitrary(self.AxisToGetContact,-self.SeekContactStep)
+                self.stages.shiftOnArbitrary(self.axis_to_get_contact,-self.seeking_step)
 
 
 
             ##  move sample along scanning axis
             if not self.is_running: # if we stop scanning
-                if self.SqueezeSpanWhileSearchingContact:   ##  set the span of OSA back to span of interest
+                if self.is_squeeze_span:   ##  set the span of OSA back to span of interest
                     self.set_OSA_to_Measuring_State()
                     self.OSA.acquire_spectrum()
                 break
 
-            self.stages.shiftOnArbitrary(self.AxisToScan,self.ScanStep)
-            self.CurrentFileIndex+=1
-            self.S_updateCurrentFileName.emit(str(self.CurrentFileIndex))
+            self.stages.shiftOnArbitrary(self.axis_to_scan,self.self.scanning_step)
+            self.current_file_index+=1
+            self.S_update_status.emit('Step {} of {}'.format(self.current_file_index,self.stop_file_index))
             print('\n Shifted along the scanning axis\n')
 
             print('Time elapsed for measuring at single point is ', time.time()-time0,'\n')
 
         # if scanning finishes because all points along scanning axis are measured
-        if self.is_running and self.CurrentFileIndex>self.StopFileIndex:
+        if self.is_running and self.current_file_index>self.stop_file_index:
             self.is_running=False
             print('\nScanning finished\n')
-        if self.SqueezeSpanWhileSearchingContact:
+        if self.is_squeeze_span:
             self.set_OSA_to_Measuring_State()
             self.OSA.acquire_spectrum()
         self.S_finished.emit()
@@ -243,4 +235,4 @@ class ScanningProcess(QObject):
 
 if __name__ == "__main__":
 
-       ScanningProcess=ScanningProcess(None,None,1,1,1,1,1,1,1,1,1,1,1)
+       ScanningProcess=ScanningProcess(None,None)
