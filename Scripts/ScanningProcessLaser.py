@@ -74,8 +74,8 @@ class LaserScanningProcess(QObject):
                 Data=np.stack((wavelengthdata, spectrum),axis=1)
                 self.S_saveData.emit(Data,'W='+str(self.wavelength)) # save spectrum to file
             if self.powermeter is not None:
-                Data=np.stack((time.time()-time_start,self.wavelength, self.powermeter.get_power()))
-                file.write(str(Data))
+                power=self.powermeter.get_power()
+                file.write('{}\t{}\t{}\n'.format(time.time()-time_start,self.wavelength,power))
             # if not self.is_running:
             #     self.S_add_powers_to_file.emit(PowerVSWavelength)
             #     self.laser.setOff()

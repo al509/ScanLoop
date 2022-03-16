@@ -537,7 +537,7 @@ class MainWindow(ThreadedMainWindow):
             self.ui.tabWidget_instruments.setEnabled(False)
             self.ui.pushButton_Scanning.setEnabled(False)
             self.ui.pushButton_sweep_laser_wavelength.setEnabled(False)
-            self.ui.pushButton_pause_scan_laser.setEnabled(True)
+            self.ui.pushButton_hold_laser_wavelength.setEnabled(True)
             self.laser_scanning_process.initialize_laser()
             self.force_laser_scanning_process.connect(self.laser_scanning_process.run)
             self.force_laser_scanning_process.emit()
@@ -548,7 +548,7 @@ class MainWindow(ThreadedMainWindow):
             self.ui.tabWidget_instruments.setEnabled(True)
             self.ui.pushButton_Scanning.setEnabled(True)
             self.ui.pushButton_sweep_laser_wavelength.setEnabled(True)
-            self.ui.pushButton_pause_scan_laser.setEnabled(False)
+            self.ui.pushButton_hold_laser_wavelength.setEnabled(False)
             del self.laser_scanning_process
             
     def laser_scaning_hold_wavelength(self,pressed:bool):
