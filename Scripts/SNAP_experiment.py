@@ -229,7 +229,8 @@ class SNAP():
     
 
     # @numba.njit
-    def extract_ERV(self,number_of_peaks_to_search=1,min_peak_level=1,min_peak_distance=10000,min_wave=0,max_wave=1e4,find_widths=True, indicate_ERV_on_spectrogram=True, plot_results_separately=False):
+    def extract_ERV(self,number_of_peaks_to_search=1,min_peak_level=1,min_peak_distance=10000,min_wave=0,max_wave=1e4,find_widths=True,
+                    indicate_ERV_on_spectrogram=True, plot_results_separately=False,N_points_for_fitting=100,iterate_different_N_points=False):
         '''
         analyze 2D spectrogram
         return position of seeral first (higher-wavelegth) main resonances. Number of resonances is defined by number_of_peaks_to_search
@@ -242,17 +243,18 @@ class SNAP():
         NumberOfWavelength,Number_of_positions = self.transmission.shape
         WavelengthArray=self.wavelengths
         Positions=self.x
+        number_of_spectral_points=len(WavelengthArray)
         
         PeakWavelengthArray=np.empty((Number_of_positions,number_of_peaks_to_search))
         resonance_parameters_array=np.empty((Number_of_positions,number_of_peaks_to_search,4))
         PeakWavelengthArray.fill(np.nan)
         resonance_parameters_array.fill(np.nan)
 
+            
         for Zind, Z in enumerate(range(0,Number_of_positions)):
             peakind,_=scipy.signal.find_peaks(abs(self.transmission[:,Zind]-np.nanmean(self.transmission[:,Zind])),height=min_peak_level,distance=min_peak_distance)
             NewPeakind=np.extract((WavelengthArray[peakind]>min_wave) & (WavelengthArray[peakind]<max_wave),peakind)
             NewPeakind=NewPeakind[np.argsort(-WavelengthArray[NewPeakind])] ##sort in wavelength decreasing
-            N_points_for_fitting=50
             if len(NewPeakind)>0:
                 if len(NewPeakind)>=number_of_peaks_to_search:
                     shortWavArray=WavelengthArray[NewPeakind[:number_of_peaks_to_search]]
@@ -263,12 +265,34 @@ class SNAP():
                     for ii,peak_wavelength in enumerate(shortWavArray):
                         if peak_wavelength is not np.nan:
                             index=NewPeakind[ii]
-                            try:
-                                fitting_parameters,_,_=get_Fano_fit(WavelengthArray[index-N_points_for_fitting:index+N_points_for_fitting], self.transmission[index-N_points_for_fitting:index+N_points_for_fitting,Zind],peak_wavelength)
-                                resonance_parameters_array[Zind,ii]=([fitting_parameters[0],fitting_parameters[1],
-                                                                      fitting_parameters[4]/fitting_parameters[3],fitting_parameters[3]])
-                            except:
-                                print('error while fitting')
+                            # try:
+                            if not iterate_different_N_points:
+                                if N_points_for_fitting==0:
+                                    fitting_parameters,_,_=get_Fano_fit(WavelengthArray, self.transmission[:,Zind],peak_wavelength)
+                                else:
+                                     i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
+                                     i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
+                                     fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Zind],peak_wavelength)
+                            else:
+                                optimal_N=10
+                                minimal_linewidth=max(WavelengthArray)-min(WavelengthArray)
+                                for N_points in np.arange(10,number_of_spectral_points,2):
+                                     i_min=0 if index-N_points<0 else index-N_points
+                                     i_max=number_of_spectral_points-1 if index+N_points>number_of_spectral_points-1 else index+N_points
+                                     fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Zind],peak_wavelength)
+                                     print(N_points,fitting_parameters[3])
+                                     if minimal_linewidth>fitting_parameters[3]:
+                                         minimal_linewidth=fitting_parameters[3]
+                                         optimal_N=N_points
+                                         
+                                i_min=0 if index-optimal_N<0 else index-optimal_N
+                                i_max=number_of_spectral_points-1 if index+optimal_N>number_of_spectral_points-1 else index+optimal_N
+                                fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Zind],peak_wavelength)
+                                   
+                            resonance_parameters_array[Zind,ii]=([fitting_parameters[0],fitting_parameters[1],
+                                                                  fitting_parameters[4]/fitting_parameters[3],fitting_parameters[3]])
+                            # except:
+                            #     print('error while fitting')
         lambdas_0=np.amin(PeakWavelengthArray,axis=0)
         ERV=(PeakWavelengthArray-lambdas_0)/np.nanmean(PeakWavelengthArray,axis=0)*self.R_0*self.refractive_index*1e3 # in nm
         print('Analyze finished')

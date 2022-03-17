@@ -956,11 +956,11 @@ class MainWindow(ThreadedMainWindow):
 
 
     def choose_folder_for_spectral_processor(self):
-        self.spectral_processor.Source_DirName = str(
+        self.spectral_processor.source_dir_path = str(
             QFileDialog.getExistingDirectory(self, "Select Directory"))+'\\'
-        self.spectral_processor.ProcessedDataFolder=os.path.dirname(
-            os.path.dirname(self.spectral_processor.Source_DirName))+'\\'
-        self.ui.label_folder_to_process_files.setText(self.spectral_processor.Source_DirName+'\\')
+        self.spectral_processor.processedData_dir_path=os.path.dirname(
+            os.path.dirname(self.spectral_processor.source_dir_path))+'\\'
+        self.ui.label_folder_to_process_files.setText(self.spectral_processor.source_dir_path+'\\')
         
        
 
@@ -991,8 +991,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.label_analyzer_single_spectrum_file.setText(self.analyzer.single_spectrum_path)
 
     def choose_file_for_analyzer(self):
-        DataFilePath= str(QFileDialog.getOpenFileName(
-            self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]
+        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl *.3dpkl' )).split("\',")[0].split("('")[1]
         if DataFilePath=='':
             print('file is not chosen or previous choice is preserved')
         self.analyzer.file_path=DataFilePath

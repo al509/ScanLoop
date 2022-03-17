@@ -37,6 +37,8 @@ class Analyzer(QObject):
             self.find_widths=False
             self.indicate_ERV_on_spectrogram=True
             self.plot_results_separately=False
+            self.N_points_for_fitting=0
+            self.iterate_different_N_points=False
             
             self.SNAP=None
             
@@ -72,7 +74,7 @@ class Analyzer(QObject):
             i_w_min=np.argmin(abs(self.SNAP.wavelengths-wave_lim[0]))
             i_w_max=np.argmin(abs(self.SNAP.wavelengths-wave_lim[1]))
             path,FileName = os.path.split(self.file_path)
-            NewFileName=path+'\\'+FileName.split('.pkl')[0]+'_cropped.pkl'
+            NewFileName=path+'\\'+FileName.split('.')[-2]+'_cropped.3dpkl'
             f=open(NewFileName,'wb')
             D={}
             D['axis']=self.SNAP.axis
@@ -81,7 +83,7 @@ class Analyzer(QObject):
             D['Signal']=self.SNAP.transmission[i_w_min:i_w_max,i_x_min:i_x_max]
             pickle.dump(D,f)
             f.close()
-            print('Cropped data saved to {}_cropped.pkl'.format(FileName.split('.pkl')[0]))
+            print('Cropped data saved to {}'.format(NewFileName))
             
         def save_slice_data(self):
             '''
@@ -103,7 +105,7 @@ class Analyzer(QObject):
                 path,FileName = os.path.split(self.file_path)
             elif self.single_spectrum_path is not None:
                 path,FileName = os.path.split(self.single_spectrum_path)
-            NewFileName=path+'\\'+FileName.split('.pkl')[0]+'_at_{}'.format(self.slice_position)
+            NewFileName=path+'\\'+FileName.split('.')[-2]+'_at_{}'.format(self.slice_position)
             f = open(NewFileName+'.pkl',"wb")
             pickle.dump(Data,f)
             f.close()
@@ -206,9 +208,11 @@ class Analyzer(QObject):
                         # positions,peak_wavelengths, ERV, resonance_parameters=SNAP_experiment.SNAP.extract_ERV(self,
             positions,peak_wavelengths, ERV, resonance_parameters=self.SNAP.extract_ERV(self.number_of_peaks_to_search,self.min_peak_level,
                                                                                                    self.min_peak_distance,self.min_wave,self.max_wave,
-                                                                                                   self.find_widths, self.indicate_ERV_on_spectrogram, self.plot_results_separately)
+                                                                                                   self.find_widths, self.indicate_ERV_on_spectrogram, 
+                                                                                                   self.plot_results_separately, self.N_points_for_fitting,
+                                                                                                   self.iterate_different_N_points)
             path,FileName = os.path.split(self.file_path)
-            NewFileName=path+'\\'+FileName.split('.pkl')[0]+'_ERV.pkl'
+            NewFileName=path+'\\'+FileName.split('.')[-2]+'_ERV.pkl'
             with open(NewFileName,'wb') as f:
                 temp={'positions':positions,'peak_wavelengths':peak_wavelengths,'ERVs':ERV,'resonance_parameters':resonance_parameters,'fitting_parameters':self.get_parameters()}
                 pickle.dump(temp, f)
@@ -220,12 +224,12 @@ class Analyzer(QObject):
 
 if __name__ == "__main__":
     
-    os.chdir('..')
+    # os.chdir('..')
     
     
     
     #%%
-    analyzer=Analyzer(os.getcwd()+'\\Processed_spectrogram.pkl')
+    analyzer=Analyzer(os.getcwd()+'\\high_res_along_taper_axis_Y=-20_cropped_cropped.3dpkl')
     analyzer.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
     
     analyzer.plot2D()
@@ -235,7 +239,7 @@ if __name__ == "__main__":
     f=open('Parameters.txt')
     Dicts=json.load(f)
     f.close()
-    analyzer.set_parameters(Dicts[1])
+    analyzer.set_parameters(Dicts['Analyzer'])
     analyzer.extract_ERV()
     
 
