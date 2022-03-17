@@ -62,6 +62,7 @@ class ScanningProcess(QObject):
                 self.__setattr__(key, dictionary[key])
             except:
                 pass
+        self.set_axes()
                 
     def get_parameters(self)->dict:
         '''
@@ -84,7 +85,7 @@ class ScanningProcess(QObject):
         except:
             self.IsHighRes=False
 
-    def set_scanning_axes(self): # set axis depending on choice in MainWindow
+    def set_axes(self): # set axis depending on choice in MainWindow
         s=self.scanning_type
         self.axis_to_get_contact=s.split(', get contact along ')[1]
         self.axis_to_scan=s.split(', get contact along ')[0].split('Along ')[1]
@@ -159,7 +160,7 @@ class ScanningProcess(QObject):
     def run(self):
         time.sleep(0.05)
         ### main loop
-        self.set_scanning_axes()
+        self.set_axes()
         self.update_OSA_parameters()
         if self.is_squeeze_span:  ## to speed up the process of the getting contact, the very narrow span of OSA can be set
             self.set_OSA_to_Searching_Contact_State()

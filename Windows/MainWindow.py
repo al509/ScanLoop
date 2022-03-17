@@ -1054,6 +1054,7 @@ class MainWindow(ThreadedMainWindow):
             final_position=(self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.stages.relative_position[self.scanningProcess.axis_to_scan]
             self.ui.label_scanning_final_position.setText(str(final_position))
             self.ui.label_scanning_axis.setText(self.scanningProcess.axis_to_scan)
+
             
     def delete_data_from_folders(self):
         msg=QMessageBox(2, 'Warning', 'Do you want to delete all raw data?')
