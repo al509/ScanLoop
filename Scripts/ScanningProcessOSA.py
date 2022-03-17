@@ -24,19 +24,12 @@ class ScanningProcess(QObject):
 
     minimumPeakHight=1
 
-    def __init__(self,OSA:QObject,Stages:QObject):
+    def __init__(self):
         super().__init__()
-        self.OSA=OSA # add Optical Spectral Analyzer
-        try:
-            self.FullSpan=self.OSA._Span
-        except:
-            self.FullSpan=10
-        try:
-            self.IsHighRes=self.OSA.IsHighRes
-        except:
-            self.IsHighRes=False
-        self.stages=Stages # add all three stages
-
+        self.OSA=None # add Optical Spectral Analyzer
+        self.stages=None # add all three stages
+        self.FullSpan=10
+        self.IsHighRes=False
 
         self.scanning_step=30
         self.seeking_step=30
@@ -56,7 +49,7 @@ class ScanningProcess(QObject):
         self.axis_to_scan='Z'
         self.axis_to_get_contact='X'
         
-        is_running=False  ## Variable is "True" during scanning process. Pushing on "scanning" button in main window sets is_running True and start scanning process.
+        self.is_running=False  ## Variable is "True" during scanning process. Pushing on "scanning" button in main window sets is_running True and start scanning process.
     ### Another pushing on "scanning" button during the scanning proccess set is_running to "False" and interrupt the scanning process
 
         span_for_scanning=0.05 #nm, Value of span in searching_contact function. Used if is_squeeze_span==True
@@ -76,9 +69,20 @@ class ScanningProcess(QObject):
         -------
         Seriazible attributes of the object
         '''
-        d=dict(vars(self)) #make a copy of the vars dictionary
+        d=dict(vars(self)).copy() #make a copy of the vars dictionary
+        del d['stages']
+        del d['OSA']
         return d
-
+    
+    def update_OSA_parameters(self):
+        try:
+            self.FullSpan=self.OSA._Span
+        except:
+            pass
+        try:
+            self.IsHighRes=self.OSA.IsHighRes
+        except:
+            self.IsHighRes=False
 
     def set_scanning_axes(self): # set axis depending on choice in MainWindow
         s=self.scanning_type
@@ -113,7 +117,7 @@ class ScanningProcess(QObject):
         time.sleep(0.05)
         self.IsInContact=self.checkIfContact(spectrum) #check if there is contact already
         while not self.IsInContact:
-            self.stages.shiftOnArbitrary(self.axis_to_get_contact,self.self.seeking_step)
+            self.stages.shiftOnArbitrary(self.axis_to_get_contact,self.seeking_step)
             print('Moved to Sample')
             wavelengthdata, spectrum=self.OSA.acquire_spectrum()
             time.sleep(0.05)
@@ -154,13 +158,13 @@ class ScanningProcess(QObject):
     """
     def run(self):
         time.sleep(0.05)
-        self.is_running=True
         ### main loop
         self.set_scanning_axes()
+        self.update_OSA_parameters()
         if self.is_squeeze_span:  ## to speed up the process of the getting contact, the very narrow span of OSA can be set
             self.set_OSA_to_Searching_Contact_State()
         while self.is_running and self.current_file_index<self.stop_file_index+1:
-         
+            self.S_update_status.emit('Step {} of {}'.format(self.current_file_index,self.stop_file_index))
             if self.save_out_of_contact:
                 wavelengths_background,background_signal=self.OSA.acquire_spectrum()
                 self.S_saveData.emit(np.stack((wavelengths_background, background_signal),axis=1),'p='+str(self.current_file_index)+'_out_of_contact') # save Jones matrixes to Luna for out of contact
@@ -171,7 +175,7 @@ class ScanningProcess(QObject):
             if self.is_seeking_contact:
                 self.search_contact()
             else:
-                self.stages.shiftOnArbitrary(self.axis_to_get_contact,self.self.seeking_step)
+                self.stages.shiftOnArbitrary(self.axis_to_get_contact,self.seeking_step)
 
             if self.is_squeeze_span:   ## after contact is found, set the span of OSA back to span of interest
                 self.set_OSA_to_Measuring_State()
@@ -214,9 +218,9 @@ class ScanningProcess(QObject):
                     self.OSA.acquire_spectrum()
                 break
 
-            self.stages.shiftOnArbitrary(self.axis_to_scan,self.self.scanning_step)
+            self.stages.shiftOnArbitrary(self.axis_to_scan,self.scanning_step)
             self.current_file_index+=1
-            self.S_update_status.emit('Step {} of {}'.format(self.current_file_index,self.stop_file_index))
+
             print('\n Shifted along the scanning axis\n')
 
             print('Time elapsed for measuring at single point is ', time.time()-time0,'\n')

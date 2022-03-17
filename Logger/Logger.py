@@ -60,7 +60,10 @@ class Logger(QObject):
             print('\nParameters loaded\n')
             return Dicts
         except FileNotFoundError:
-            print('Parameters file not found')
+            print('Error while load parameters: Parameters file not found')
+            return None
+        except json.JSONDecodeError:
+            print('Errpr while load parameters: file has wrong format')
             return None
         
     

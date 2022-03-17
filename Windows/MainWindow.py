@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from PyQt5.QtCore import pyqtSignal, QThread
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog,QLineEdit,QComboBox,QCheckBox
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog,QLineEdit,QComboBox,QCheckBox,QMessageBox
 
 from Common.Consts import Consts
 from Hardware.Config import Config
@@ -106,9 +106,8 @@ class MainWindow(ThreadedMainWindow):
         self.logger = Logger(parent=None)
         self.spectral_processor=Spectral_processor.Spectral_processor(self.path_to_main)
         from Scripts.ScanningProcessOSA import ScanningProcess
-        self.scanningProcess=ScanningProcess(OSA=None,Stages=None)
-        self.add_thread([self.scanningProcess])
-        self.add_thread([self.painter,self.logger,self.analyzer,self.spectral_processor])
+        self.scanningProcess=ScanningProcess()
+        self.add_thread([self.painter,self.logger,self.analyzer,self.spectral_processor,self.scanningProcess])
         
         
         self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
@@ -131,27 +130,26 @@ class MainWindow(ThreadedMainWindow):
         self.ui.action_save_parameters.triggered.connect(self.save_parameters_to_file)
         self.ui.action_load_parameters.triggered.connect(self.load_parameters_from_file)
         self.ui.action_delete_all_figures.triggered.connect(lambda:plt.close(plt.close('all')))
-
+        self.ui.action_delete_all_measured_spectral_data.triggered.connect(self.delete_data_from_folders)
 # =============================================================================
 #         Stages interface
 # =============================================================================
     def init_stages_interface(self):
-        self.ui.pushButton_StagesConnect.pressed.connect(self.connectStages)
+        self.ui.pushButton_StagesConnect.pressed.connect(self.connect_stages)
         self.X_0,self.Y_0,self.Z_0=[0,0,0]
 
 # =============================================================================
 #         # OSA interface
 # =============================================================================
     def init_OSA_interface(self):        
-        self.ui.pushButton_OSA_connect.pressed.connect(self.connectOSA)
+        self.ui.pushButton_OSA_connect.pressed.connect(self.connect_OSA)
         self.ui.pushButton_OSA_Acquire.pressed.connect(
             self.on_pushButton_acquireSpectrum_pressed)
         self.ui.pushButton_OSA_AcquireAll.pressed.connect(
             self.on_pushButton_AcquireAllSpectra_pressed)
         self.ui.pushButton_OSA_AcquireRep.clicked[bool].connect(
             self.on_pushButton_acquireSpectrumRep_pressed)
-        self.ui.comboBox_APEX_mode.currentIndexChanged[int].connect(
-            lambda x: self.OSA.SetMode(x+3))
+
         self.ui.label_Luna_mode.setVisible(False)
         self.ui.comboBox_Luna_mode.setVisible(False)
         self.ui.comboBox_Luna_mode.currentTextChanged.connect(self.enable_scanning_process)
@@ -202,7 +200,7 @@ class MainWindow(ThreadedMainWindow):
 #         #scanning process
 # =============================================================================
     def init_scanning_interface(self):        
-        self.ui.pushButton_scanning_position.clicked[bool].connect(self.on_pushButton_scanning_position)
+        self.ui.pushButton_scan_in_space.toggled[bool].connect(self.on_pushButton_scan_in_space)
         self.ui.pushButton_set_scanning_parameters.clicked.connect(self.on_pushButton_set_scanning_parameters)
 
 # =============================================================================
@@ -239,8 +237,10 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot2D())
         self.ui.pushButton_analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plot_slice(float(self.ui.lineEdit_slice_position.text())))
         self.ui.pushButton_analyzer_save_slice.clicked.connect(self.analyzer.save_slice_data)
-        self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(self.analyzer.fig_slice if self.analyzer.fig_slice  is not None else self.painter.figure))
+        self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(self.analyzer.single_spectrum_figure))
             
+        self.ui.pushButton_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum( self.painter.figure))
+     
         self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
         
         self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(lambda: self.analyzer.apply_FFT_filter(
@@ -317,7 +317,7 @@ class MainWindow(ThreadedMainWindow):
         except:
             print(sys.exc_info())
     
-    def connectOSA(self):
+    def connect_OSA(self):
         '''
         set connection to OSA: Luna, Yokogawa, ApEx Technologies or Astro interrogator
 
@@ -358,8 +358,9 @@ class MainWindow(ThreadedMainWindow):
             self.OSA = APEX_OSA_with_additional_features(Consts.APEX.HOST)
             self.ui.checkBox_HighRes.setChecked(self.OSA.IsHighRes)
             self.ui.comboBox_APEX_mode.setEnabled(True)
-            self.ui.comboBox_APEX_mode.setCurrentIndex(self.OSA.GetMode()-2)
-            self.ui.checkBox_processing_isInterpolating.setChecked(True)
+            self.ui.comboBox_APEX_mode.setCurrentIndex(self.OSA.GetMode()-3)
+            self.ui.comboBox_APEX_mode.currentIndexChanged[int].connect(lambda x: self.OSA.SetMode(x+3))
+            self.spectral_processor.isInterpolation=True
 
         self.add_thread([self.OSA])
         self.OSA.received_spectrum.connect(self.painter.set_data)
@@ -377,7 +378,7 @@ class MainWindow(ThreadedMainWindow):
         self.enable_scanning_process()
         self.painter.TypeOfData='FromOSA'
 
-    def connectStages(self):
+    def connect_stages(self):
         '''
         set connection to either Thorlabs or Standa stages 
 
@@ -398,7 +399,7 @@ class MainWindow(ThreadedMainWindow):
         if self.stages.IsConnected>0:
             print('Connected to stages')
             self.add_thread([self.stages])
-            self.X_0,self.Y_0,self.Z_0=self.logger.load_zero_position()
+            self.stages.set_zero_positions(self.logger.load_zero_position())
             self.updatePositions()
             self.ui.pushButton_MovePlusX.pressed.connect(
                 lambda :self.setStageMoving('X',int(self.ui.lineEdit_StepX.text())))
@@ -561,7 +562,7 @@ class MainWindow(ThreadedMainWindow):
                 self.ui.pushButton_scan_laser_wavelength.setChecked(False))
             self.laser_scanning_process.S_toggle_button.connect(lambda : self.laser_scanning(False))
             self.ui.tabWidget_instruments.setEnabled(False)
-            self.ui.pushButton_scanning_position.setEnabled(False)
+            self.ui.pushButton_scan_in_space.setEnabled(False)
             self.ui.pushButton_sweep_laser_wavelength.setEnabled(False)
             self.ui.pushButton_hold_laser_wavelength.setEnabled(True)
             self.laser_scanning_process.initialize_laser()
@@ -572,7 +573,7 @@ class MainWindow(ThreadedMainWindow):
             self.ui.pushButton_laser_On.setEnabled(True)
             self.laser_scanning_process.is_running=False
             self.ui.tabWidget_instruments.setEnabled(True)
-            self.ui.pushButton_scanning_position.setEnabled(True)
+            self.ui.pushButton_scan_in_space.setEnabled(True)
             self.ui.pushButton_sweep_laser_wavelength.setEnabled(True)
             self.ui.pushButton_hold_laser_wavelength.setEnabled(False)
             del self.laser_scanning_process
@@ -635,37 +636,7 @@ class MainWindow(ThreadedMainWindow):
             self.laser_sweeping_process.is_running=False
             del self.laser_sweeping_process
 
-    @pyqtSlotWExceptions()
-    def enable_scanning_process(self):
-        '''
-        check whether both stages and measuring equipment have been connected to enable scanning features
-
-        Returns
-        -------
-        None.
-
-        '''
-        if (self.ui.groupBox_stand.isEnabled() and self.ui.tabWidget_instruments.isEnabled()):
-
-            self.ui.groupBox_Scanning.setEnabled(True)
-            self.ui.tabWidget_instruments.setCurrentIndex(0)
-            self.scanningProcess.S_saveData.connect(
-                        lambda Data,prefix: self.logger.save_data(Data,prefix,
-                            self.stages.position['X']-self.X_0, self.stages.position['Y']-self.Y_0,
-                            self.stages.position['Z']-self.Z_0,'FromOSA'))
-            self.scanningProcess.S_finished.connect(self.ui.pushButton_scanning_position.toggle)
-            self.scanningProcess.S_finished.connect(
-                    lambda : self.on_pushButton_scanning_position(False))
-            self.scanningProcess.S_update_status.connect(lambda S: self.ui.label_scanning_position_status.setText(S))
-            
-            if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
-                self.scanningProcess.LunaJonesMeasurement=True
-                self.scanningProcess.S_saveData.connect(lambda data, name: self.OSA.save_binary(
-                    f"{self.logger.SpectralBinaryDataFolder}"
-                    + f"Sp_{name}_X={self.stages.position['X']-self.X_0}"
-                    + f"_Y={self.stages.position['Y']-self.Y_0}"
-                    + f"_Z={self.stages.position['Z']-self.Z_0}_.bin"))
-
+ 
 
     @pyqtSlotWExceptions()
     def on_equipment_ready(self, is_ready):
@@ -677,13 +648,17 @@ class MainWindow(ThreadedMainWindow):
 
     @pyqtSlotWExceptions("PyQt_PyObject")
     def updatePositions(self):
-        X_abs=(self.stages.position['X'])
-        Y_abs=(self.stages.position['Y'])
-        Z_abs=(self.stages.position['Z'])
+        X_abs=(self.stages.abs_position['X'])
+        Y_abs=(self.stages.abs_position['Y'])
+        Z_abs=(self.stages.abs_position['Z'])
+        
+        X_rel=(self.stages.relative_position['X'])
+        Y_rel=(self.stages.relative_position['Y'])
+        Z_rel=(self.stages.relative_position['Z'])
 
-        self.ui.label_PositionX.setText(str(X_abs-self.X_0))
-        self.ui.label_PositionY.setText(str(Y_abs-self.Y_0))
-        self.ui.label_PositionZ.setText(str(Z_abs-self.Z_0))
+        self.ui.label_PositionX.setText(str(X_rel))
+        self.ui.label_PositionY.setText(str(Y_rel))
+        self.ui.label_PositionZ.setText(str(Z_rel))
 
         self.ui.label_AbsPositionX.setText(str(X_abs))
         self.ui.label_AbsPositionY.setText(str(Y_abs))
@@ -692,9 +667,10 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_pushButton_zeroingPositions(self):
-        self.X_0=(self.stages.position['X'])
-        self.Y_0=(self.stages.position['Y'])
-        self.Z_0=(self.stages.position['Z'])
+        X_0=(self.stages.abs_position['X'])
+        Y_0=(self.stages.abs_position['Y'])
+        Z_0=(self.stages.abs_position['Z'])
+        self.stages.zero_position=self.stages.abs_position.copy()
         self.logger.save_zero_position(self.X_0,self.Y_0,self.Z_0)
         self.updatePositions()
 
@@ -709,13 +685,13 @@ class MainWindow(ThreadedMainWindow):
         if pressed:
             self.painter.ReplotEnded.connect(self.scope.acquire)
             self.ui.pushButton_scope_single.setEnabled(False)
-            self.ui.pushButton_scanning_position.setEnabled(False)
+            self.ui.pushButton_scan_in_space.setEnabled(False)
             self.scope.acquire()
         else:
             self.painter.ReplotEnded.disconnect(self.scope.acquire)
 #            self.painter.ReplotEnded.disconnect(self.force_scope_acquire)
             self.ui.pushButton_scope_single.setEnabled(True)
-            self.ui.pushButton_scanning_position.setEnabled(True)
+            self.ui.pushButton_scan_in_space.setEnabled(True)
 
     @pyqtSlotWExceptions()
     def on_pushButton_AcquireAllSpectra_pressed(self):
@@ -732,14 +708,14 @@ class MainWindow(ThreadedMainWindow):
             self.painter.ReplotEnded.connect(self.force_OSA_acquire)
             self.ui.pushButton_OSA_Acquire.setEnabled(False)
             self.ui.pushButton_OSA_AcquireAll.setEnabled(False)
-            self.ui.pushButton_scanning_position.setEnabled(False)
+            self.ui.pushButton_scan_in_space.setEnabled(False)
             self.ui.pushButton_scan_laser_wavelength.setEnabled(False)
             self.force_OSA_acquire.emit()
         else:
             self.painter.ReplotEnded.disconnect(self.force_OSA_acquire)
             self.ui.pushButton_OSA_Acquire.setEnabled(True)
             self.ui.pushButton_OSA_AcquireAll.setEnabled(True)
-            self.ui.pushButton_scanning_position.setEnabled(True)
+            self.ui.pushButton_scan_in_space.setEnabled(True)
             self.ui.pushButton_scan_laser_wavelength.setEnabled(True)
 
 #
@@ -751,7 +727,7 @@ class MainWindow(ThreadedMainWindow):
 #            self.ui.pushButton_OSA_AcquireAll.setEnabled(False)
 #            self.ui.pushButton_OSA_Acquire.setEnabled(False)
 #            self.ui.pushButton_OSA_AcquireRep.setEnabled(False)
-#            self.ui.pushButton_scanning_position.setEnabled(False)
+#            self.ui.pushButton_scan_in_space.setEnabled(False)
 #            self.force_OSA_acquireAll.emit()
 #
 #        else:
@@ -760,49 +736,88 @@ class MainWindow(ThreadedMainWindow):
 #            self.ui.pushButton_OSA_AcquireAll.setEnabled(True)
 #            self.ui.pushButton_OSA_Acquire.setEnabled(True)
 #            self.ui.pushButton_OSA_AcquireRep.setEnabled(True)
-#            self.ui.pushButton_scanning_position.setEnabled(True)
+#            self.ui.pushButton_scan_in_space.setEnabled(True)
+
+    @pyqtSlotWExceptions()
+    def enable_scanning_process(self):
+        '''
+        check whether both stages and measuring equipment have been connected to enable scanning features
+
+        Returns
+        -------
+        None.
+
+        '''
+        if (self.ui.groupBox_stand.isEnabled() and self.ui.tabWidget_instruments.isEnabled()):
+            self.scanningProcess.OSA=self.OSA
+            self.scanningProcess.stages=self.stages
+            self.ui.groupBox_Scanning.setEnabled(True)
+            self.ui.tabWidget_instruments.setCurrentIndex(0)
+            self.scanningProcess.S_saveData.connect(
+                        lambda Data,prefix: self.logger.save_data(Data,prefix,
+                            self.stages.relative_position['X'], self.stages.relative_position['Y'],
+                            self.stages.relative_position['Z'],'FromOSA'))
+            self.scanningProcess.S_finished.connect(lambda: self.ui.pushButton_scan_in_space.setChecked(False))
+            self.scanningProcess.S_finished.connect(
+                    lambda : self.on_pushButton_scan_in_space(False))
+            self.scanningProcess.S_update_status.connect(lambda S: self.ui.label_scanning_index_status.setText(S))
+            
+            if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
+                self.scanningProcess.LunaJonesMeasurement=True
+                self.scanningProcess.S_saveData.connect(lambda data, name: self.OSA.save_binary(
+                    f"{self.logger.SpectralBinaryDataFolder}"
+                    + f"Sp_{name}_X={self.stages.relative_position['X']}"
+                    + f"_Y={self.stages.relative_position['Y']}"
+                    + f"_Z={self.stages.relative_position['Z']}_.bin"))
 
 
 
-
-    def on_pushButton_scanning_position(self,pressed:bool):
+    def on_pushButton_scan_in_space(self,pressed:bool):
         try:
             if pressed:
+
                 if self.ui.tabWidget_instruments.currentIndex()==0: ## if OSA is active, scanning
-                      print()                                              ## with OSA
+                    self.scanningProcess.is_running=True
+                    final_position=(self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.stages.relative_position[self.scanningProcess.axis_to_scan]
+                    self.ui.label_scanning_final_position.setText(str(final_position))
+                    self.ui.label_scanning_axis.setText(self.scanningProcess.axis_to_scan)
+                                          ## with OSA
     
-                elif self.ui.tabWidget_instruments.currentIndex()==1: ## if scope is active,
-                                                                      ## scanning with scope
-                    from Scripts.ScanningProcessScope import ScanningProcess
-                    self.scanningProcess=ScanningProcess(Scope=self.scope,Stages=self.stages,
-                        scanstep=int(self.ui.lineEdit_ScanningStep.text()),
-                        seekcontactstep=int(self.ui.lineEdit_SearchingStep.text()),
-                        backstep=int(self.ui.lineEdit_BackStep.text()),
-                        seekcontactvalue=float(self.ui.lineEdit_LevelToDetectContact.text()),
-                        ScanningType=int(self.ui.comboBox_ScanningType.currentIndex()),
-                        CurrentFileIndex=int(self.ui.lineEdit_CurrentFile.text()),
-                        StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
-                        numberofscans=int(self.ui.lineEdit_numberOfScans.text()),
-                        searchcontact=self.ui.checkBox_searchContact.isChecked())
-                    self.scanningProcess.S_saveData.connect(
-                        lambda Data,prefix: self.logger.save_data(Data,prefix,
-                            self.stages.position['X']-self.X_0,
-                            self.stages.position['Y']-self.Y_0,
-                            self.stages.position['Z']-self.Z_0, 'FromScope'))
+            #     elif self.ui.tabWidget_instruments.currentIndex()==1: ## if scope is active,
+            #                                                           ## scanning with scope
+            #         from Scripts.ScanningProcessScope import ScanningProcess
+            #         self.scanningProcess=ScanningProcess(Scope=self.scope,Stages=self.stages,
+            #             scanstep=int(self.ui.lineEdit_ScanningStep.text()),
+            #             seekcontactstep=int(self.ui.lineEdit_SearchingStep.text()),
+            #             backstep=int(self.ui.lineEdit_BackStep.text()),
+            #             seekcontactvalue=float(self.ui.lineEdit_LevelToDetectContact.text()),
+            #             ScanningType=int(self.ui.comboBox_ScanningType.currentIndex()),
+            #             CurrentFileIndex=int(self.ui.lineEdit_CurrentFile.text()),
+            #             StopFileIndex=int(self.ui.lineEdit_StopFile.text()),
+            #             numberofscans=int(self.ui.lineEdit_numberOfScans.text()),
+            #             searchcontact=self.ui.checkBox_searchContact.isChecked())
+            #         self.scanningProcess.S_saveData.connect(
+            #             lambda Data,prefix: self.logger.save_data(Data,prefix,
+            #                 self.stages.relative_position['X'],
+            #                 self.stages.relative_position['Y'],
+            #                 self.stages.relative_position['Z'], 'FromScope'))
                 
               
 
                 self.ui.tabWidget_instruments.setEnabled(False)
                 self.ui.groupBox_stand.setEnabled(False)
+                self.ui.pushButton_set_scanning_parameters.setEnabled(False)
                 self.force_scanning_process.connect(self.scanningProcess.run)
                 print('Start Scanning')
                 self.force_scanning_process.emit()
+
     
             else:
                 self.scanningProcess.is_running=False
                 self.ui.tabWidget_instruments.setEnabled(True)
                 self.ui.groupBox_scope_control.setEnabled(True)
                 self.ui.groupBox_stand.setEnabled(True)
+                self.ui.pushButton_set_scanning_parameters.setEnabled(True)
         except:
             print(sys.exc_info())
 
@@ -810,9 +825,9 @@ class MainWindow(ThreadedMainWindow):
     def on_pushButton_save_data(self):
         try:
             if self.stages is not None:
-                X=self.stages.position['X']-self.X_0
-                Y=self.stages.position['Y']-self.Y_0
-                Z=self.stages.position['Z']-self.Z_0
+                X=self.stages.relative_position['X']
+                Y=self.stages.relative_position['Y']
+                Z=self.stages.relative_position['Z']
             else:
                     X,Y,Z=[0,0,0]
 
@@ -854,7 +869,7 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_stateChangeOfFreezeSpectrumBox(self):
-        if self.ui.checkBox_FreezeSpectrum.isChecked():
+        if self.ui.checkBox_FreezeSpectrum.isChecked() and self.painter.Xdata is not None:
             self.painter.savedY=list(self.painter.Ydata)
             self.painter.savedX=list(self.painter.Xdata)
         else:
@@ -870,10 +885,11 @@ class MainWindow(ThreadedMainWindow):
             self.painter.ApplyFFTFilter=False
 
     def on_stateChangeOfIsHighResolution(self):
-        if self.ui.checkBox_HighRes.isChecked():
-            self.OSA.SetWavelengthResolution('High')
-        else:
-            self.OSA.SetWavelengthResolution('Low')
+        if self.OSA is not None:
+            if self.ui.checkBox_HighRes.isChecked():
+                self.OSA.SetWavelengthResolution('High')
+            else:
+                self.OSA.SetWavelengthResolution('Low')
 
     def on_TabChanged_instruments_changed(self,i):
         if i==0:
@@ -915,6 +931,7 @@ class MainWindow(ThreadedMainWindow):
         D['Analyzer']=self.analyzer.get_parameters()
         D['Spectral_processor']=self.spectral_processor.get_parameters()
         D['Scanning_position_process']=self.scanningProcess.get_parameters()
+
         #remove all parameters that are absolute paths 
         for k in D:
             l=[key for key in list(D[k].keys()) if ('path' in key)]
@@ -976,7 +993,7 @@ class MainWindow(ThreadedMainWindow):
     def choose_file_for_analyzer(self):
         DataFilePath= str(QFileDialog.getOpenFileName(
             self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]
-        if DataFilePath is '':
+        if DataFilePath=='':
             print('file is not chosen or previous choice is preserved')
         self.analyzer.file_path=DataFilePath
         self.ui.label_analyzer_file.setText(DataFilePath)
@@ -986,7 +1003,7 @@ class MainWindow(ThreadedMainWindow):
     def choose_file_for_analyzer_plotting_parameters(self):
         FilePath= str(QFileDialog.getOpenFileName(
             self, "Select plotting parameters file",'','*.txt')).split("\',")[0].split("('")[1]
-        if FilePath is '':
+        if FilePath=='':
             FilePath=os.getcwd()+'\\plotting_parameters.txt'
         self.analyzer.plotting_parameters_file=FilePath
         self.ui.label_analyzer_plotting_file.setText(FilePath)
@@ -1033,7 +1050,23 @@ class MainWindow(ThreadedMainWindow):
         if dialog.exec_() == QDialog.Accepted:
             params=get_widget_values(dialog)
             self.scanningProcess.set_parameters(params)
-    
+            
+            final_position=(self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.stages.relative_position[self.scanningProcess.axis_to_scan]
+            self.ui.label_scanning_final_position.setText(str(final_position))
+            self.ui.label_scanning_axis.setText(self.scanningProcess.axis_to_scan)
+            
+    def delete_data_from_folders(self):
+        msg=QMessageBox(2, 'Warning', 'Do you want to delete all raw data?')
+
+        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        if msg.exec_():
+            dirs=['\\SpectralData\\','\\SpectralBinData\\']
+            for directory in dirs:
+                l=os.listdir(self.path_to_main+directory)
+                for file in l:
+                    os.remove(self.path_to_main+directory+file)
+            print('Raw data deleted')
+
         
 
     def closeEvent(self, event):
@@ -1108,10 +1141,9 @@ def set_widget_values(window,d:dict)->None:
          try:
              s=d[key]
              w.setChecked(s)
+             w.clicked.emit(s)
          except KeyError:
              print('error')
-             print(key)
-             print(d)
      for w in window.findChildren(QComboBox):
          key=w.objectName().split('comboBox_')[1]
          try:

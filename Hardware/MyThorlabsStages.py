@@ -24,8 +24,10 @@ class ThorlabsStages(QObject):
     stopped = pyqtSignal()
 #    StepSize={'X':10,'Y':10,'Z':10}
     Stage_key={'X':None,'Y':None,'Z':None}
-    position={'X':0,'Y':0,'Z':0}
-
+    abs_position={'X':0,'Y':0,'Z':0}
+    relative_position={'X':0,'Y':0,'Z':0}
+    zero_position={'X':0,'Y':0,'Z':0}
+    
     def __init__(self):
         super().__init__()
 
@@ -53,13 +55,23 @@ class ThorlabsStages(QObject):
             print('Error while configuring NRT 90864301 stage: '+ str(e))
         
         try:
-            self.position['X']=self.get_position('X')
-            self.position['Z']=self.get_position('Z')
+            self.abs_position['X']=self.get_position('X')
+            self.abs_position['Z']=self.get_position('Z')
         except Exception as e:
             print('cannot take positions of stages: ' + str(e))
         self.IsConnected=1
 
-
+        self.update_relative_positions()
+           
+    def set_zero_positions(self,l):
+        self.zero_position['X']=l[0]
+        self.zero_position['Z']=l[2]
+        self.update_relative_positions()
+    
+    def update_relative_positions(self):
+        self.relative_position['X']=self.abs_position['X']-self.zero_position['X']
+        self.relative_position['Z']=self.abs_position['Z']-self.zero_position['Z']
+        
     def get_position(self, key):
         #for the sage of uniformity, distance is shown in steps 2.5 um each
         motor=self.Stage_key[key]
@@ -70,7 +82,8 @@ class ThorlabsStages(QObject):
         device=self.Stage_key[key]
         device.move_by(distance*2.5e-3, True)
 #        if (result>-1):
-        self.position[key]=self.get_position(key)
+        self.abs_position[key]=self.get_position(key)
+        self.update_relative_positions()
         self.stopped.emit()
 
 

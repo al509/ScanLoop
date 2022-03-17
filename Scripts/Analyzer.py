@@ -27,12 +27,13 @@ class Analyzer(QObject):
             self.single_spectrum_path=None
             self.file_path=path
             self.plotting_parameters_file_path=os.path.dirname(sys.argv[0])+'\\plotting_parameters.txt'
-            self.fig_slice=None
+            self.single_spectrum_figure=None
             self.number_of_peaks_to_search=1
             self.min_peak_level=1
             self.min_peak_distance=10
             self.min_wave=1500
             self.max_wave=1600
+            self.slice_position=0
             self.find_widths=False
             self.indicate_ERV_on_spectrogram=True
             self.plot_results_separately=False
@@ -53,8 +54,9 @@ class Analyzer(QObject):
             -------
             Seriazible attributes of the object
             '''
-            d=dict(vars(self)) #make a copy of the vars dictionary
+            d=dict(vars(self)).copy() #make a copy of the vars dictionary
             del d['SNAP']
+            del d['single_spectrum_figure']
             return d
         
         def load_data(self,path):
@@ -85,10 +87,10 @@ class Analyzer(QObject):
             '''
             save data that is plotted on figure with slice
             '''
-            line = self.fig_slice.gca().get_lines()[0]
+            line = self.single_spectrum_figure.gca().get_lines()[0]
             waves = line.get_xdata()
             signal = line.get_ydata()
-            wave_min,wave_max=self.fig_slice.gca().get_xlim()
+            wave_min,wave_max=self.single_spectrum_figure.gca().get_xlim()
             index_min=np.argmin(abs(waves-wave_min))
             index_max=np.argmin(abs(waves-wave_max))
             signal=signal[index_min:index_max]
@@ -99,9 +101,9 @@ class Analyzer(QObject):
             Data=np.column_stack((waves,signal))
             if self.file_path is not None:
                 path,FileName = os.path.split(self.file_path)
-            elif self.single_spectrum_path() is not None:
+            elif self.single_spectrum_path is not None:
                 path,FileName = os.path.split(self.single_spectrum_path)
-            NewFileName=path+'\\'+FileName.split('.pkl')[0]+'_new_slice'
+            NewFileName=path+'\\'+FileName.split('.pkl')[0]+'_at_{}'.format(self.slice_position)
             f = open(NewFileName+'.pkl',"wb")
             pickle.dump(Data,f)
             f.close()
@@ -112,7 +114,7 @@ class Analyzer(QObject):
             with open(self.single_spectrum_path,'rb') as f:
                 print('loading data for analyzer from ',self.single_spectrum_path)
                 Data=(pickle.load(f))
-            self.fig_slice=plt.figure()
+            self.single_spectrum_figure=plt.figure()
             plt.plot(Data[:,0],Data[:,1])
             plt.xlabel('Wavelength, nm')
             plt.ylabel('Spectral power density, dBm')
@@ -142,21 +144,23 @@ class Analyzer(QObject):
             '''
             plot slice using SNAP object parameters
             '''
+            self.slice_position=position
             if self.SNAP.transmission is None:
                 self.SNAP=SNAP_experiment.load_data(self.file_path)
             with open(self.plotting_parameters_file_path,'r') as f:
                 parameters_dict=json.load(f)
-            self.fig_slice=self.SNAP.plot_spectrum(position,language=parameters_dict['language']) ## plot_spectrum is SNAP_experiment method
+            self.single_spectrum_figure=self.SNAP.plot_spectrum(self.slice_position,language=parameters_dict['language']) ## plot_spectrum is SNAP_experiment method
             plt.tight_layout()
             
         def analyze_spectrum(self,fig):
             '''
             find all minima in represented part of slice and derive parameters of Lorenzian fitting for the minimal minimum
             '''
-            line = fig.gca().get_lines()[0]
+            axes=fig.gca()
+            line =axes.get_lines()[0]
             waves = line.get_xdata()
             signal = line.get_ydata()
-            wave_min,wave_max=self.fig_slice.gca().get_xlim()
+            wave_min,wave_max=axes.get_xlim()
             index_min=np.argmin(abs(waves-wave_min))
             index_max=np.argmin(abs(waves-wave_max))
             waves=waves[index_min:index_max]
@@ -167,7 +171,7 @@ class Analyzer(QObject):
             
             peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),height=self.min_peak_level , distance=self.min_peak_distance)
             if len(peakind2)>0:
-                plt.plot(waves[peakind2], signal[peakind2], '.')
+                axes.plot(waves[peakind2], signal[peakind2], '.')
                 
                 main_peak_index=np.argmax(abs(signal[peakind2]-np.nanmean(signal)))
                 # wavelength_main_peak=waves[peakind2][main_peak_index]
@@ -179,19 +183,18 @@ class Analyzer(QObject):
                     popt, waves_fitted,signal_fitted=SNAP_experiment.get_Fano_fit(waves,signal,wavelength_main_peak)
                 except Exception as e:
                         print('Error: {}'.format(e))
-                plt.plot(waves_fitted, signal_fitted, color='red')
-                results_text='$|S_0|$={:.2f} \n arg(S)={:.2f} $\pi$  \n $\lambda_0$={:.4f}  nm \n $\Delta \lambda={:.4f}$ nm \n Depth={:.3e} \n Depth/$\Delta \lambda$={:.4f} \n Q factor={:.1e}'.format(*popt,popt[4]/popt[3],popt[2]/popt[3])
-                for t in plt.gca().texts:
+                axes.plot(waves_fitted, signal_fitted, color='green')
+                results_text='$|S_0|$={:.2f} \n arg(S)={:.2f} $\pi$  \n $\lambda_0$={:.4f}  nm \n $\Delta \lambda={:.5f}$ nm \n Depth={:.3e} \n Depth/$\Delta \lambda$={:.4f} \n Q factor={:.1e}'.format(*popt,popt[4]/popt[3],popt[2]/popt[3])
+                for t in axes.texts:
                     t.set_visible(False)
-                plt.text(0.8, 0.5,results_text,
+                axes.text(0.8, 0.5,results_text,
                          horizontalalignment='center',
                          verticalalignment='center',
-                         transform = plt.gca().transAxes)
+                         transform = axes.transAxes)
             else:
                 print('Error: No peaks found')
-            plt.tight_layout()
-            plt.show()
-            plt.draw()
+            # plt.tight_layout()
+            fig.canvas.draw_idle()
             
 
 

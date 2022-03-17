@@ -34,8 +34,8 @@
     <rect>
      <x>20</x>
      <y>10</y>
-     <width>321</width>
-     <height>151</height>
+     <width>331</width>
+     <height>161</height>
     </rect>
    </property>
    <property name="title">
@@ -89,7 +89,7 @@
       <x>130</x>
       <y>80</y>
       <width>41</width>
-      <height>41</height>
+      <height>61</height>
      </rect>
     </property>
     <property name="text">
@@ -115,7 +115,7 @@
    <widget class="QCheckBox" name="checkBox_plot_results_separately">
     <property name="geometry">
      <rect>
-      <x>140</x>
+      <x>130</x>
       <y>30</y>
       <width>91</width>
       <height>20</height>
@@ -130,7 +130,7 @@
      <string comment="Plot results on new figures"/>
     </property>
     <property name="text">
-     <string>Plot  separately</string>
+     <string>Plot separately</string>
     </property>
     <property name="tristate">
      <bool>false</bool>
@@ -142,7 +142,7 @@
       <x>10</x>
       <y>80</y>
       <width>61</width>
-      <height>41</height>
+      <height>61</height>
      </rect>
     </property>
     <property name="text">
@@ -171,7 +171,7 @@
       <x>230</x>
       <y>80</y>
       <width>61</width>
-      <height>41</height>
+      <height>61</height>
      </rect>
     </property>
     <property name="text">

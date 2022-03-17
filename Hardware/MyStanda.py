@@ -38,7 +38,9 @@ class StandaStages(QObject):
     stopped = pyqtSignal()
 #    StepSize={'X':10,'Y':10,'Z':10}
     Stage_key={'X':None,'Y':None,'Z':None}
-    position={'X':0,'Y':0,'Z':0}
+    abs_position={}
+    relative_position={}
+    zero_position={'X':0,'Y':0,'Z':0}
 
     def __init__(self):
         super().__init__()
@@ -70,39 +72,6 @@ class StandaStages(QObject):
                 elif 'Axis 3' in str(controller_name.ControllerName):
                     open_name_Y = self.lib.get_device_name(devenum, dev_ind)
 
-        # open_name = None
-        # if len(sys.argv) > 1:
-        #     open_name = sys.argv[1]
-        # elif dev_count > 0: 
-        #     open_name = self.lib.get_device_name(devenum, 0)
-        #     open_name_1 = self.lib.get_device_name(devenum, 1)
-        #     open_name_2 = self.lib.get_device_name(devenum, 2)
-        # elif sys.version_info >= (3,0):
-        #     # use URI for virtual device when there is new urllib python3 API
-        #     tempdir = tempfile.gettempdir() + "/testdevice.bin"
-        #     if os.altsep:
-        #         tempdir = tempdir.replace(os.sep, os.altsep)
-
-        #     tempdir1 = tempfile.gettempdir() + "/testdevice1.bin"
-        #     if os.altsep:
-        #         tempdir1 = tempdir1.replace(os.sep, os.altsep)
-
-        #     tempdir2 = tempfile.gettempdir() + "/testdevice2.bin"
-        #     if os.altsep:
-        #         tempdir2 = tempdir2.replace(os.sep, os.altsep)
-        #     # urlparse build wrong path if scheme is not file
-        #     uri = urllib.parse.urlunparse(urllib.parse.ParseResult(scheme="file", \
-        #             netloc=None, path=tempdir, params=None, query=None, fragment=None))
-        #     open_name = re.sub(r'^file', 'xi-emu', uri).encode()
-
-        #     uri1 = urllib.parse.urlunparse(urllib.parse.ParseResult(scheme="file", \
-        #             netloc=None, path=tempdir1, params=None, query=None, fragment=None))
-        #     open_name_1 = re.sub(r'^file', 'xi-emu', uri1).encode()
-
-        #     uri2 = urllib.parse.urlunparse(urllib.parse.ParseResult(scheme="file", \
-        #             netloc=None, path=tempdir2, params=None, query=None, fragment=None))
-        #     open_name_2 = re.sub(r'^file', 'xi-emu', uri2).encode()
-
         if not open_name_X:
             exit(1)
         if not open_name_Z:
@@ -110,28 +79,34 @@ class StandaStages(QObject):
         if not open_name_Y:
             exit(1)
 
-        # if type(open_name) is str:
-        #     open_name = open_name.encode()
-        # if type(open_name_1) is str:
-        #     open_name_1 = open_name_1.encode()
-        # if type(open_name_2) is str:
-        #     open_name_2 = open_name_2.encode()
 
-        print("\nOpen device " + repr(open_name_X))
+        # print("\nOpen device " + repr(open_name_X))
         self.Stage_key['X'] = self.lib.open_device(open_name_X)
 #        print("Device id: " + repr(Stage_X))
 
-        print("\nOpen device " + repr(open_name_Z))
+        # print("\nOpen device " + repr(open_name_Z))
         self.Stage_key['Z'] = self.lib.open_device(open_name_Z)
 #        print("Device id_1: " + repr(Stage_Z))
 
 
-        print("\nOpen device " + repr(open_name_Y))
+        # print("\nOpen device " + repr(open_name_Y))
         self.Stage_key['Y'] = self.lib.open_device(open_name_Y)
 #        print("Device id_2: " + repr(Stage_Y))
-        self.position['X']=self.get_position(self.Stage_key['X'])
-        self.position['Y']=self.get_position(self.Stage_key['Y'])
-        self.position['Z']=self.get_position(self.Stage_key['Z'])
+        self.abs_position['X']=self.get_position(self.Stage_key['X'])
+        self.abs_position['Y']=self.get_position(self.Stage_key['Y'])
+        self.abs_position['Z']=self.get_position(self.Stage_key['Z'])
+        self.update_relative_positions()
+           
+    def set_zero_positions(self,l):
+        self.zero_position['X']=l[0]
+        self.zero_position['Y']=l[1]
+        self.zero_position['Z']=l[2]
+        self.update_relative_positions()
+    
+    def update_relative_positions(self):
+        self.relative_position['X']=self.abs_position['X']-self.zero_position['X']
+        self.relative_position['Y']=self.abs_position['Y']-self.zero_position['Y']
+        self.relative_position['Z']=self.abs_position['Z']-self.zero_position['Z']
 
     def get_info(self, device_id):
         print("\nGet device info")
@@ -181,7 +156,8 @@ class StandaStages(QObject):
         result = self.lib.command_movr(device_id, distance, 0)
 #        if (result>-1):
         lib.command_wait_for_stop(device_id, 11)
-        self.position[key]=self.get_position(device_id)
+        self.abs_position[key]=self.get_position(device_id)
+        self.update_relative_positions()
         self.stopped.emit()
 
 #    def shift(self, key:str,Sign_key):
@@ -190,7 +166,7 @@ class StandaStages(QObject):
 #        print(distance)
 #        result = self.lib.command_movr(device_id, distance, 0)
 #        if (result>-1):
-#            self.Position[key]+=distance
+#            self.abs_position[key]+=distance
 #        print("Result: Shifted - " + str(bool(result+1)))
 #        self.stopped.emit()
 

@@ -56,10 +56,14 @@ class APEX_OSA_with_additional_features(OSA,QObject):
         self.Run(Type='single')
         print('Time elapsed for a single scan is ', time.time()-a)
         if self.IsHighRes:
-            self.SaveToFile("D:temp", Type="txt")
-            temp = np.loadtxt('//' + Consts.APEX.HOST + '/d/temp_spectrum.txt', skiprows=3, dtype=np.float64)
-            self.spectrum=temp[:,1]
-            self.wavelengtharray=temp[:,0]
+            try:
+                self.SaveToFile("D:temp", Type="txt")
+                time.sleep(0.1)
+                temp = np.loadtxt('//' + Consts.APEX.HOST + '/d/temp_spectrum.txt', skiprows=3, dtype=np.float64)
+                self.spectrum=temp[:,1]
+                self.wavelengtharray=temp[:,0]
+            except Exception:
+                return None,None
         else:
             temp= (np.array(self.GetData()))
             self.spectrum=temp[0,::-1]

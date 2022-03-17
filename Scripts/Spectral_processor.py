@@ -359,7 +359,6 @@ if __name__ == "__main__":
     path= os.getcwd()
     # path='G:\!Projects\!SNAP system\Bending\2022.02.18 Luna meas'
     p=Spectral_processor(path)
-#    ProcessSpectra.plot_sample_shape(DirName='SpectralData',
-#                                     self.axis_to_plot_along='Z')
-
-    p.run()
+    p.plot_sample_shape()
+# 
+    # p.run()

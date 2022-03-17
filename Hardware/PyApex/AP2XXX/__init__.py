@@ -40,6 +40,8 @@ class AP2XXX():
         # Connexion to the equipment
         self.Open()
 
+    def __del__(self):
+        self.Close()
 
     def Reconnect(self):
         self.Close()
@@ -279,6 +281,8 @@ class AP2XXX():
 
         if not self.__Simulation and index >= 0:
             Send(self.Connexion, "CHBAND" + str(index) + "\n")
+            
+            
 
 
 #

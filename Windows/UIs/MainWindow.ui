@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1183</width>
-    <height>665</height>
+    <height>810</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -55,11 +55,64 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1163</width>
-         <height>604</height>
+         <width>1159</width>
+         <height>735</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="2" colspan="2">
+         <widget class="QGroupBox" name="groupBox_spectrum">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>2</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="sizeIncrement">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string comment="Plot results on new figures" extracomment="Plot results on new figures">10</string>
+          </property>
+          <property name="toolTipDuration">
+           <number>10</number>
+          </property>
+          <property name="title">
+           <string>Graph</string>
+          </property>
+          <widget class="QLabel" name="label_analyzer_plotting_file">
+           <property name="geometry">
+            <rect>
+             <x>-170</x>
+             <y>240</y>
+             <width>161</width>
+             <height>23</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>none</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </widget>
+        </item>
         <item row="1" column="3">
          <widget class="QGroupBox" name="groupBox_11">
           <property name="sizePolicy">
@@ -190,7 +243,7 @@
             <rect>
              <x>80</x>
              <y>20</y>
-             <width>51</width>
+             <width>71</width>
              <height>20</height>
             </rect>
            </property>
@@ -207,7 +260,7 @@
           <widget class="QPushButton" name="pushButton_getRange">
            <property name="geometry">
             <rect>
-             <x>140</x>
+             <x>160</x>
              <y>20</y>
              <width>71</width>
              <height>21</height>
@@ -220,7 +273,7 @@
           <widget class="QCheckBox" name="checkBox_FreezeSpectrum">
            <property name="geometry">
             <rect>
-             <x>330</x>
+             <x>340</x>
              <y>20</y>
              <width>60</width>
              <height>20</height>
@@ -233,7 +286,7 @@
           <widget class="QPushButton" name="pushButton_setMAXrange">
            <property name="geometry">
             <rect>
-             <x>220</x>
+             <x>240</x>
              <y>20</y>
              <width>91</width>
              <height>21</height>
@@ -241,59 +294,6 @@
            </property>
            <property name="text">
             <string>Set MAX range</string>
-           </property>
-          </widget>
-         </widget>
-        </item>
-        <item row="0" column="2" colspan="2">
-         <widget class="QGroupBox" name="groupBox_spectrum">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>2</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="sizeIncrement">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="baseSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="toolTip">
-           <string comment="Plot results on new figures" extracomment="Plot results on new figures">10</string>
-          </property>
-          <property name="toolTipDuration">
-           <number>10</number>
-          </property>
-          <property name="title">
-           <string>Graph</string>
-          </property>
-          <widget class="QLabel" name="label_analyzer_plotting_file">
-           <property name="geometry">
-            <rect>
-             <x>-170</x>
-             <y>240</y>
-             <width>161</width>
-             <height>23</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>none</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </widget>
@@ -330,7 +330,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>451</height>
+             <height>558</height>
             </rect>
            </property>
            <attribute name="label">
@@ -622,8 +622,8 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-38</y>
-             <width>283</width>
+             <y>-142</y>
+             <width>279</width>
              <height>700</height>
             </rect>
            </property>
@@ -1082,7 +1082,7 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>560</y>
+              <y>510</y>
               <width>281</width>
               <height>141</height>
              </rect>
@@ -1094,7 +1094,7 @@
              </sizepolicy>
             </property>
             <property name="title">
-             <string>Work with files</string>
+             <string>Tools</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -1146,7 +1146,7 @@
               <rect>
                <x>10</x>
                <y>50</y>
-               <width>141</width>
+               <width>121</width>
                <height>23</height>
               </rect>
              </property>
@@ -1168,8 +1168,8 @@
               <rect>
                <x>130</x>
                <y>110</y>
-               <width>32</width>
-               <height>20</height>
+               <width>37</width>
+               <height>22</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1204,7 +1204,7 @@
               <rect>
                <x>10</x>
                <y>80</y>
-               <width>141</width>
+               <width>121</width>
                <height>21</height>
               </rect>
              </property>
@@ -1215,14 +1215,27 @@
             <widget class="QPushButton" name="pushButton_set_spectral_processor_parameters_2">
              <property name="geometry">
               <rect>
-               <x>160</x>
+               <x>140</x>
                <y>50</y>
-               <width>121</width>
+               <width>141</width>
                <height>23</height>
               </rect>
              </property>
              <property name="text">
               <string>Processing parameters</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_analyze_spectrum">
+             <property name="geometry">
+              <rect>
+               <x>140</x>
+               <y>80</y>
+               <width>141</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Analyze spectrum</string>
              </property>
             </widget>
            </widget>
@@ -1235,13 +1248,13 @@
               <x>0</x>
               <y>340</y>
               <width>281</width>
-              <height>121</height>
+              <height>161</height>
              </rect>
             </property>
             <property name="title">
              <string>Scanning</string>
             </property>
-            <widget class="QPushButton" name="pushButton_scanning_position">
+            <widget class="QPushButton" name="pushButton_scan_in_space">
              <property name="geometry">
               <rect>
                <x>10</x>
@@ -1268,7 +1281,7 @@
               <rect>
                <x>10</x>
                <y>60</y>
-               <width>151</width>
+               <width>261</width>
                <height>23</height>
               </rect>
              </property>
@@ -1276,20 +1289,68 @@
               <string>Scanning parameters</string>
              </property>
             </widget>
-            <widget class="QLabel" name="label_scanning_position_status">
+            <widget class="QLabel" name="label_scanning_index_status">
              <property name="geometry">
               <rect>
-               <x>0</x>
-               <y>90</y>
-               <width>271</width>
+               <x>20</x>
+               <y>100</y>
+               <width>181</width>
                <height>20</height>
               </rect>
              </property>
              <property name="text">
-              <string>status</string>
+              <string>Step __ of __</string>
              </property>
              <property name="alignment">
-              <set>Qt::AlignCenter</set>
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_scanning_axis">
+             <property name="geometry">
+              <rect>
+               <x>88</x>
+               <y>130</y>
+               <width>16</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>__</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_scanning_final_position">
+             <property name="geometry">
+              <rect>
+               <x>185</x>
+               <y>130</y>
+               <width>41</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>_____</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_2">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>130</y>
+               <width>261</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Scan along __, final position _____ steps</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
              </property>
             </widget>
            </widget>
@@ -1300,7 +1361,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>451</height>
+             <height>558</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1373,7 +1434,7 @@
               <x>0</x>
               <y>150</y>
               <width>291</width>
-              <height>101</height>
+              <height>121</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -1470,7 +1531,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>600</height>
             </rect>
            </property>
@@ -1487,7 +1548,7 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>80</y>
+              <y>50</y>
               <width>281</width>
               <height>301</height>
              </rect>
@@ -1606,8 +1667,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>33</width>
-                <height>20</height>
+                <width>38</width>
+                <height>22</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -1641,19 +1702,6 @@
                </property>
               </item>
              </widget>
-             <widget class="QPushButton" name="pushButton_analyzer_save_slice">
-              <property name="geometry">
-               <rect>
-                <x>10</x>
-                <y>50</y>
-                <width>75</width>
-                <height>23</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Save slice</string>
-              </property>
-             </widget>
             </widget>
             <widget class="QPushButton" name="pushButton_analyzer_save_cropped_data">
              <property name="geometry">
@@ -1672,8 +1720,8 @@
              <property name="geometry">
               <rect>
                <x>140</x>
-               <y>60</y>
-               <width>121</width>
+               <y>61</y>
+               <width>131</width>
                <height>23</height>
               </rect>
              </property>
@@ -1707,27 +1755,14 @@
               <string>Apply FFT filter</string>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton_set_analyzer_parameters">
-             <property name="geometry">
-              <rect>
-               <x>140</x>
-               <y>150</y>
-               <width>111</width>
-               <height>21</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Analyzer parameters</string>
-             </property>
-            </widget>
            </widget>
            <widget class="QGroupBox" name="groupBox_8">
             <property name="geometry">
              <rect>
-              <x>0</x>
-              <y>0</y>
+              <x>-10</x>
+              <y>360</y>
               <width>281</width>
-              <height>80</height>
+              <height>121</height>
              </rect>
             </property>
             <property name="title">
@@ -1766,7 +1801,7 @@
              <property name="geometry">
               <rect>
                <x>20</x>
-               <y>50</y>
+               <y>90</y>
                <width>101</width>
                <height>23</height>
               </rect>
@@ -1775,6 +1810,32 @@
               <string>Analyze</string>
              </property>
             </widget>
+            <widget class="QPushButton" name="pushButton_analyzer_save_slice">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>53</y>
+               <width>101</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Save</string>
+             </property>
+            </widget>
+           </widget>
+           <widget class="QPushButton" name="pushButton_set_analyzer_parameters">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>10</y>
+              <width>151</width>
+              <height>31</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Analyzer parameters</string>
+            </property>
            </widget>
           </widget>
           <widget class="QWidget" name="page_6">
@@ -1782,8 +1843,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
-             <height>500</height>
+             <width>300</width>
+             <height>558</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2329,7 +2390,7 @@
      <x>0</x>
      <y>0</y>
      <width>1183</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuTools">
@@ -2340,7 +2401,14 @@
     <addaction name="action_load_parameters"/>
     <addaction name="action_delete_all_figures"/>
    </widget>
+   <widget class="QMenu" name="menuData">
+    <property name="title">
+     <string>Data</string>
+    </property>
+    <addaction name="action_delete_all_measured_spectral_data"/>
+   </widget>
    <addaction name="menuTools"/>
+   <addaction name="menuData"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_save_parameters">
@@ -2365,6 +2433,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="action_delete_all_measured_spectral_data">
+   <property name="text">
+    <string>Delete all measured spectral data</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete all measured spectral data in SpetralData and SpectralBinData folders</string>
    </property>
   </action>
  </widget>
