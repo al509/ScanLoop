@@ -6,8 +6,8 @@ Created on Fri Sep 25 16:30:03 2020
 matplotlib 3.4.2 is needed! 
 
 """
-__version__='2.2'
-__data__='2022.01.20'
+__version__='3'
+__data__='2022.03.18'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -197,7 +197,7 @@ class SNAP():
             try:
                 ax_steps.set_xlabel('Расстояние, шаги')
             except: pass 
-        plt.tight_layout()
+        fig.tight_layout()
         self.fig_spectrogram=fig
         return fig,im,ax_Wavelengths,ax_Radius
     
@@ -230,23 +230,29 @@ class SNAP():
 
     # @numba.njit
     def extract_ERV(self,number_of_peaks_to_search=1,min_peak_level=1,min_peak_distance=10000,min_wave=0,max_wave=1e4,find_widths=True,
-                    indicate_ERV_on_spectrogram=True, plot_results_separately=False,N_points_for_fitting=100,iterate_different_N_points=False):
+                    indicate_ERV_on_spectrogram=True, plot_results_separately=False,N_points_for_fitting=100,iterate_different_N_points=False,max_N_points_for_fitting=100):
         '''
         analyze 2D spectrogram
-        return position of seeral first (higher-wavelegth) main resonances. Number of resonances is defined by number_of_peaks_to_search
+        return position of several first (higher-wavelegth) main resonances. Number of resonances is defined by number_of_peaks_to_search
         return corresponding ERV in nm, and resonance parameters:
             nonresonance transmission, Fano phase shift, depth/width, linewidth
         for each slice along position axis
         
         uses scipy.find_peak
+        
+        N_points_for_fitting - part of spectrum to be used for fitting. if 0, whole spectrum is used
+        iterate_different_N_points - whether to check different N_points_for_fitting in each fitting process
         '''
+        
+               
+        
         NumberOfWavelength,Number_of_positions = self.transmission.shape
         WavelengthArray=self.wavelengths
         Positions=self.x
         number_of_spectral_points=len(WavelengthArray)
         
         PeakWavelengthArray=np.empty((Number_of_positions,number_of_peaks_to_search))
-        resonance_parameters_array=np.empty((Number_of_positions,number_of_peaks_to_search,4))
+        resonance_parameters_array=np.empty((Number_of_positions,number_of_peaks_to_search,7))
         PeakWavelengthArray.fill(np.nan)
         resonance_parameters_array.fill(np.nan)
 
@@ -274,28 +280,30 @@ class SNAP():
                                      i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
                                      fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Zind],peak_wavelength)
                             else:
-                                optimal_N=10
+                                N_points_for_fitting=10
                                 minimal_linewidth=max(WavelengthArray)-min(WavelengthArray)
-                                for N_points in np.arange(10,number_of_spectral_points,2):
+                                for N_points in np.arange(10,max_N_points_for_fitting,2):
                                      i_min=0 if index-N_points<0 else index-N_points
                                      i_max=number_of_spectral_points-1 if index+N_points>number_of_spectral_points-1 else index+N_points
                                      fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Zind],peak_wavelength)
-                                     print(N_points,fitting_parameters[3])
+                                     if (N_points%10==0): print('Z={},i_peak={},N_points={},linewidth={}'.format(Z,ii,N_points,fitting_parameters[3]))
                                      if minimal_linewidth>fitting_parameters[3]:
                                          minimal_linewidth=fitting_parameters[3]
-                                         optimal_N=N_points
+                                         N_points_for_fitting=N_points
                                          
-                                i_min=0 if index-optimal_N<0 else index-optimal_N
-                                i_max=number_of_spectral_points-1 if index+optimal_N>number_of_spectral_points-1 else index+optimal_N
+                                i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
+                                i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
                                 fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Zind],peak_wavelength)
-                                   
-                            resonance_parameters_array[Zind,ii]=([fitting_parameters[0],fitting_parameters[1],
-                                                                  fitting_parameters[4]/fitting_parameters[3],fitting_parameters[3]])
+                            [non_res_transmission, Fano_phase, resonance_position,linewidth,depth]=fitting_parameters
+                            delta_coupling=depth/2
+                            delta_0=linewidth/2-delta_coupling
+                            resonance_parameters_array[Zind,ii]=([non_res_transmission,Fano_phase,
+                                                                  depth,linewidth,delta_coupling,delta_0,N_points_for_fitting])
                             # except:
                             #     print('error while fitting')
         lambdas_0=np.amin(PeakWavelengthArray,axis=0)
         ERV=(PeakWavelengthArray-lambdas_0)/np.nanmean(PeakWavelengthArray,axis=0)*self.R_0*self.refractive_index*1e3 # in nm
-        print('Analyze finished')
+        print('Analyzing finished')
         if self.fig_spectrogram is not None and indicate_ERV_on_spectrogram:
             if len(self.fig_spectrogram.axes[0].lines)>1:
                 for line in self.fig_spectrogram.axes[0].lines[1:]: line.remove()
@@ -307,7 +315,7 @@ class SNAP():
             for i in range(0,number_of_peaks_to_search):
                 self.fig_spectrogram.axes[0].plot(self.x,PeakWavelengthArray[:,i])
                 line=self.fig_spectrogram.axes[0].plot(self.x,PeakWavelengthArray[:,i])
-                self.fig_spectrogram_ERV_lines.append[line]
+                # self.fig_spectrogram_ERV_lines.append[line]
 
         
         resonance_parameters_array=np.array(resonance_parameters_array)
@@ -324,27 +332,48 @@ class SNAP():
 
         if plot_results_separately and find_widths:    
             plt.figure()
+            plt.title('Depth and Linewidth $\Delta \lambda$')
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(self.x,resonance_parameters_array[:,i,2])
+                plt.plot(self.x,resonance_parameters_array[:,i,2],color='blue')
             plt.xlabel('Distance, $\mu$m')
-            plt.ylabel('Depth',color='blue')
+            plt.ylabel('Depth ',color='blue')
             plt.gca().tick_params(axis='y', colors='blue')
-            plt.title('Depth of the resonance')
-            
-            plt.figure()
+            plt.gca().twinx()
+            # plt.figure()
             for i in range(0,number_of_peaks_to_search):
                 plt.plot(self.x,resonance_parameters_array[:,i,3], color='red')
-            plt.xlabel('Distance, $\mu$m')
             plt.ylabel('Linewidth $\Delta \lambda$, nm',color='red')
-            plt.title('Linewidth $\Delta \lambda$')
+            plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
             
             plt.figure()
-            plt.title('Nonresonanse transmission $|S_0|$')
+            plt.title('Nonresonanse transmission $|S_0|$ and its phase')
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(self.x,resonance_parameters_array[:,i,0])
+                plt.plot(self.x,resonance_parameters_array[:,i,0],color='blue')
             plt.xlabel('Distance, $\mu$m')
-            plt.ylabel('Nonresonance transmission $|S_0|$')
+            plt.ylabel('Nonresonance transmission $|S_0|$',color='blue')
+            plt.gca().tick_params(axis='y', colors='blue')
+            plt.gca().twinx()
+            # plt.figure()
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(self.x,resonance_parameters_array[:,i,1], color='red')
+            plt.ylabel('Phase',color='red')
+            plt.gca().tick_params(axis='y', colors='red')
+            plt.tight_layout()
+            
+            plt.figure()
+            plt.title('$\delta_0$ and $\delta_c$')
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(self.x,resonance_parameters_array[:,i,4],color='blue')
+            plt.xlabel('Distance, $\mu$m')
+            plt.ylabel('$\delta_c$, nm',color='blue')
+            plt.gca().tick_params(axis='y', colors='blue')
+            plt.gca().twinx()
+            # plt.figure()
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(self.x,resonance_parameters_array[:,i,5], color='red')
+            plt.ylabel('$\delta_0$, nm',color='red')
+            plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
         
         
@@ -372,7 +401,7 @@ def load_data(file_name):
         
 def get_Fano_fit(waves,signal,peak_wavelength=None):
     '''
-    fit shape, given in log scale, with Lorenzian 10*np.log10(abs(transmission*np.exp(1j*phase) - 1j*depth/(w-w0+1j*width/2))**2) 
+    fit shape, given in log scale, with Lorenzian 10*np.log10(abs(transmission*np.exp(1j*phase) - 1j*depth/(w-w0+1j*width/2))**2)  # Gorodetsky, (9.19), p.253
     
     meay use peak_wavelength
     return [transmission, Fano_phase, resonance_position,linewidth,depth], [x_fitted,y_fitted]

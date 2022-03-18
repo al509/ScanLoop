@@ -39,6 +39,7 @@ class Analyzer(QObject):
             self.plot_results_separately=False
             self.N_points_for_fitting=0
             self.iterate_different_N_points=False
+            self.max_N_points_for_fitting=100
             
             self.SNAP=None
             
@@ -74,7 +75,7 @@ class Analyzer(QObject):
             i_w_min=np.argmin(abs(self.SNAP.wavelengths-wave_lim[0]))
             i_w_max=np.argmin(abs(self.SNAP.wavelengths-wave_lim[1]))
             path,FileName = os.path.split(self.file_path)
-            NewFileName=path+'\\'+FileName.split('.')[-2]+'_cropped.3dpkl'
+            NewFileName=path+'\\'+FileName.split('.')[-2]+'_cropped.pkl3d'
             f=open(NewFileName,'wb')
             D={}
             D['axis']=self.SNAP.axis
@@ -210,7 +211,7 @@ class Analyzer(QObject):
                                                                                                    self.min_peak_distance,self.min_wave,self.max_wave,
                                                                                                    self.find_widths, self.indicate_ERV_on_spectrogram, 
                                                                                                    self.plot_results_separately, self.N_points_for_fitting,
-                                                                                                   self.iterate_different_N_points)
+                                                                                                   self.iterate_different_N_points,self.max_N_points_for_fitting)
             path,FileName = os.path.split(self.file_path)
             NewFileName=path+'\\'+FileName.split('.')[-2]+'_ERV.pkl'
             with open(NewFileName,'wb') as f:
@@ -219,6 +220,71 @@ class Analyzer(QObject):
             
             
         
+        def plot_ERV_params(self,params_dict:dict):
+            positions=params_dict['positions']
+            peak_wavelengths=params_dict['peak_wavelengths']
+            number_of_peaks_to_search=np.shape(peak_wavelengths)[1]
+            resonance_parameters_array=params_dict['resonance_parameters']
+            
+            plt.figure()
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,peak_wavelengths[:,i])
+            plt.xlabel('Distance, $\mu$m')
+            plt.ylabel('Cut-off wavelength, nm')
+            plt.title('Cut-off wavelength')
+            plt.tight_layout()
+  
+            plt.figure()
+            plt.title('Depth and Linewidth $\Delta \lambda$')
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,resonance_parameters_array[:,i,2],color='blue')
+            plt.xlabel('Distance, $\mu$m')
+            plt.ylabel('Depth ',color='blue')
+            plt.gca().tick_params(axis='y', colors='blue')
+            plt.gca().twinx()
+            # plt.figure()
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,resonance_parameters_array[:,i,3], color='red')
+            plt.ylabel('Linewidth $\Delta \lambda$, nm',color='red')
+            plt.gca().tick_params(axis='y', colors='red')
+            plt.tight_layout()
+            
+            plt.figure()
+            plt.title('Nonresonanse transmission $|S_0|$ and its phase')
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,resonance_parameters_array[:,i,0],color='blue')
+            plt.xlabel('Distance, $\mu$m')
+            plt.ylabel('Nonresonance transmission $|S_0|$',color='blue')
+            plt.gca().tick_params(axis='y', colors='blue')
+            plt.gca().twinx()
+            # plt.figure()
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,resonance_parameters_array[:,i,1], color='red')
+            plt.ylabel('Phase',color='red')
+            plt.gca().tick_params(axis='y', colors='red')
+            plt.tight_layout()
+            
+            plt.figure()
+            plt.title('$\delta_0$ and $\delta_c$')
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,resonance_parameters_array[:,i,4],color='blue')
+            plt.xlabel('Distance, $\mu$m')
+            plt.ylabel('$\delta_c$, nm',color='blue')
+            plt.gca().tick_params(axis='y', colors='blue')
+            plt.gca().twinx()
+            # plt.figure()
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,resonance_parameters_array[:,i,5], color='red')
+            plt.ylabel('$\delta_0$, nm',color='red')
+            plt.gca().tick_params(axis='y', colors='red')
+            plt.tight_layout()
+        
+        
+        def plot_ERV_from_file(self,file_name):
+            with open(file_name,'rb') as f:
+                d=pickle.load(f)
+            self.plot_ERV_params(d)
+                
         
   
 
@@ -229,7 +295,7 @@ if __name__ == "__main__":
     
     
     #%%
-    analyzer=Analyzer(os.getcwd()+'\\high_res_along_taper_axis_Y=-20_cropped_cropped.3dpkl')
+    analyzer=Analyzer(os.getcwd()+'\\high_res_along_taper_axis_Y=-20_cropped_cropped.pkl3d')
     analyzer.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
     
     analyzer.plot2D()

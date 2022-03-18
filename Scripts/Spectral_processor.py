@@ -297,11 +297,11 @@ class Spectral_processor(QObject):
                 SignalArray[:,ii]=SmallSignalArray[:,0]
 
         if self.axis_to_plot_along=='W':
-            f_name='Processed_spectra_VS_wavelength.3dpkl'     
+            f_name='Processed_spectra_VS_wavelength.pkl3d'     
         elif self.axis_to_plot_along=='p':
-            f_name='Processed_spectrogram_at_spot.3dpkl'     
+            f_name='Processed_spectrogram_at_spot.pkl3d'     
         else:
-            f_name='Processed_spectrogram.3dpkl'     
+            f_name='Processed_spectrogram.pkl3d'     
         f=open(self.processedData_dir_path+f_name,'wb')
         D={}
         D['axis']=self.axis_to_plot_along

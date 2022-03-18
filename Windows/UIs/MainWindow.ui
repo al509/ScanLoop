@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1159</width>
-         <height>735</height>
+         <width>1163</width>
+         <height>749</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -330,7 +330,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>558</height>
+             <height>596</height>
             </rect>
            </property>
            <attribute name="label">
@@ -622,8 +622,8 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-142</y>
-             <width>279</width>
+             <y>-100</y>
+             <width>283</width>
              <height>700</height>
             </rect>
            </property>
@@ -1168,8 +1168,8 @@
               <rect>
                <x>130</x>
                <y>110</y>
-               <width>37</width>
-               <height>22</height>
+               <width>32</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1361,7 +1361,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>558</height>
+             <height>596</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1531,7 +1531,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>279</width>
+             <width>283</width>
              <height>600</height>
             </rect>
            </property>
@@ -1667,8 +1667,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>38</width>
-                <height>22</height>
+                <width>33</width>
+                <height>20</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -1753,6 +1753,19 @@
              </property>
              <property name="text">
               <string>Apply FFT filter</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_analyzer_plot_ERV_from_file">
+             <property name="geometry">
+              <rect>
+               <x>140</x>
+               <y>150</y>
+               <width>131</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Load ERV from file</string>
              </property>
             </widget>
            </widget>
@@ -1843,8 +1856,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>558</height>
+             <width>83</width>
+             <height>500</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -1913,7 +1926,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;λ&lt;span style=&quot; vertical-align:sub;&quot;&gt;min&lt;/span&gt;, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;?&lt;span style=&quot; vertical-align:sub;&quot;&gt;min&lt;/span&gt;, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
             <widget class="QLabel" name="label_18">
@@ -1926,7 +1939,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;λ&lt;span style=&quot; vertical-align:sub;&quot;&gt;max&lt;/span&gt;, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;?&lt;span style=&quot; vertical-align:sub;&quot;&gt;max&lt;/span&gt;, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
             <widget class="QLineEdit" name="lineEdit_laser_lambda_scanning_step">
@@ -1955,7 +1968,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;dλ, pm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;d?, pm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
             <widget class="QPushButton" name="pushButton_scan_laser_wavelength">
@@ -1984,7 +1997,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Current λ&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Current ?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
             <widget class="QLabel" name="label_current_scanning_laser_wavelength">
@@ -2125,7 +2138,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;λ, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;?, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
             <widget class="QPushButton" name="pushButton_laser_On">
@@ -2284,7 +2297,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;λ&lt;span style=&quot; vertical-align:sub;&quot;&gt;central&lt;/span&gt;, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;?&lt;span style=&quot; vertical-align:sub;&quot;&gt;central&lt;/span&gt;, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
             <widget class="QLabel" name="label_27">
@@ -2297,7 +2310,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Dλ, pm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;D?, pm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
             <widget class="QLineEdit" name="lineEdit_laser_lambda_sweeping_step">
@@ -2326,7 +2339,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;dλ, pm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;d?, pm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
             <widget class="QPushButton" name="pushButton_sweep_laser_wavelength">
@@ -2390,7 +2403,7 @@
      <x>0</x>
      <y>0</y>
      <width>1183</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuTools">

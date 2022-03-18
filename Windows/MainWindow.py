@@ -231,6 +231,9 @@ class MainWindow(ThreadedMainWindow):
 
         self.ui.pushButton_analyzer_plot_single_spectrum_from_file.clicked.connect(
             self.plot_single_spectrum_from_file)
+        
+        self.ui.pushButton_analyzer_plot_ERV_from_file.clicked.connect(
+            self.plot_ERV_from_file)
 
         self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(
             self.analyzer.plot_sample_shape)
@@ -989,9 +992,16 @@ class MainWindow(ThreadedMainWindow):
         self.analyzer.single_spectrum_path=DataFilePath
         self.analyzer.plot_single_spectrum_from_file()
         self.ui.label_analyzer_single_spectrum_file.setText(self.analyzer.single_spectrum_path)
+        
+    def plot_ERV_from_file(self):
+        DataFilePath= str(QFileDialog.getOpenFileName(
+            self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]
+        self.analyzer.plot_ERV_from_file(DataFilePath)
+        
+    
 
     def choose_file_for_analyzer(self):
-        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl *.3dpkl' )).split("\',")[0].split("('")[1]
+        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl *.pkl3d' )).split("\',")[0].split("('")[1]
         if DataFilePath=='':
             print('file is not chosen or previous choice is preserved')
         self.analyzer.file_path=DataFilePath
