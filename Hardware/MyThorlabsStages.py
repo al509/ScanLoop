@@ -8,6 +8,8 @@ Created on Tue Feb  4 15:08:47 2020
 
 '''
 NOTE that positions are in steps 2.5 micron each!
+
+Need to install kinesis and have kinesis DLLs in win PATH
 '''
 
 
@@ -28,7 +30,9 @@ from Hardware.thorlabs_kinesis import benchtop_stepper_motor as bsm
 from Hardware.thorlabs_kinesis import KCube_DC_Servo as kdc
     
 
-tolerance=5
+tolerance=5 # encoder steps
+kdc_encoder_step=0.03 # micron per step
+bsm_encoder_step=0.1 # micron per step
 
 
 class ThorlabsStages(QObject):
@@ -93,11 +97,9 @@ class ThorlabsStages(QObject):
     def get_position(self, key):
         #for the sage of uniformity, distance is shown in steps 2.5 um each
         if key=='X':
-            time.sleep(self._short_pause)
-            return int(kdc.CC_GetPosition(self._serial_no_x))
+            return int(kdc.CC_GetPosition(self._serial_no_x))*kdc_encoder_step/2.5
         if key=='Z':
-            time.sleep(self._short_pause)
-            return int(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))
+            return int(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))*bsm_encoder_step/2.5
         if key=='Y':
             return 0
     
@@ -150,6 +152,7 @@ class ThorlabsStages(QObject):
             kdc.CC_ClearMessageQueue(self._serial_no_x)
             time.sleep(self._short_pause)
             init_pos=int(kdc.CC_GetPosition(self._serial_no_x))
+            distance=distance*2.5/kdc_encoder_step
             kdc.CC_SetMoveRelativeDistance(self._serial_no_x, c_int(distance))
             kdc.CC_MoveRelativeDistance(self._serial_no_x)
             
@@ -166,7 +169,7 @@ class ThorlabsStages(QObject):
             bsm.SBC_ClearMessageQueue(self._serial_no_z, self.channel_z)
             init_pos=int(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))
             time.sleep(self._short_pause)
-                
+            distance=distance*2.5/bsm_encoder_step
             bsm.SBC_SetMoveRelativeDistance(self._serial_no_z, self.channel_z,c_int(distance))
             bsm.SBC_MoveRelativeDistance(self._serial_no_z,self.channel_z)
             

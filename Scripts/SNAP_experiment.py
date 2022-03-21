@@ -265,6 +265,7 @@ class SNAP():
                 if len(NewPeakind)>=number_of_peaks_to_search:
                     shortWavArray=WavelengthArray[NewPeakind[:number_of_peaks_to_search]]
                 elif len(NewPeakind)<number_of_peaks_to_search:
+                    print(number_of_peaks_to_search-len(NewPeakind))
                     shortWavArray=np.concatenate(WavelengthArray[NewPeakind],np.nan*np.zeros(number_of_peaks_to_search-len(NewPeakind)))
                 PeakWavelengthArray[Zind]=shortWavArray
                 if find_widths:
