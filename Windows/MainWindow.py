@@ -394,12 +394,12 @@ class MainWindow(ThreadedMainWindow):
             from Hardware.MyStanda import StandaStages
             self.stages=StandaStages()
         elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs':
-            from Hardware.MyThorlabsStages import ThorlabsStages
-            self.stages=ThorlabsStages()
+            import Hardware.MyThorlabsStages
+            self.stages=Hardware.MyThorlabsStages.ThorlabsStages()
             self.ui.pushButton_MovePlusY.setEnabled(False)
             self.ui.pushButton_MoveMinusY.setEnabled(False)
 
-        if self.stages.IsConnected>0:
+        if self.stages.isConnected>0:
             print('Connected to stages')
             self.add_thread([self.stages])
             self.stages.set_zero_positions(self.logger.load_zero_position())
@@ -434,9 +434,8 @@ class MainWindow(ThreadedMainWindow):
         None.
 
         '''
-        self.stages.Stage_key['X'].move_home(True)
-        self.stages.Stage_key['Z'].set_move_home_parameters(2, 1, 2.0, 0.0001)
-        self.stages.Stage_key['Z'].move_home(False)
+        self.stages.move_home()
+        
         
     def connect_powermeter(self):
         '''
@@ -674,7 +673,8 @@ class MainWindow(ThreadedMainWindow):
         Y_0=(self.stages.abs_position['Y'])
         Z_0=(self.stages.abs_position['Z'])
         self.stages.zero_position=self.stages.abs_position.copy()
-        self.logger.save_zero_position(self.X_0,self.Y_0,self.Z_0)
+        self.stages.update_relative_positions()
+        self.logger.save_zero_position(X_0,Y_0,Z_0)
         self.updatePositions()
 
     '''

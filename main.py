@@ -1,6 +1,6 @@
 
-__version__='19.0.4'
-__date__='17.03.2021'
+__version__='19.1.0'
+__date__='21.03.2021'
 
 
 import sys
@@ -10,7 +10,7 @@ from PyQt5 import QtWidgets
 from Windows.MainWindow import MainWindow
 
 
-
+5
 def main():
     '''Main function. Starts if you launch the program from this file.'''
     if not QtWidgets.QApplication.instance():

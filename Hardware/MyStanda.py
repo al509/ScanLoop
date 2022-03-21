@@ -45,7 +45,7 @@ class StandaStages(QObject):
     def __init__(self):
         super().__init__()
         self.lib=lib
-        self.IsConnected=0
+        self.isConnected=0
         sbuf = create_string_buffer(64)
         self.lib.ximc_version(sbuf)
         print("Library version: " + sbuf.raw.decode())
@@ -57,7 +57,7 @@ class StandaStages(QObject):
 
         dev_count = self.lib.get_device_count(devenum)
         print("Device count: " + repr(dev_count))
-        self.IsConnected=dev_count
+        self.isConnected=dev_count
 
         controller_name = controller_name_t()
         for dev_ind in range(0, dev_count):

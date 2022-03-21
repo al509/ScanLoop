@@ -7,7 +7,7 @@ Created on Tue Feb  4 15:08:47 2020
 
 
 '''
-NOTE that positions are in steps 2/5 micron each!
+NOTE that positions are in steps 2.5 micron each!
 '''
 
 
@@ -15,8 +15,20 @@ from PyQt5.QtCore import QObject,  pyqtSignal
 import sys
 import os
 import numpy as np
-import Hardware.thorlabs_apt as apt
 import time
+from ctypes import (
+    c_short,
+    c_int,
+    c_char_p,
+    byref,
+)
+if __name__ == "__main__":
+    os.chdir('..')
+from Hardware.thorlabs_kinesis import benchtop_stepper_motor as bsm
+from Hardware.thorlabs_kinesis import KCube_DC_Servo as kdc
+    
+
+tolerance=5
 
 
 class ThorlabsStages(QObject):
@@ -30,39 +42,45 @@ class ThorlabsStages(QObject):
     
     def __init__(self):
         super().__init__()
-
-#
-        try:
-            self.Stage_key['X'] = apt.Motor(27255020)
-        except Exception as e:
-            print('Error while initializing Cub 27255020 stage: ' + str(e))
-        try:
-            self.Stage_key['X'].backlash_distance(0)
-            self.Stage_key['X'].set_velocity_parameters(0, 1, 2.4)
-            self.Stage_key['X'].set_move_home_parameters(2, 1, 2.0, 0.0001)
-            self.Stage_key['X'].move_home(True)
-        except Exception as e:
-            print('Error while configuring Cub 27255020 stage: '+ str(e))
-        try:
-            self.Stage_key['Z'] = apt.Motor()
-        except Exception as e:
-            print('Error while initializing NRT 90864301 stage: ' + str(e))
-        try:
-            self.Stage_key['Z'].backlash_distance(0)
-            self.Stage_key['Z'].set_move_home_parameters(2, 1, 2.0, 0.0001)
-            self.Stage_key['Z'].move_home(False)
-        except Exception as e:
-            print('Error while configuring NRT 90864301 stage: '+ str(e))
+        self._short_pause=0.1
+        self._serial_no_x = c_char_p(bytes("27254353", "utf-8"))
+        self.milliseconds = c_int(100)
+        kdc.TLI_BuildDeviceList()
+        # kdc.CC_StartPolling(self._serial_no_x, milliseconds)
+        err=kdc.CC_Open(self._serial_no_x)
+        time.sleep(self._short_pause)
+        if err==0:
+            print('connected to 27254353 ')
+            self.isConnected=1
+            self.abs_position['X']=(kdc.CC_GetPosition(self._serial_no_x))
+        else:
+            print('Error: not connected to 27254353 ')
+        self._serial_no_z = c_char_p(bytes("70864299", "utf-8"))
+        self.channel_z=c_short(2)
+        bsm.TLI_BuildDeviceList()
+        err=bsm.SBC_Open(self._serial_no_z)
+        time.sleep(self._short_pause)
         
-        try:
-            self.abs_position['X']=self.get_position('X')
-            self.abs_position['Z']=self.get_position('Z')
-        except Exception as e:
-            print('cannot take positions of stages: ' + str(e))
-        self.IsConnected=1
+        if err==0:
+            print('connected to 70864299 ')
+            self.isConnected=1
+            self.abs_position['Z']=(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))
+            bsm.SBC_SetBacklash(self._serial_no_z,self.channel_z,c_int(0))
+        else:
+            print('Error: not connected to 70864299 ')
+
+
+        # try:
+        #     self.abs_position['X']=self.get_position('X')
+        #     self.abs_position['Z']=self.get_position('Z')
+        # except Exception as e:
+        #     print('cannot take positions of stages: ' + str(e))
+        
 
         self.update_relative_positions()
-           
+
+    
+    
     def set_zero_positions(self,l):
         self.zero_position['X']=l[0]
         self.zero_position['Z']=l[2]
@@ -74,17 +92,108 @@ class ThorlabsStages(QObject):
         
     def get_position(self, key):
         #for the sage of uniformity, distance is shown in steps 2.5 um each
-        motor=self.Stage_key[key]
-        return round(motor.position*1e3/2.5)
-
-    def shiftOnArbitrary(self, key:str, distance:int):
-        #for the sage of uniformity, distance is shown in steps 2.5 um each
-        device=self.Stage_key[key]
-        device.move_by(distance*2.5e-3, True)
-#        if (result>-1):
+        if key=='X':
+            time.sleep(self._short_pause)
+            return int(kdc.CC_GetPosition(self._serial_no_x))
+        if key=='Z':
+            time.sleep(self._short_pause)
+            return int(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))
+        if key=='Y':
+            return 0
+    
+    def move_home(self):
+        kdc.CC_StartPolling(self._serial_no_x, self.milliseconds)
+        kdc.CC_ClearMessageQueue(self._serial_no_x)
+        err1 = kdc.CC_Home(self._serial_no_x)
+        time.sleep(0.2)
+        if err1 == 0:
+            while True:
+                time.sleep(1)
+                current_pos = int(kdc.CC_GetPosition(self._serial_no_x))
+                if current_pos == 0:
+                    print("At home.")
+                    break
+                else:
+                    print(f"Homing...{current_pos}")
+        kdc.CC_StopPolling(self._serial_no_x)  
+        self.abs_position['X']=self.get_position('X')
+        
+        bsm.SBC_StartPolling(self._serial_no_z, self.channel_z, self.milliseconds)
+        bsm.SBC_ClearMessageQueue(self._serial_no_z, self.channel_z)
+        err = bsm.SBC_Home(self._serial_no_z,self.channel_z)
+        
+        time.sleep(0.2)
+        if err == 0:
+            while True:
+                current_pos = int(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))
+                time.sleep(1)
+                if current_pos == 0:
+                    print("At home.")
+                    break
+                else:
+                    print(f"Homing...{current_pos}")
+        bsm.SBC_StopPolling(self._serial_no_z, self.channel_z)
+        self.abs_position['Z']=self.get_position('Z')
+        self.update_relative_positions()
+        self.stopped.emit()
+        
+    def get_positions(self):
+        pos={}
+        for K in self.Stage_key:
+            pos[K]=self.get_position(K)
+        return pos
+    
+    def shiftOnArbitrary(self, key:str, distance:int,blocking=True):
+                #for the sage of uniformity, distance is taken in steps 2.5 um each
+        if key=='X':
+            kdc.CC_StartPolling(self._serial_no_x, self.milliseconds)
+            kdc.CC_ClearMessageQueue(self._serial_no_x)
+            time.sleep(self._short_pause)
+            init_pos=int(kdc.CC_GetPosition(self._serial_no_x))
+            kdc.CC_SetMoveRelativeDistance(self._serial_no_x, c_int(distance))
+            kdc.CC_MoveRelativeDistance(self._serial_no_x)
+            
+            if blocking:
+                pos=0
+                while not abs(pos - distance-init_pos)<tolerance:
+                    pos = int(kdc.CC_GetPosition(self._serial_no_x))
+                    time.sleep(self._short_pause)
+                    print(pos,init_pos,distance+init_pos,pos == distance+init_pos)
+            kdc.CC_StopPolling(self._serial_no_x)  
+                    
+        if key=='Z':
+            bsm.SBC_StartPolling(self._serial_no_z, self.channel_z, self.milliseconds)
+            bsm.SBC_ClearMessageQueue(self._serial_no_z, self.channel_z)
+            init_pos=int(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))
+            time.sleep(self._short_pause)
+                
+            bsm.SBC_SetMoveRelativeDistance(self._serial_no_z, self.channel_z,c_int(distance))
+            bsm.SBC_MoveRelativeDistance(self._serial_no_z,self.channel_z)
+            
+            if blocking:
+                pos=0
+                while not abs(pos - distance-init_pos)<tolerance:
+                    pos = int(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))
+                    time.sleep(self._short_pause)
+                    print(pos,init_pos,distance+init_pos,pos == distance+init_pos)
+            bsm.SBC_StopPolling(self._serial_no_z, self.channel_z) 
         self.abs_position[key]=self.get_position(key)
         self.update_relative_positions()
         self.stopped.emit()
+            
+    def shiftAbsolute(self, key:str, move_to:int):
+        #for the sage of uniformity, distance is taken in steps 2.5 um each
+        if key=='X':
+            # kdc.CC_SetMoveRelativeDistance(self._serial_no_x, c_int(distance))
+            # kdc.CC_MoveRelative(self._serial_no_x)
+            # kdc.CC_MoveRelativeDistance(self._serial_no_x)
+            kdc.CC_SetMoveAbsolutePosition(self._serial_no_x, c_int(move_to))
+            time.sleep(0.2)
+            kdc.CC_MoveAbsolute(self._serial_no_x)
+#        if (result>-1):
+        # self.abs_position[key]=self.get_position(key)
+        # self.update_relative_positions()
+        # self.stopped.emit()
 
 
 
@@ -95,15 +204,23 @@ class ThorlabsStages(QObject):
 
 
     def __del__(self):
-        apt.atexit._clear()
+        kdc.CC_Close(self._serial_no_x)
+
 
 
 if __name__ == "__main__":
     stages=ThorlabsStages()
-    d=0.5
-    stages.shiftOnArbitrary('X',d)
+    print(stages.get_position('X'))
+    a=stages.get_position('Z')
+    d=-200
+    # stages.shiftOnArbitrary('Z', d,True)
+    # print(stages.get_position('X'))
+    # print(stages.get_position('Z'))
+    stages.shiftOnArbitrary('Z', d,True)
+    b=stages.get_position('Z')
+    print(b,a,b-a)
 
-    del stages
+    # del stages
 
 #################################### CLOSE CONNECTION #######################################
 
