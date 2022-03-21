@@ -10,7 +10,7 @@ from PyQt5 import QtWidgets
 from Windows.MainWindow import MainWindow
 
 
-5
+
 def main():
     '''Main function. Starts if you launch the program from this file.'''
     if not QtWidgets.QApplication.instance():

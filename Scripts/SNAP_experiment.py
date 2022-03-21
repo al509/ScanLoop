@@ -22,6 +22,7 @@ from scipy.fftpack import rfft, irfft, fftfreq
 import scipy.optimize
 # from mpl_toolkits.mplot3d import Axes3D
 
+lambda_to_nu=125e3 #MHz/nm
 
 class SNAP():
     def __init__(self,
@@ -296,8 +297,8 @@ class SNAP():
                                 i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
                                 fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Zind],peak_wavelength)
                             [non_res_transmission, Fano_phase, resonance_position,linewidth,depth]=fitting_parameters
-                            delta_coupling=depth/2
-                            delta_0=linewidth/2-delta_coupling
+                            delta_coupling=depth/2*lambda_to_nu #MHz/nm
+                            delta_0=(linewidth/2-depth/2)*lambda_to_nu #MHz/nm
                             resonance_parameters_array[Zind,ii]=([non_res_transmission,Fano_phase,
                                                                   depth,linewidth,delta_coupling,delta_0,N_points_for_fitting])
                             # except:
@@ -367,13 +368,13 @@ class SNAP():
             for i in range(0,number_of_peaks_to_search):
                 plt.plot(self.x,resonance_parameters_array[:,i,4],color='blue')
             plt.xlabel('Distance, $\mu$m')
-            plt.ylabel('$\delta_c$, nm',color='blue')
+            plt.ylabel('$\delta_c$, MHz',color='blue')
             plt.gca().tick_params(axis='y', colors='blue')
             plt.gca().twinx()
             # plt.figure()
             for i in range(0,number_of_peaks_to_search):
                 plt.plot(self.x,resonance_parameters_array[:,i,5], color='red')
-            plt.ylabel('$\delta_0$, nm',color='red')
+            plt.ylabel('$\delta_0$, MHz',color='red')
             plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
         
