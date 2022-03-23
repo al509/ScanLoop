@@ -23,6 +23,7 @@ from ctypes import (
     c_int,
     c_char_p,
     byref,
+    c_uint
 )
 if __name__ == "__main__":
     os.chdir('..')
@@ -30,9 +31,11 @@ from Hardware.thorlabs_kinesis import benchtop_stepper_motor as bsm
 from Hardware.thorlabs_kinesis import KCube_DC_Servo as kdc
     
 
-tolerance=5 # encoder steps
+
 kdc_encoder_step=0.03 # micron per step
-bsm_encoder_step=0.1 # micron per step
+bsm_encoder_step=0.002 # micron per step
+tolerance_kdc=0.03 # 2.5 um  steps
+tolerance_bsm=0.1 # 2.5 um  steps
 
 
 class ThorlabsStages(QObject):
@@ -46,7 +49,7 @@ class ThorlabsStages(QObject):
     
     def __init__(self):
         super().__init__()
-        self._short_pause=0.1
+        self._short_pause=0.11
         self._serial_no_x = c_char_p(bytes("27254353", "utf-8"))
         self.milliseconds = c_int(100)
         kdc.TLI_BuildDeviceList()
@@ -56,7 +59,9 @@ class ThorlabsStages(QObject):
         if err==0:
             print('connected to 27254353 ')
             self.isConnected=1
-            self.abs_position['X']=(kdc.CC_GetPosition(self._serial_no_x))
+            time.sleep(self._short_pause)
+            self.abs_position['X']=self.get_position('X')
+            kdc.CC_SetHomingVelocity(self._serial_no_x,c_uint(2))
         else:
             print('Error: not connected to 27254353 ')
         self._serial_no_z = c_char_p(bytes("70864299", "utf-8"))
@@ -68,8 +73,12 @@ class ThorlabsStages(QObject):
         if err==0:
             print('connected to 70864299 ')
             self.isConnected=1
-            self.abs_position['Z']=(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))
+            time.sleep(self._short_pause)
+            self.abs_position['Z']=self.get_position('Z')
             bsm.SBC_SetBacklash(self._serial_no_z,self.channel_z,c_int(0))
+            time.sleep(self._short_pause)
+            # bsm.SBC_SetVelParams(self._serial_no_z,self.channel_z, (c_int(5)), (c_int(2)))
+        #     bsm.SBC_SetHomingVelocity(self._serial_no_z,self.channel_z, (c_uint(5)))
         else:
             print('Error: not connected to 70864299 ')
 
@@ -91,15 +100,15 @@ class ThorlabsStages(QObject):
         self.update_relative_positions()
     
     def update_relative_positions(self):
-        self.relative_position['X']=self.abs_position['X']-self.zero_position['X']
-        self.relative_position['Z']=self.abs_position['Z']-self.zero_position['Z']
+        self.relative_position['X']=round(self.abs_position['X']-self.zero_position['X'],1)
+        self.relative_position['Z']=round(self.abs_position['Z']-self.zero_position['Z'],1)
         
     def get_position(self, key):
         #for the sage of uniformity, distance is shown in steps 2.5 um each
         if key=='X':
-            return int(kdc.CC_GetPosition(self._serial_no_x))*kdc_encoder_step/2.5
+            return round(int(kdc.CC_GetPosition(self._serial_no_x))*kdc_encoder_step/2.5,1)
         if key=='Z':
-            return int(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))*bsm_encoder_step/2.5
+            return round(int(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))*bsm_encoder_step/2.5,1)
         if key=='Y':
             return 0
     
@@ -151,35 +160,39 @@ class ThorlabsStages(QObject):
             kdc.CC_StartPolling(self._serial_no_x, self.milliseconds)
             kdc.CC_ClearMessageQueue(self._serial_no_x)
             time.sleep(self._short_pause)
-            init_pos=int(kdc.CC_GetPosition(self._serial_no_x))
-            distance=distance*2.5/kdc_encoder_step
-            kdc.CC_SetMoveRelativeDistance(self._serial_no_x, c_int(distance))
+            init_pos=self.get_position('X')
+            distance_in_steps=int(distance*2.5/kdc_encoder_step)
+            kdc.CC_SetMoveRelativeDistance(self._serial_no_x, c_int(distance_in_steps))
             kdc.CC_MoveRelativeDistance(self._serial_no_x)
+            new_pos=init_pos+distance
             
             if blocking:
-                pos=0
-                while not abs(pos - distance-init_pos)<tolerance:
-                    pos = int(kdc.CC_GetPosition(self._serial_no_x))
-                    time.sleep(self._short_pause)
-                    print(pos,init_pos,distance+init_pos,pos == distance+init_pos)
+                diff=1000
+                while abs(diff)>tolerance_kdc:
+                    pos= self.get_position('X')
+                    diff=pos-new_pos
+                    print(diff)
             kdc.CC_StopPolling(self._serial_no_x)  
                     
         if key=='Z':
             bsm.SBC_StartPolling(self._serial_no_z, self.channel_z, self.milliseconds)
             bsm.SBC_ClearMessageQueue(self._serial_no_z, self.channel_z)
-            init_pos=int(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))
+            init_pos=self.get_position('Z')
             time.sleep(self._short_pause)
-            distance=distance*2.5/bsm_encoder_step
-            bsm.SBC_SetMoveRelativeDistance(self._serial_no_z, self.channel_z,c_int(distance))
+            distance_in_steps=int(distance*2.5/bsm_encoder_step)
+            bsm.SBC_SetMoveRelativeDistance(self._serial_no_z, self.channel_z,c_int(distance_in_steps))
             bsm.SBC_MoveRelativeDistance(self._serial_no_z,self.channel_z)
+            new_pos=init_pos+distance
             
             if blocking:
-                pos=0
-                while not abs(pos - distance-init_pos)<tolerance:
-                    pos = int(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))
-                    time.sleep(self._short_pause)
-                    print(pos,init_pos,distance+init_pos,pos == distance+init_pos)
+                diff=1000
+                while abs(diff)>tolerance_bsm:
+                    pos= self.get_position('Z')
+                    diff=pos-new_pos
+                    print(diff)
+ 
             bsm.SBC_StopPolling(self._serial_no_z, self.channel_z) 
+        time.sleep(self._short_pause)
         self.abs_position[key]=self.get_position(key)
         self.update_relative_positions()
         self.stopped.emit()
@@ -208,20 +221,21 @@ class ThorlabsStages(QObject):
 
     def __del__(self):
         kdc.CC_Close(self._serial_no_x)
-
+        bsm.SBC_Close(self._serial_no_z)
 
 
 if __name__ == "__main__":
     stages=ThorlabsStages()
-    print(stages.get_position('X'))
-    a=stages.get_position('Z')
-    d=-200
+    # stages.move_home()
+    # print(stages.get_position('Z'))
+    # a=stages.get_position('Z')
+    d=120
     # stages.shiftOnArbitrary('Z', d,True)
     # print(stages.get_position('X'))
     # print(stages.get_position('Z'))
-    stages.shiftOnArbitrary('Z', d,True)
-    b=stages.get_position('Z')
-    print(b,a,b-a)
+    stages.shiftOnArbitrary('X', d,True)
+    b=stages.get_position('X')
+    # print(b,a,b-a)
 
     # del stages
 

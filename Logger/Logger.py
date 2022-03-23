@@ -82,10 +82,12 @@ class Logger(QObject):
             f=open(self.ZeroPositionFileName)
         except FileNotFoundError:
             return 0,0,0,
-        dictionary=json.load(f)
-        f.close()
-        return int(dictionary['X_0']),int(dictionary['Y_0']),int(dictionary['Z_0'])
-
+        try:
+            dictionary=json.load(f)
+            f.close()
+            return int(dictionary['X_0']),int(dictionary['Y_0']),int(dictionary['Z_0'])
+        except:
+            return 0,0,0
 
 
 
