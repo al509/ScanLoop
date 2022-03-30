@@ -90,11 +90,11 @@ class Spectral_processor(QObject):
             return float(string[2])
         else:
             if axis=='X':
-                return int(self.find_between(string,'X=','_Y'))
+                return float(self.find_between(string,'X=','_Y'))
             if axis=='Y':
-                return int(self.find_between(string,'Y=','_Z'))
+                return float(self.find_between(string,'Y=','_Z'))
             if axis=='Z':
-                return int(self.find_between(string,'Z=','_.'))
+                return float(self.find_between(string,'Z=','_.'))
             if axis=='W':
                 try:
                     a=float(self.find_between(string,'W=','_'))
