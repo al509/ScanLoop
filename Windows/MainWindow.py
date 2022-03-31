@@ -1071,6 +1071,7 @@ class MainWindow(ThreadedMainWindow):
             dirs=['\\SpectralData\\','\\SpectralBinData\\']
             for directory in dirs:
                 l=os.listdir(self.path_to_main+directory)
+                if '.gitignore' in l:l.remove('.gitignore')
                 for file in l:
                     os.remove(self.path_to_main+directory+file)
             print('Raw data deleted')
