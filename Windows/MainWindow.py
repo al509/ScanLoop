@@ -102,7 +102,7 @@ class MainWindow(ThreadedMainWindow):
         self.powermeter=None
         
         self.painter = MyPainter(self.ui.groupBox_spectrum)
-        self.analyzer=Analyzer.Analyzer(os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl')
+        self.analyzer=Analyzer.Analyzer(os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl3d')
         self.logger = Logger(parent=None)
         self.spectral_processor=Spectral_processor.Spectral_processor(self.path_to_main)
         from Scripts.ScanningProcessOSA import ScanningProcess
