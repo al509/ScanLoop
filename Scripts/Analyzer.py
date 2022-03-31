@@ -6,11 +6,7 @@ This is the wrapper of SNAP_experiment.SNAP class to incorporate it to the SCANL
 
 
 """
-<<<<<<< Updated upstream
-__data__='2022.03.31'
-=======
 __date__='2022.04.01'
->>>>>>> Stashed changes
 
 import os
 import sys
@@ -56,6 +52,8 @@ class Analyzer(QObject):
             
             self.SNAP=None
             
+            self.type_of_SNAP_file='SNAP'
+            
             
         def set_parameters(self,dictionary):
             for key in dictionary:
@@ -68,7 +66,7 @@ class Analyzer(QObject):
             '''
             Returns
             -------
-            Seriazible attributes of the object
+            Seriazible attributes of the Analyzer object
             '''
             d=dict(vars(self)).copy() #make a copy of the vars dictionary
             del d['SNAP']
@@ -77,18 +75,6 @@ class Analyzer(QObject):
             return d
         
         def load_data(self,path):
-<<<<<<< Updated upstream
-            self.SNAP=SNAP_experiment.load_data(path)
-            
-            
-            
-                        
-        def save_cropped_data(self):
-            x_lim=self.SNAP.fig_spectrogram.axes[0].get_xlim() #positions
-            wave_lim=self.SNAP.fig_spectrogram.axes[0].get_ylim()
-            i_x_min=np.argmin(abs(self.SNAP.x-x_lim[0]))
-            i_x_max=np.argmin(abs(self.SNAP.x-x_lim[1]))
-=======
             f=open(path,'rb')
             D=(pickle.load(f))
             f.close()
@@ -99,7 +85,7 @@ class Analyzer(QObject):
                 print('loading old style SNAP data for analyzer from ',path)
                 SNAP_object=SNAP_experiment.SNAP()
                 SNAP_object.axis_key=D['axis']
-                Positions=D['Positions']
+                Positions=np.array(D['Positions'])
                 wavelengths,exp_data=D['Wavelengths'],D['Signal']
                 try:
                     scale=D['spatial_scale']
@@ -113,7 +99,6 @@ class Analyzer(QObject):
                 except KeyError:
                     print('No date indicated')
                     SNAP_object.date='_'
-
                 
 
                 SNAP_object.wavelengths=wavelengths
@@ -127,6 +112,7 @@ class Analyzer(QObject):
         def save_as_pkl3d(self):
             path,FileName = os.path.split(self.file_path)    
             NewFileName=path+'\\'+FileName.split('.')[-2]+'.pkl3d'
+
             D={}
             D['axis']=self.SNAP.axis_key
             D['spatial_scale']='microns'
@@ -135,36 +121,27 @@ class Analyzer(QObject):
             D['Signal']=self.SNAP.transmission
             from datetime import datetime
             D['date']=self.SNAP.date
+            print('spectrogram saved as ' +NewFileName)
             with open(NewFileName,'wb') as f:
                 pickle.dump(D,f)
-            print('Spectrogram resaved as pickle to '+NewFileName)
                         
         def save_cropped_data(self):
             x_lim=self.figure_spectrogram.axes[0].get_xlim() #positions
             wave_lim=self.figure_spectrogram.axes[0].get_ylim()
             i_x_min=np.argmin(abs(self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]-x_lim[0]))
             i_x_max=np.argmin(abs(self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]-x_lim[1]))
->>>>>>> Stashed changes
             
             i_w_min=np.argmin(abs(self.SNAP.wavelengths-wave_lim[0]))
             i_w_max=np.argmin(abs(self.SNAP.wavelengths-wave_lim[1]))
             path,FileName = os.path.split(self.file_path)
-<<<<<<< Updated upstream
-            NewFileName=path+'\\'+FileName.split('.')[-2]+'_cropped.pkl3d'
-=======
             NewFileName=path+'\\'+FileName.split('.')[-2]+'_cropped.SNAP'
-            new_SNAP=self.SNAP
+            import copy
+            new_SNAP=copy.deepcopy(self.SNAP)
             new_SNAP.positions=self.SNAP.positions[i_x_min:i_x_max,:]
             new_SNAP.wavelengths=self.SNAP.wavelengths[i_w_min:i_w_max]
             new_SNAP.transmission=self.SNAP.transmission[i_w_min:i_w_max,i_x_min:i_x_max]
->>>>>>> Stashed changes
             f=open(NewFileName,'wb')
-            D={}
-            D['axis']=self.SNAP.axis
-            D['Positions']=self.SNAP.positions[i_x_min:i_x_max,:]
-            D['Wavelengths']=self.SNAP.wavelengths[i_w_min:i_w_max]
-            D['Signal']=self.SNAP.transmission[i_w_min:i_w_max,i_x_min:i_x_max]
-            pickle.dump(D,f)
+            pickle.dump(new_SNAP,f)
             f.close()
             print('Cropped data saved to {}'.format(NewFileName))
             
@@ -205,28 +182,16 @@ class Analyzer(QObject):
             plt.ylabel('Spectral power density, dBm')
             plt.tight_layout()
 
-              
-        def plot_spectrogram(self):
-            '''
-            Parameters:
-            font_size=11,title=True,vmin=None,vmax=None,cmap='jet',language='eng'
-            '''
-            if self.SNAP is None:
-<<<<<<< Updated upstream
-                self.SNAP=SNAP_experiment.load_data(self.file_path)
             
-=======
+        def plot_spectrogram(self):
+            if self.SNAP is None:
                 self.load_data(self.file_path)
-
->>>>>>> Stashed changes
+            
             with open(self.plotting_parameters_file_path,'r') as f:
                 p=json.load(f)
-            # new_figure,figsize,font_size,title,vmin,vmax,\
-            # cmap,language,enable_offset,position_in_steps_axis,ERV_axis,colorbar_location,colorbar_pad,colorbar_title_position,colorbar_title_rotation=parameters_dict
-                               
+
             w_0=np.mean(self.SNAP.wavelengths)
             x=self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]
-            
             def _convert_ax_Wavelength_to_Radius(ax_Wavelengths):
                 """
                 Update second axis according with first axis.
@@ -236,7 +201,7 @@ class Analyzer(QObject):
                 nY1=(y1-self.SNAP.lambda_0)/w_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
                 nY2=(y2-self.SNAP.lambda_0)/w_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
                 ax_Radius.set_ylim(nY1, nY2)
-                  
+                
             def _forward(x):
                 return (x-self.SNAP.lambda_0)/w_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
     
@@ -314,7 +279,7 @@ class Analyzer(QObject):
                 except: pass 
             fig.tight_layout()
             self.figure_spectrogram=fig
-
+            
             
         def plot_sample_shape(self):
             fig=plt.figure()
@@ -332,12 +297,11 @@ class Analyzer(QObject):
             plot slice using SNAP object parameters
             '''
             self.slice_position=position
-
             if self.SNAP.transmission is None:
                 self.load_data(self.file_path)
             with open(self.plotting_parameters_file_path,'r') as f:
-                parameters_dict=json.load(f)
-            language=parameters_dict['language'] 
+                p=json.load(f)
+                
             fig=plt.figure()
             plt.clf()
     
@@ -349,15 +313,13 @@ class Analyzer(QObject):
             index=np.argmin(abs(position-x))
             plt.plot(self.SNAP.wavelengths,self.SNAP.transmission[:,index])
             
-            if language=='eng':
+            if p['language']=='eng':
                 plt.xlabel('Wavelength, nm')
                 plt.ylabel('Spectral power density, dBm')
-            elif language=='ru':
+            elif p['language']=='ru':
                 plt.xlabel('Длина волны, нм')
                 plt.ylabel('Спектральная плотность мощности, дБм')
-            plt.tight_layout()
             self.single_spectrum_figure=fig
-
             
         def analyze_spectrum(self,fig):
             '''
@@ -407,7 +369,7 @@ class Analyzer(QObject):
             else:
                 print('Error: No peaks found')
             # plt.tight_layout()
-            # fig.canvas.draw_idle()
+            fig.canvas.draw_idle()
             
 
 
@@ -417,16 +379,18 @@ class Analyzer(QObject):
         # def extract_ERV(self,N_peaks,min_peak_depth,distance, MinWavelength,MaxWavelength,axis_to_process='Z',plot_results_separately=False):
         def extract_ERV(self):
                         # positions,peak_wavelengths, ERV, resonance_parameters=SNAP_experiment.SNAP.extract_ERV(self,
-            x,peak_wavelengths, ERV, resonance_parameters=self.SNAP.extract_ERV(self.number_of_peaks_to_search,self.min_peak_level,
+            positions,peak_wavelengths, ERV, resonance_parameters=self.SNAP.extract_ERV(self.number_of_peaks_to_search,self.min_peak_level,
                                                                                         self.min_peak_distance,self.min_wave,self.max_wave,
-                                                                                        self.find_widths,self.N_points_for_fitting,
+                                                                                        self.find_widths, self.N_points_for_fitting,
                                                                                         self.iterate_different_N_points,self.max_N_points_for_fitting)
             path,FileName = os.path.split(self.file_path)
             NewFileName=path+'\\'+FileName.split('.')[-2]+'_ERV.pkl'
             with open(NewFileName,'wb') as f:
-                ERV_params={'positions':x,'peak_wavelengths':peak_wavelengths,'ERVs':ERV,'resonance_parameters':resonance_parameters,'fitting_parameters':self.get_parameters()}
+                ERV_params={'positions':positions,'peak_wavelengths':peak_wavelengths,'ERVs':ERV,'resonance_parameters':resonance_parameters,'fitting_parameters':self.get_parameters()}
                 pickle.dump(ERV_params, f)
-           
+            
+            
+            x=self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]
             if self.figure_spectrogram is not None and self.indicate_ERV_on_spectrogram:
                 if len(self.figure_spectrogram.axes[0].lines)>1:
                     for line in self.figure_spectrogram.axes[0].lines[1:]: line.remove()
@@ -438,7 +402,8 @@ class Analyzer(QObject):
                 for i in range(0,self.number_of_peaks_to_search):
                     self.figure_spectrogram.axes[0].plot(x,peak_wavelengths[:,i])
                     line=self.figure_spectrogram.axes[0].plot(x,peak_wavelengths[:,i])
-                    
+            
+            
             if self.plot_results_separately:
                 self.plot_ERV_params(ERV_params,self.find_widths)
             
@@ -456,52 +421,51 @@ class Analyzer(QObject):
             plt.ylabel('Cut-off wavelength, nm')
             plt.title('Cut-off wavelength')
             plt.tight_layout()
+  
+            plt.figure()
+            plt.title('Depth and Linewidth $\Delta \lambda$')
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,resonance_parameters_array[:,i,2],color='blue')
+            plt.xlabel('Distance, $\mu$m')
+            plt.ylabel('Depth ',color='blue')
+            plt.gca().tick_params(axis='y', colors='blue')
+            plt.gca().twinx()
+            # plt.figure()
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,resonance_parameters_array[:,i,3], color='red')
+            plt.ylabel('Linewidth $\Delta \lambda$, nm',color='red')
+            plt.gca().tick_params(axis='y', colors='red')
+            plt.tight_layout()
             
-            if find_widths:
-                plt.figure()
-                plt.title('Depth and Linewidth $\Delta \lambda$')
-                for i in range(0,number_of_peaks_to_search):
-                    plt.plot(positions,resonance_parameters_array[:,i,2],color='blue')
-                plt.xlabel('Distance, $\mu$m')
-                plt.ylabel('Depth ',color='blue')
-                plt.gca().tick_params(axis='y', colors='blue')
-                plt.gca().twinx()
-                # plt.figure()
-                for i in range(0,number_of_peaks_to_search):
-                    plt.plot(positions,resonance_parameters_array[:,i,3], color='red')
-                plt.ylabel('Linewidth $\Delta \lambda$, nm',color='red')
-                plt.gca().tick_params(axis='y', colors='red')
-                plt.tight_layout()
-                
-                plt.figure()
-                plt.title('Nonresonanse transmission $|S_0|$ and its phase')
-                for i in range(0,number_of_peaks_to_search):
-                    plt.plot(positions,resonance_parameters_array[:,i,0],color='blue')
-                plt.xlabel('Distance, $\mu$m')
-                plt.ylabel('Nonresonance transmission $|S_0|$',color='blue')
-                plt.gca().tick_params(axis='y', colors='blue')
-                plt.gca().twinx()
-                # plt.figure()
-                for i in range(0,number_of_peaks_to_search):
-                    plt.plot(positions,resonance_parameters_array[:,i,1], color='red')
-                plt.ylabel('Phase',color='red')
-                plt.gca().tick_params(axis='y', colors='red')
-                plt.tight_layout()
-                
-                plt.figure()
-                plt.title('$\delta_0$ and $\delta_c$')
-                for i in range(0,number_of_peaks_to_search):
-                    plt.plot(positions,resonance_parameters_array[:,i,4],color='blue')
-                plt.xlabel('Distance, $\mu$m')
-                plt.ylabel('$\delta_c$, nm',color='blue')
-                plt.gca().tick_params(axis='y', colors='blue')
-                plt.gca().twinx()
-                # plt.figure()
-                for i in range(0,number_of_peaks_to_search):
-                    plt.plot(positions,resonance_parameters_array[:,i,5], color='red')
-                plt.ylabel('$\delta_0$, nm',color='red')
-                plt.gca().tick_params(axis='y', colors='red')
-                plt.tight_layout()
+            plt.figure()
+            plt.title('Nonresonanse transmission $|S_0|$ and its phase')
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,resonance_parameters_array[:,i,0],color='blue')
+            plt.xlabel('Distance, $\mu$m')
+            plt.ylabel('Nonresonance transmission $|S_0|$',color='blue')
+            plt.gca().tick_params(axis='y', colors='blue')
+            plt.gca().twinx()
+            # plt.figure()
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,resonance_parameters_array[:,i,1], color='red')
+            plt.ylabel('Phase',color='red')
+            plt.gca().tick_params(axis='y', colors='red')
+            plt.tight_layout()
+            
+            plt.figure()
+            plt.title('$\delta_0$ and $\delta_c$')
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,resonance_parameters_array[:,i,4],color='blue')
+            plt.xlabel('Distance, $\mu$m')
+            plt.ylabel('$\delta_c$, nm',color='blue')
+            plt.gca().tick_params(axis='y', colors='blue')
+            plt.gca().twinx()
+            # plt.figure()
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,resonance_parameters_array[:,i,5], color='red')
+            plt.ylabel('$\delta_0$, nm',color='red')
+            plt.gca().tick_params(axis='y', colors='red')
+            plt.tight_layout()
         
         
         def plot_ERV_from_file(self,file_name):
@@ -528,14 +492,14 @@ if __name__ == "__main__":
     analyzer.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
     
     analyzer.plot_spectrogram()
-    analyzer.plot_slice(-2500)
+    # analyzer.plot_slice(800)
     
     import json
     f=open('Parameters.txt')
     Dicts=json.load(f)
     f.close()
-    # analyzer.set_parameters(Dicts['Analyzer'])
-    # analyzer.extract_ERV()
+    analyzer.set_parameters(Dicts['Analyzer'])
+    analyzer.extract_ERV()
     
 
     # 

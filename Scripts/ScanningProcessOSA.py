@@ -6,7 +6,7 @@ Created on Tue Nov 20 19:09:12 2018
 @author: Ilya
 """
 
-__data__='2022.03.31'
+__date__='2022.03.31'
 
 from PyQt5.QtCore import pyqtSignal, QObject
 import numpy as np

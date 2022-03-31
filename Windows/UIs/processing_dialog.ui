@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>273</width>
-    <height>227</height>
+    <width>298</width>
+    <height>346</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,61 +29,10 @@
       <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="10" column="0">
-       <widget class="QComboBox" name="comboBox_type_of_data">
-        <item>
-         <property name="text">
-          <string>pkl</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>txt</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="7" column="0">
-       <widget class="QCheckBox" name="checkBox_isInterpolation">
-        <property name="text">
-         <string>Interpolation</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="0">
-       <widget class="QCheckBox" name="checkBox_is_remove_background_out_of_contact">
-        <property name="text">
-         <string>Out _of_contact data</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label_9">
         <property name="text">
          <string>Plot along axis</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QCheckBox" name="checkBox_isAveraging">
-        <property name="toolTip">
-         <string>Straightforward averaging of all spectra at the point</string>
-        </property>
-        <property name="text">
-         <string>Averaging</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QCheckBox" name="checkBox_isShifting">
-        <property name="toolTip">
-         <string>Calculate the averaged position of the spectrum (mainly for Apex)</string>
-        </property>
-        <property name="text">
-         <string>Shifting</string>
         </property>
        </widget>
       </item>
@@ -128,13 +77,85 @@
         </item>
        </widget>
       </item>
-      <item row="9" column="0">
+      <item row="5" column="0">
+       <widget class="QCheckBox" name="checkBox_isAveraging">
+        <property name="toolTip">
+         <string>Straightforward averaging of all spectra at the point</string>
+        </property>
+        <property name="text">
+         <string>Averaging</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QCheckBox" name="checkBox_isInterpolation">
+        <property name="text">
+         <string>Interpolation</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QCheckBox" name="checkBox_is_remove_background_out_of_contact">
+        <property name="text">
+         <string>Out _of_contact data</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0">
        <widget class="QLabel" name="label_folder_to_process_files_3">
         <property name="text">
-         <string>Type of data</string>
+         <string>Type of input data</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QCheckBox" name="checkBox_isShifting">
+        <property name="toolTip">
+         <string>Calculate the averaged position of the spectrum (mainly for Apex)</string>
+        </property>
+        <property name="text">
+         <string>Shifting</string>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="0">
+       <widget class="QComboBox" name="comboBox_type_of_output_data">
+        <item>
+         <property name="text">
+          <string>SNAP</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>pkl3d</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="11" column="0">
+       <widget class="QComboBox" name="comboBox_type_of_input_data">
+        <item>
+         <property name="text">
+          <string>pkl</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>txt</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="12" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Type of output data</string>
         </property>
        </widget>
       </item>
