@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Feb  4 15:08:47 2020
-
 @author: Ilya
+NOTE that positions are in microns
 """
 
 
 '''
-NOTE that positions are in steps 2.5 micron each!
+
 
 Need to install kinesis and have kinesis DLLs in win PATH
 '''
 
+__data__='2022.03.31'
 
 from PyQt5.QtCore import QObject,  pyqtSignal
 import sys
@@ -34,8 +35,8 @@ from Hardware.thorlabs_kinesis import KCube_DC_Servo as kdc
 
 kdc_encoder_step=0.03 # micron per step
 bsm_encoder_step=0.002 # micron per step
-tolerance_kdc=0.03 # 2.5 um  steps
-tolerance_bsm=0.1 # 2.5 um  steps
+tolerance_kdc=0.1 #  um 
+tolerance_bsm=0.3 # um 
 
 
 class ThorlabsStages(QObject):
@@ -104,11 +105,10 @@ class ThorlabsStages(QObject):
         self.relative_position['Z']=round(self.abs_position['Z']-self.zero_position['Z'],1)
         
     def get_position(self, key):
-        #for the sage of uniformity, distance is shown in steps 2.5 um each
         if key=='X':
-            return round(int(kdc.CC_GetPosition(self._serial_no_x))*kdc_encoder_step/2.5,1)
+            return round(int(kdc.CC_GetPosition(self._serial_no_x))*kdc_encoder_step,1)
         if key=='Z':
-            return round(int(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))*bsm_encoder_step/2.5,1)
+            return round(int(bsm.SBC_GetPosition(self._serial_no_z,self.channel_z))*bsm_encoder_step,1)
         if key=='Y':
             return 0
     
@@ -161,7 +161,7 @@ class ThorlabsStages(QObject):
             kdc.CC_ClearMessageQueue(self._serial_no_x)
             time.sleep(self._short_pause)
             init_pos=self.get_position('X')
-            distance_in_steps=int(distance*2.5/kdc_encoder_step)
+            distance_in_steps=int(distance/kdc_encoder_step)
             kdc.CC_SetMoveRelativeDistance(self._serial_no_x, c_int(distance_in_steps))
             kdc.CC_MoveRelativeDistance(self._serial_no_x)
             new_pos=init_pos+distance
@@ -179,7 +179,7 @@ class ThorlabsStages(QObject):
             bsm.SBC_ClearMessageQueue(self._serial_no_z, self.channel_z)
             init_pos=self.get_position('Z')
             time.sleep(self._short_pause)
-            distance_in_steps=int(distance*2.5/bsm_encoder_step)
+            distance_in_steps=int(distance/bsm_encoder_step)
             bsm.SBC_SetMoveRelativeDistance(self._serial_no_z, self.channel_z,c_int(distance_in_steps))
             bsm.SBC_MoveRelativeDistance(self._serial_no_z,self.channel_z)
             new_pos=init_pos+distance
@@ -198,7 +198,7 @@ class ThorlabsStages(QObject):
         self.stopped.emit()
             
     def shiftAbsolute(self, key:str, move_to:int):
-        #for the sage of uniformity, distance is taken in steps 2.5 um each
+        #for the sage of uniformity, distance is taken in microns
         if key=='X':
             # kdc.CC_SetMoveRelativeDistance(self._serial_no_x, c_int(distance))
             # kdc.CC_MoveRelative(self._serial_no_x)

@@ -246,9 +246,7 @@ class MainWindow(ThreadedMainWindow):
      
         self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
         
-        self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(lambda: self.analyzer.apply_FFT_filter(
-                                                                                                            LowFreqEdge=float(self.ui.lineEdit_FilterLowFreqEdge.text()),
-                                                                                                            HighFreqEdge=float(self.ui.lineEdit_FilterHighFreqEdge.text())))
+        self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(lambda: self.analyzer.apply_FFT_to_spectrogram())
         
         self.ui.pushButton_analyzer_save_cropped_data.clicked.connect(
             self.analyzer.save_cropped_data)

@@ -2,9 +2,10 @@
 """
 Created on Tue Nov 20 19:09:12 2018
 
-Version Nov 22 2019
 @author: Ilya
 """
+
+__data__='2022.03.31'
 
 from PyQt5.QtCore import pyqtSignal, QObject
 import numpy as np
@@ -33,7 +34,7 @@ class ScanningProcess(QObject):
 
         self.scanning_step=30
         self.seeking_step=30
-        self.backstep=30    #in stage steps, Step to move stage axis_to_get_contact to loose the contact
+        self.backstep=30    #in microns, to move stage axis_to_get_contact to loose the contact
         self.level_to_detect_contact=-3  # dBm, used to determine if there is contact between the taper and the sample. see function checkIfContact for details
         self.current_file_index=1
         self.stop_file_index=100

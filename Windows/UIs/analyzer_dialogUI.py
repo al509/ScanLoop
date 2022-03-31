@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'analyzer_dialog.ui'
+# Form implementation generated from reading ui file '.\analyzer_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -11,14 +11,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(569, 262)
+        Dialog.resize(559, 327)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
-        self.buttonBox.setGeometry(QtCore.QRect(480, 10, 51, 241))
+        self.buttonBox.setGeometry(QtCore.QRect(490, 10, 51, 241))
         self.buttonBox.setOrientation(QtCore.Qt.Vertical)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.groupBox = QtWidgets.QGroupBox(Dialog)
-        self.groupBox.setGeometry(QtCore.QRect(10, 20, 471, 211))
+        self.groupBox.setGeometry(QtCore.QRect(10, 20, 471, 291))
         self.groupBox.setObjectName("groupBox")
         self.groupBox_2 = QtWidgets.QGroupBox(self.groupBox)
         self.groupBox_2.setGeometry(QtCore.QRect(10, 20, 451, 80))
@@ -61,6 +61,34 @@ class Ui_Dialog(object):
         self.lineEdit_max_wave = QtWidgets.QLineEdit(self.groupBox_2)
         self.lineEdit_max_wave.setGeometry(QtCore.QRect(80, 50, 41, 20))
         self.lineEdit_max_wave.setObjectName("lineEdit_max_wave")
+        self.groupBox_11 = QtWidgets.QGroupBox(self.groupBox)
+        self.groupBox_11.setGeometry(QtCore.QRect(20, 220, 461, 50))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_11.sizePolicy().hasHeightForWidth())
+        self.groupBox_11.setSizePolicy(sizePolicy)
+        self.groupBox_11.setMinimumSize(QtCore.QSize(220, 50))
+        self.groupBox_11.setMaximumSize(QtCore.QSize(270000, 50))
+        self.groupBox_11.setObjectName("groupBox_11")
+        self.lineEdit_FFTFilter_low_freq_edge = QtWidgets.QLineEdit(self.groupBox_11)
+        self.lineEdit_FFTFilter_low_freq_edge.setGeometry(QtCore.QRect(210, 23, 61, 21))
+        self.lineEdit_FFTFilter_low_freq_edge.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_FFTFilter_low_freq_edge.setObjectName("lineEdit_FFTFilter_low_freq_edge")
+        self.lineEdit_FFTFilter_high_freq_edge = QtWidgets.QLineEdit(self.groupBox_11)
+        self.lineEdit_FFTFilter_high_freq_edge.setGeometry(QtCore.QRect(358, 23, 51, 21))
+        self.lineEdit_FFTFilter_high_freq_edge.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_FFTFilter_high_freq_edge.setObjectName("lineEdit_FFTFilter_high_freq_edge")
+        self.label_40 = QtWidgets.QLabel(self.groupBox_11)
+        self.label_40.setEnabled(False)
+        self.label_40.setGeometry(QtCore.QRect(150, 18, 81, 31))
+        self.label_40.setWordWrap(True)
+        self.label_40.setObjectName("label_40")
+        self.label_41 = QtWidgets.QLabel(self.groupBox_11)
+        self.label_41.setEnabled(False)
+        self.label_41.setGeometry(QtCore.QRect(306, 18, 81, 31))
+        self.label_41.setWordWrap(True)
+        self.label_41.setObjectName("label_41")
         self.groupBox_3 = QtWidgets.QGroupBox(Dialog)
         self.groupBox_3.setGeometry(QtCore.QRect(20, 119, 451, 111))
         self.groupBox_3.setObjectName("groupBox_3")
@@ -141,7 +169,20 @@ class Ui_Dialog(object):
         self.label_15.setText(_translate("Dialog", "<html><head/><body><p>λ<span style=\" vertical-align:sub;\">min</span>, nm</p></body></html>"))
         self.lineEdit_min_wave.setText(_translate("Dialog", "1530"))
         self.lineEdit_max_wave.setText(_translate("Dialog", "1590"))
-        self.groupBox_3.setTitle(_translate("Dialog", "Andvanced"))
+        self.groupBox_11.setTitle(_translate("Dialog", "FFT filter options"))
+        self.lineEdit_FFTFilter_low_freq_edge.setText(_translate("Dialog", "0.00001"))
+        self.lineEdit_FFTFilter_high_freq_edge.setText(_translate("Dialog", "0.01"))
+        self.label_40.setText(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Min freq</p></body></html>"))
+        self.label_41.setText(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Max freq</p></body></html>"))
+        self.groupBox_3.setTitle(_translate("Dialog", "Advanced"))
         self.checkBox_plot_results_separately.setText(_translate("Dialog", "Plot separately"))
         self.checkBox_find_widths.setText(_translate("Dialog", "find widths"))
         self.groupBox_4.setTitle(_translate("Dialog", "find width parameters"))

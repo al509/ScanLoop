@@ -1,6 +1,9 @@
 '''
-NOTE that positions are in steps 2/5 micron each!
+
+NOTE that positions are in microns!
 '''
+
+__data__='2022.03.31'
 
 from PyQt5.QtCore import QObject,  pyqtSignal
 import sys
@@ -139,7 +142,7 @@ class StandaStages(QObject):
     def get_position(self, device_id):
         x_pos = get_position_t()
         result = self.lib.get_position(device_id, byref(x_pos))
-        return x_pos.Position
+        return round(x_pos.Position*2.5,1)
 
     def move_left(self, device_id):
         print("\nMoving left")
@@ -151,9 +154,9 @@ class StandaStages(QObject):
         result = self.lib.command_right(device_id)
         print("Result: " + repr(result))
 
-    def shiftOnArbitrary(self, key:str, distance:int):
+    def shiftOnArbitrary(self, key:str, distance:float):
         device_id=self.Stage_key[key]
-        result = self.lib.command_movr(device_id, distance, 0)
+        result = self.lib.command_movr(device_id, int(distance/2.5), 0)
 #        if (result>-1):
         lib.command_wait_for_stop(device_id, 11)
         self.abs_position[key]=self.get_position(device_id)

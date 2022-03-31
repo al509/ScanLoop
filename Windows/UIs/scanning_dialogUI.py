@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'scanning_dialog.ui'
+# Form implementation generated from reading ui file '.\scanning_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -118,8 +118,8 @@ class Ui_Dialog(object):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
         self.groupBox_Scanning.setTitle(_translate("Dialog", "Scanning parameters"))
-        self.label_4.setText(_translate("Dialog", "Scanning step"))
-        self.label_5.setText(_translate("Dialog", "Contact step"))
+        self.label_4.setText(_translate("Dialog", "Scanning step, um"))
+        self.label_5.setText(_translate("Dialog", "Contact step, um"))
         self.lineEdit_current_file_index.setText(_translate("Dialog", "1"))
         self.label_8.setText(_translate("Dialog", "from _ "))
         self.lineEdit_seeking_step.setText(_translate("Dialog", "30"))
@@ -133,7 +133,7 @@ class Ui_Dialog(object):
         self.lineEdit_level_to_detect_contact.setText(_translate("Dialog", "-35"))
         self.lineEdit_stop_file_index.setText(_translate("Dialog", "100"))
         self.label_2.setText(_translate("Dialog", "to"))
-        self.label_6.setText(_translate("Dialog", "Losing contact step"))
+        self.label_6.setText(_translate("Dialog", "Losing contact step, um"))
         self.lineEdit_backstep.setText(_translate("Dialog", "50"))
         self.checkBox_save_out_of_contact.setToolTip(_translate("Dialog", "save only difference between in_contact and out_of_contact spectra"))
         self.checkBox_save_out_of_contact.setText(_translate("Dialog", "Save out of contact"))

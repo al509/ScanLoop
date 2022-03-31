@@ -3,7 +3,11 @@
 This is the wrapper of SNAP_experiment.SNAP class to incorporate it to the SCANLOOP
 
 @author: Ilya
+
+
 """
+__data__='2022.03.31'
+
 import os
 import sys
 import numpy as np
@@ -42,6 +46,8 @@ class Analyzer(QObject):
             self.N_points_for_fitting=0
             self.iterate_different_N_points=False
             self.max_N_points_for_fitting=100
+            self.FFTFilter_low_freq_edge=0.00001
+            self.FFTFilter_high_freq_edge=0.01
             
             self.SNAP=None
             
@@ -68,6 +74,8 @@ class Analyzer(QObject):
             self.SNAP=SNAP_experiment.load_data(path)
             
             
+            
+                        
         def save_cropped_data(self):
             x_lim=self.SNAP.fig_spectrogram.axes[0].get_xlim() #positions
             wave_lim=self.SNAP.fig_spectrogram.axes[0].get_ylim()
@@ -138,9 +146,9 @@ class Analyzer(QObject):
             fig=plt.figure()
             ax = plt.axes(projection='3d')
             ax.plot(self.SNAP.positions[:,2],self.SNAP.positions[:,0],self.SNAP.positions[:,1])
-            ax.set_xlabel('Z,steps')
-            ax.set_ylabel('X,steps')
-            ax.set_zlabel('Y,steps')
+            ax.set_xlabel('Z, microns')
+            ax.set_ylabel('X, microns')
+            ax.set_zlabel('Y, microns')
             plt.gca().invert_zaxis()
             plt.gca().invert_xaxis()
             return fig
@@ -292,6 +300,11 @@ class Analyzer(QObject):
             with open(file_name,'rb') as f:
                 d=pickle.load(f)
             self.plot_ERV_params(d)
+            
+            
+        def apply_FFT_to_spectrogram(self):
+            self.SNAP.apply_FFT_filter(self.FFTFilter_low_freq_edge,self.FFTFilter_high_freq_edge)
+            self.plot2D()
                 
         
   

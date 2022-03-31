@@ -8,8 +8,8 @@ import numpy as np
 c=3e8 #m/sec
 n2=3.2e-20 #m**2/W
 delta_c=5e6 # Hz
-delta_0=18e6 #H z
-length=500e-6 # m
+delta_0=25e6 #H z
+length=120e-6 # m
 R=62.5e-6 #m
 dR=2e-6 #m 
 const=2*np.pi*R*dR
@@ -21,3 +21,4 @@ delta=(delta_0+delta_c)
 
 threshold=n**2*V*delta**3/c/omega/n2/delta_c # Gorodecky (11.25)
 print('Threshold={} W'.format(threshold))
+print('Q_factor={:.2e},V={}'.format(omega/delta,V))

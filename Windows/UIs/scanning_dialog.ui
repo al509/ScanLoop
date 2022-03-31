@@ -54,7 +54,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Scanning step</string>
+     <string>Scanning step, um</string>
     </property>
     <property name="wordWrap">
      <bool>true</bool>
@@ -70,7 +70,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Contact step</string>
+     <string>Contact step, um</string>
     </property>
     <property name="scaledContents">
      <bool>false</bool>
@@ -249,7 +249,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Losing contact step</string>
+     <string>Losing contact step, um</string>
     </property>
     <property name="wordWrap">
      <bool>true</bool>

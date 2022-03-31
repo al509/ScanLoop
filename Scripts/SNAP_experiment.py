@@ -6,8 +6,8 @@ Created on Fri Sep 25 16:30:03 2020
 matplotlib 3.4.2 is needed! 
 
 """
-__version__='3'
-__data__='2022.03.18'
+__version__='4'
+__data__='2022.03.31'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -36,7 +36,7 @@ class SNAP():
         self.x=x  # in microns! 
         self.wavelengths=wavelengths
         self.transmission=transmission
-        self.positions=None # whole three dimensions, in steps!
+        self.positions=None # whole three dimensions, in microns!
         self.axes_number={'X':0,'Y':1,'Z':2,'W':3,'p':4}
         self.transmission_scale='log'
         self.axis=0
@@ -105,7 +105,7 @@ class SNAP():
 
     def plot_spectrogram(self,new_figure=True,figsize=(8,4),font_size=11,title=False,vmin=None,vmax=None,
                          cmap='jet',language='eng',enable_offset=True, 
-                         position_in_steps_axis=True,ERV_axis=True,
+                         position_in_steps_axis=False,ERV_axis=True,
                          colorbar_location='right',colorbar_pad=0.12,
                          colorbar_title_position='right',colorbar_title_rotation=0):
         '''
@@ -391,7 +391,7 @@ def load_data(file_name):
         SNAP_object.axis=D['axis']
         Positions=np.array(D['Positions'])
         wavelengths,exp_data=D['Wavelengths'],D['Signal']
-        x=Positions[:,SNAP_object.axes_number[SNAP_object.axis]]*2.5
+        x=Positions[:,SNAP_object.axes_number[SNAP_object.axis]]
         
         SNAP_object.x=x
         SNAP_object.wavelengths=wavelengths

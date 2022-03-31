@@ -1,6 +1,7 @@
-"""
-Version 10.06.2020
-"""
+
+
+__data__='2022.03.31'
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,7 +19,7 @@ class Spectral_processor(QObject):
         self.processedData_dir_path=path_to_main+'\\ProcessedData\\'
         self.source_dir_path=path_to_main+'\\SpectralData\\'
         self.out_of_contact_data=False
-        self.StepSize=30*2.5 # um, Step in Z direction
+        self.StepSize=30 # um, Step in Z direction
         self.isAveraging=False
         self.isShifting=False
         self.isInterpolation=True
@@ -112,7 +113,7 @@ class Spectral_processor(QObject):
         '''
         Find all files which acqured at the same point
         
-        return  structures file list and list of positions in steps!
+        return  structures file list and list of positions in microns!
         '''
         
         NewFileList=[]
@@ -161,9 +162,9 @@ class Spectral_processor(QObject):
         plt.figure()
         ax = plt.axes(projection='3d')
         ax.plot(Positions[:,2],Positions[:,0],Positions[:,1])
-        ax.set_xlabel('Z,steps')
-        ax.set_ylabel('X,steps')
-        ax.set_zlabel('Y,steps')
+        ax.set_xlabel('Z, microns')
+        ax.set_ylabel('X, microns')
+        ax.set_zlabel('Y, microns')
         plt.gca().invert_zaxis()
         plt.gca().invert_xaxis()
 
@@ -342,11 +343,8 @@ class Spectral_processor(QObject):
             if self.axis_to_plot_along=='W':
                 plt.xlabel('Wavelength,nm')
             else:
-                plt.xlabel(r'Position, steps (2.5 $\mu$m each)')
-                ax2=(plt.gca()).twiny()
-                ax2.set_xlabel(r'Distance, $\mu$m')
-                ax2.set_xlim([np.min(Positions_at_given_axis)*2.5, np.max(Positions_at_given_axis)*2.5])
-            
+                plt.xlabel(r'Distance, $\mu$m')
+
                 
             plt.colorbar()
             plt.tight_layout()
