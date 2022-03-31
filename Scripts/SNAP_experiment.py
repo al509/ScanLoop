@@ -6,8 +6,8 @@ Created on Fri Sep 25 16:30:03 2020
 matplotlib 3.4.2 is needed! 
 
 """
-__version__='4'
-__date__='2022.03.31'
+__version__='5'
+__date__='2022.04.01'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -62,7 +62,7 @@ class SNAP():
     
     def load_ERV_estimation(self,file_name):
         A=np.loadtxt(file_name)
-        x_ERV=A[:,0]*2.5
+        x_ERV=A[:,0]
         Waves=A[:,1]
         lambda_0=np.nanmin(Waves)
         ERV=(Waves-lambda_0)/np.nanmean(Waves)*self.R_0*1e3
@@ -104,136 +104,15 @@ class SNAP():
             self.transmission[:,ii]=FFTFilter(spectrum)
     
 
-    def plot_spectrogram(self,new_figure=True,figsize=(8,4),font_size=11,title=False,vmin=None,vmax=None,
-                         cmap='jet',language='eng',enable_offset=True, 
-                         position_in_steps_axis=False,ERV_axis=True,
-                         colorbar_location='right',colorbar_pad=0.12,
-                         colorbar_title_position='right',colorbar_title_rotation=0):
-        '''
-        Parameters:
-        font_size=11,title=True,vmin=None,vmax=None,cmap='jet',language='eng'
-        '''
-        w_0=np.mean(self.wavelengths)
-        x=self.positions[:,self.axes_dict[self.axis_key]]
-        def _convert_ax_Wavelength_to_Radius(ax_Wavelengths):
-            """
-            Update second axis according with first axis.
-            """
-            y1, y2 = ax_Wavelengths.get_ylim()
-            print(y1,y2)
-            nY1=(y1-self.lambda_0)/w_0*self.R_0*self.refractive_index*1e3
-            nY2=(y2-self.lambda_0)/w_0*self.R_0*self.refractive_index*1e3
-            ax_Radius.set_ylim(nY1, nY2)
-            
-        def _forward(x):
-            return (x-self.lambda_0)/w_0*self.R_0*self.refractive_index*1e3
-
-        def _backward(x):
-            return self.lambda_0 + w_0*x/self.R_0/self.refractive_index/1e3
-    
-    
-        
-        if (new_figure) or (figsize!=None):
-            fig=plt.figure(figsize=figsize)
-        else:
-            fig=plt.gcf()
-        
-        plt.clf()
-        matplotlib.rcParams.update({'font.size': font_size})
-        
-        if not enable_offset: plt.rcParams['axes.formatter.useoffset'] = False
-        
-        ax_Wavelengths = fig.subplots()
-        try:
-            im = ax_Wavelengths.pcolorfast(x,self.wavelengths,self.transmission,50,cmap=cmap,vmin=vmin,vmax=vmax)
-        except:
-            im = ax_Wavelengths.contourf(x,self.wavelengths,self.transmission,50,cmap=cmap,vmin=vmin,vmax=vmax)
-        if ERV_axis:
-            ax_Radius = ax_Wavelengths.secondary_yaxis('right', functions=(_forward,_backward))
-            # ax_Wavelengths.callbacks.connect("ylim_changed", _convert_ax_Wavelength_to_Radius)
-        
-        if position_in_steps_axis:
-            ax_steps=ax_Wavelengths.twiny()
-            ax_steps.set_xlim([np.min(x)/2.5,np.max(x)/2.5])
-            try:
-                clb=fig.colorbar(im,ax=ax_steps,pad=colorbar_pad,location=colorbar_location)
-            except TypeError:
-                print('WARNING: update matplotlib up to 3.4.2 to plot colorbars properly')
-                clb=fig.colorbar(im,ax=ax_steps,pad=colorbar_pad)
-        else:
-            try:
-                clb=fig.colorbar(im,ax=ax_Wavelengths,pad=colorbar_pad,location=colorbar_location)
-            except TypeError:
-                print('WARNING: update matplotlib up to 3.4.2 to plot colorbars properly')
-                clb=fig.colorbar(im,ax=ax_Wavelengths,pad=colorbar_pad)
-
-        if language=='eng':
-            ax_Wavelengths.set_xlabel(r'Position, $\mu$m')
-            ax_Wavelengths.set_ylabel('Wavelength, nm')
-            try:
-                ax_Radius.set_ylabel('$\Delta r_{eff}$, nm')
-            except: pass
-            if self.transmission_scale=='log':
-                if colorbar_title_position=='right':
-                    clb.ax.set_ylabel('dB',rotation= colorbar_title_rotation,labelpad=5)
-                else:
-                    clb.ax.set_title('dB',labelpad=5)
-            if title:
-                plt.title('experiment')
-            try:
-                ax_steps.set_xlabel('Position, steps')
-            except: pass 
-        
-        elif language=='ru':
-            ax_Wavelengths.set_xlabel('Расстояние, мкм')
-            ax_Wavelengths.set_ylabel('Длина волны, нм')
-            try:
-                ax_Radius.set_ylabel('$\Delta r_{eff}$, нм')
-            except: pass
-            if self.transmission_scale=='log':
-                if colorbar_title_position=='right':
-                    clb.ax.set_ylabel('дБ',rotation= colorbar_title_rotation)
-                else:
-                    clb.ax.set_title('дБ')
-            if title:
-                plt.title('эксперимент')
-            try:
-                ax_steps.set_xlabel('Расстояние, шаги')
-            except: pass 
-        fig.tight_layout()
-        self.fig_spectrogram=fig
-        return fig,im,ax_Wavelengths,ax_Radius
-    
-    
+      
 
     
     
 
-    
-    def plot_spectrum(self,x,language='eng'):
-        fig=plt.figure()
-        plt.clf()
-
-        ax = plt.axes()
-        ax.minorticks_on()
-        ax.grid(which='major', linestyle=':', linewidth='0.1', color='black')
-        ax.grid(which='minor', linestyle=':', linewidth='0.1', color='black')
-
-        index=np.argmin(abs(x-x))
-        plt.plot(self.wavelengths,self.transmission[:,index])
-        
-        if language=='eng':
-            plt.xlabel('Wavelength, nm')
-            plt.ylabel('Spectral power density, dBm')
-        elif language=='ru':
-            plt.xlabel('Длина волны, нм')
-            plt.ylabel('Спектральная плотность мощности, дБм')
-        return fig
-    
 
     # @numba.njit
     def extract_ERV(self,number_of_peaks_to_search=1,min_peak_level=1,min_peak_distance=10000,min_wave=0,max_wave=1e4,find_widths=True,
-                    indicate_ERV_on_spectrogram=True, plot_results_separately=False,N_points_for_fitting=100,iterate_different_N_points=False,max_N_points_for_fitting=100):
+                    N_points_for_fitting=100,iterate_different_N_points=False,max_N_points_for_fitting=100):
         '''
         analyze 2D spectrogram
         return position of several first (higher-wavelegth) main resonances. Number of resonances is defined by number_of_peaks_to_search
@@ -308,78 +187,13 @@ class SNAP():
         lambdas_0=np.amin(PeakWavelengthArray,axis=0)
         ERV=(PeakWavelengthArray-lambdas_0)/np.nanmean(PeakWavelengthArray,axis=0)*self.R_0*self.refractive_index*1e3 # in nm
         print('Analyzing finished')
-        if self.fig_spectrogram is not None and indicate_ERV_on_spectrogram:
-            if len(self.fig_spectrogram.axes[0].lines)>1:
-                for line in self.fig_spectrogram.axes[0].lines[1:]: line.remove()
-            for i in range(0,number_of_peaks_to_search):
-                self.fig_spectrogram.axes[0].plot(x,PeakWavelengthArray[:,i])
-            self.fig_spectrogram.canvas.draw()
-        elif self.fig_spectrogram is None and indicate_ERV_on_spectrogram:
-            self.plot_spectrogram()
-            for i in range(0,number_of_peaks_to_search):
-                self.fig_spectrogram.axes[0].plot(x,PeakWavelengthArray[:,i])
-                line=self.fig_spectrogram.axes[0].plot(x,PeakWavelengthArray[:,i])
+
                 # self.fig_spectrogram_ERV_lines.append[line]
 
         
         resonance_parameters_array=np.array(resonance_parameters_array)
 
-        
-        if plot_results_separately:
-            plt.figure()
-            for i in range(0,number_of_peaks_to_search):
-                plt.plot(x,PeakWavelengthArray[:,i])
-            plt.xlabel('Distance, $\mu$m')
-            plt.ylabel('Cut-off wavelength, nm')
-            plt.title('Cut-off wavelength')
-            plt.tight_layout()
-
-        if plot_results_separately and find_widths:    
-            plt.figure()
-            plt.title('Depth and Linewidth $\Delta \lambda$')
-            for i in range(0,number_of_peaks_to_search):
-                plt.plot(x,resonance_parameters_array[:,i,2],color='blue')
-            plt.xlabel('Distance, $\mu$m')
-            plt.ylabel('Depth ',color='blue')
-            plt.gca().tick_params(axis='y', colors='blue')
-            plt.gca().twinx()
-            # plt.figure()
-            for i in range(0,number_of_peaks_to_search):
-                plt.plot(x,resonance_parameters_array[:,i,3], color='red')
-            plt.ylabel('Linewidth $\Delta \lambda$, nm',color='red')
-            plt.gca().tick_params(axis='y', colors='red')
-            plt.tight_layout()
-            
-            plt.figure()
-            plt.title('Nonresonanse transmission $|S_0|$ and its phase')
-            for i in range(0,number_of_peaks_to_search):
-                plt.plot(x,resonance_parameters_array[:,i,0],color='blue')
-            plt.xlabel('Distance, $\mu$m')
-            plt.ylabel('Nonresonance transmission $|S_0|$',color='blue')
-            plt.gca().tick_params(axis='y', colors='blue')
-            plt.gca().twinx()
-            # plt.figure()
-            for i in range(0,number_of_peaks_to_search):
-                plt.plot(x,resonance_parameters_array[:,i,1], color='red')
-            plt.ylabel('Phase',color='red')
-            plt.gca().tick_params(axis='y', colors='red')
-            plt.tight_layout()
-            
-            plt.figure()
-            plt.title('$\delta_0$ and $\delta_c$')
-            for i in range(0,number_of_peaks_to_search):
-                plt.plot(x,resonance_parameters_array[:,i,4],color='blue')
-            plt.xlabel('Distance, $\mu$m')
-            plt.ylabel('$\delta_c$, MHz',color='blue')
-            plt.gca().tick_params(axis='y', colors='blue')
-            plt.gca().twinx()
-            # plt.figure()
-            for i in range(0,number_of_peaks_to_search):
-                plt.plot(x,resonance_parameters_array[:,i,5], color='red')
-            plt.ylabel('$\delta_0$, MHz',color='red')
-            plt.gca().tick_params(axis='y', colors='red')
-            plt.tight_layout()
-        
+   
         
         return x,np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
     

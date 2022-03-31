@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-
+__date__='2022.04.01'
 import os
 if __name__=='__main__':
     os.chdir('..')
@@ -237,7 +237,7 @@ class MainWindow(ThreadedMainWindow):
 
         self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(
             self.analyzer.plot_sample_shape)
-        self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot2D())
+        self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot_spectrogram())
         self.ui.pushButton_analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plot_slice(float(self.ui.lineEdit_slice_position.text())))
         self.ui.pushButton_analyzer_save_slice.clicked.connect(self.analyzer.save_slice_data)
         self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(self.analyzer.single_spectrum_figure))

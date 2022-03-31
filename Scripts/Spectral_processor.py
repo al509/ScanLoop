@@ -1,6 +1,6 @@
 
 
-__date__='2022.03.31'
+__date__='2022.04.01'
 
 import os
 import numpy as np
@@ -312,7 +312,7 @@ class Spectral_processor(QObject):
         if self.type_of_output_data=='SNAP':
             SNAP=SNAP_experiment.SNAP()
             SNAP.date=datetime.today().strftime('%Y.%m.%d')
-            SNAP.positions=Positions
+            SNAP.positions=np.array(Positions)
             SNAP.wavelengths=MainWavelengths
             SNAP.transmission=SignalArray
             SNAP.axis_key=self.axis_to_plot_along
@@ -325,7 +325,7 @@ class Spectral_processor(QObject):
             D={}
             D['axis']=self.axis_to_plot_along
             D['spatial_scale']='microns'
-            D['Positions']=Positions
+            D['Positions']=np.array(Positions)
             D['Wavelengths']=MainWavelengths
             D['Signal']=SignalArray
             from datetime import datetime
