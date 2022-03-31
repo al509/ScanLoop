@@ -252,6 +252,7 @@ class MainWindow(ThreadedMainWindow):
             self.analyzer.save_cropped_data)
         
         self.ui.pushButton_set_analyzer_parameters.clicked.connect(self.on_pushButton_set_analyzer_parameters)
+        self.ui.pushButton_analyzer_save_as_pkl3d.clicked.connect(lambda: self.analyzer.save_as_pkl3d())
 
 # =============================================================================
 #         Pure Photonics Tunable laser
@@ -999,7 +1000,7 @@ class MainWindow(ThreadedMainWindow):
     
 
     def choose_file_for_analyzer(self):
-        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl *.pkl3d' )).split("\',")[0].split("('")[1]
+        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl *.pkl3d *.SNAP' )).split("\',")[0].split("('")[1]
         if DataFilePath=='':
             print('file is not chosen or previous choice is preserved')
         self.analyzer.file_path=DataFilePath

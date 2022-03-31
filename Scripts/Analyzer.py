@@ -6,7 +6,7 @@ This is the wrapper of SNAP_experiment.SNAP class to incorporate it to the SCANL
 
 
 """
-__data__='2022.03.31'
+__date__='2022.03.31'
 
 import os
 import sys
@@ -51,6 +51,8 @@ class Analyzer(QObject):
             
             self.SNAP=None
             
+            self.type_of_SNAP_file='SNAP'
+            
             
         def set_parameters(self,dictionary):
             for key in dictionary:
@@ -63,7 +65,7 @@ class Analyzer(QObject):
             '''
             Returns
             -------
-            Seriazible attributes of the object
+            Seriazible attributes of the Analyzer object
             '''
             d=dict(vars(self)).copy() #make a copy of the vars dictionary
             del d['SNAP']
@@ -71,28 +73,69 @@ class Analyzer(QObject):
             return d
         
         def load_data(self,path):
-            self.SNAP=SNAP_experiment.load_data(path)
-            
-            
-            
+            f=open(path,'rb')
+            D=(pickle.load(f))
+            f.close()
+            if isinstance(D,SNAP_experiment.SNAP):
+                print('loading SNAP data for analyzer from ',path)
+                self.SNAP=D
+            else:
+                print('loading old style SNAP data for analyzer from ',path)
+                SNAP_object=SNAP_experiment.SNAP()
+                SNAP_object.axis_key=D['axis']
+                Positions=np.array(D['Positions'])
+                wavelengths,exp_data=D['Wavelengths'],D['Signal']
+                try:
+                    scale=D['spatial_scale']
+                    if scale=='microns':
+                        pass
+                except KeyError:
+                        print('Spatial scale is defined as steps 2.5 um each')
+                try:
+                    SNAP_object.date=D['date']
+                except KeyError:
+                    print('No date indicated')
+                    SNAP_object.date='_'
+                
+
+                SNAP_object.wavelengths=wavelengths
+                SNAP_object.transmission=exp_data
+                
+                SNAP_object.lambda_0=np.min(wavelengths)
+                SNAP_object.positions=Positions
+                self.SNAP=SNAP_object
+                
+
+        def save_as_pkl3d(self):
+            path,FileName = os.path.split(self.file_path)    
+            NewFileName=path+'\\'+FileName.split('.')[-2]+'.pkl3d'
+            f=open(NewFileName,'wb')
+            D={}
+            D['axis']=self.SNAP.axis
+            D['spatial_scale']='microns'
+            D['Positions']=self.SNAP.positions
+            D['Wavelengths']=self.SNAP.wavelengths
+            D['Signal']=self.SNAP.transmission
+            from datetime import datetime
+            D['date']=self.SNAP.date
                         
         def save_cropped_data(self):
             x_lim=self.SNAP.fig_spectrogram.axes[0].get_xlim() #positions
             wave_lim=self.SNAP.fig_spectrogram.axes[0].get_ylim()
-            i_x_min=np.argmin(abs(self.SNAP.x-x_lim[0]))
-            i_x_max=np.argmin(abs(self.SNAP.x-x_lim[1]))
+            i_x_min=np.argmin(abs(self.SNAP.positions[self.SNAP.axes_dict[self.SNAP.axis_key]]-x_lim[0]))
+            i_x_max=np.argmin(abs(self.SNAP.positions[self.SNAP.axes_dict[self.SNAP.axis_key]]-x_lim[1]))
             
             i_w_min=np.argmin(abs(self.SNAP.wavelengths-wave_lim[0]))
             i_w_max=np.argmin(abs(self.SNAP.wavelengths-wave_lim[1]))
             path,FileName = os.path.split(self.file_path)
-            NewFileName=path+'\\'+FileName.split('.')[-2]+'_cropped.pkl3d'
+            NewFileName=path+'\\'+FileName.split('.')[-2]+'_cropped.SNAP'
+            import copy
+            new_SNAP=copy.deepcopy(self.SNAP)
+            new_SNAP.positions=self.SNAP.positions[i_x_min:i_x_max,:]
+            new_SNAP.wavelengths=self.SNAP.wavelengths[i_w_min:i_w_max]
+            new_SNAP.transmission=self.SNAP.transmission[i_w_min:i_w_max,i_x_min:i_x_max]
             f=open(NewFileName,'wb')
-            D={}
-            D['axis']=self.SNAP.axis
-            D['Positions']=self.SNAP.positions[i_x_min:i_x_max,:]
-            D['Wavelengths']=self.SNAP.wavelengths[i_w_min:i_w_max]
-            D['Signal']=self.SNAP.transmission[i_w_min:i_w_max,i_x_min:i_x_max]
-            pickle.dump(D,f)
+            pickle.dump(new_SNAP,f)
             f.close()
             print('Cropped data saved to {}'.format(NewFileName))
             
@@ -136,7 +179,7 @@ class Analyzer(QObject):
             
         def plot2D(self):
             if self.SNAP is None:
-                self.SNAP=SNAP_experiment.load_data(self.file_path)
+                self.load_data(self.file_path)
             
             with open(self.plotting_parameters_file_path,'r') as f:
                 parameters_dict=json.load(f)

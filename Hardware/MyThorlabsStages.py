@@ -12,7 +12,7 @@ NOTE that positions are in microns
 Need to install kinesis and have kinesis DLLs in win PATH
 '''
 
-__data__='2022.03.31'
+__date__='2022.03.31'
 
 from PyQt5.QtCore import QObject,  pyqtSignal
 import sys

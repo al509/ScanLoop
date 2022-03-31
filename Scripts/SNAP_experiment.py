@@ -7,7 +7,7 @@ matplotlib 3.4.2 is needed!
 
 """
 __version__='4'
-__data__='2022.03.31'
+__date__='2022.03.31'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,20 +26,19 @@ lambda_to_nu=125e3 #MHz/nm
 
 class SNAP():
     def __init__(self,
-                 x=None,
+                 positions=None,
                  wavelengths=None,
                  transmission=None,
                  R_0=62.5):
         
         self.R_0=R_0 # in microns!
         self.refractive_index=1.45
-        self.x=x  # in microns! 
         self.wavelengths=wavelengths
         self.transmission=transmission
         self.positions=None # whole three dimensions, in microns!
-        self.axes_number={'X':0,'Y':1,'Z':2,'W':3,'p':4}
+        self.axes_dict={'X':0,'Y':1,'Z':2,'W':3,'p':4}
         self.transmission_scale='log'
-        self.axis=0
+        self.axis_key='Z'
         
         self.mode_wavelengths=None
         
@@ -49,6 +48,7 @@ class SNAP():
             self.lambda_0=None
             
         self.fig_spectrogram=None
+        self.date='_'
 
         
 
@@ -84,11 +84,12 @@ class SNAP():
     
     
     def find_center(self):
+        x=self.positions[:,self.axes_dict[self.axis_key]]
         if self.mode_wavelengths is None:
             self.find_modes()
         ind=np.where(self.wavelengths==np.max(self.mode_wavelengths))[0][0]
         t_f=np.sum(self.transmission[ind-2:ind+2,:],axis=0)
-        return (np.sum(t_f*self.x)/np.sum(t_f))
+        return (np.sum(t_f*x)/np.sum(t_f))
     
     
     def apply_FFT_filter(self,LowFreqEdge=0.00001,HighFreqEdge=0.001):
@@ -113,6 +114,7 @@ class SNAP():
         font_size=11,title=True,vmin=None,vmax=None,cmap='jet',language='eng'
         '''
         w_0=np.mean(self.wavelengths)
+        x=self.positions[:,self.axes_dict[self.axis_key]]
         def _convert_ax_Wavelength_to_Radius(ax_Wavelengths):
             """
             Update second axis according with first axis.
@@ -143,16 +145,16 @@ class SNAP():
         
         ax_Wavelengths = fig.subplots()
         try:
-            im = ax_Wavelengths.pcolorfast(self.x,self.wavelengths,self.transmission,50,cmap=cmap,vmin=vmin,vmax=vmax)
+            im = ax_Wavelengths.pcolorfast(x,self.wavelengths,self.transmission,50,cmap=cmap,vmin=vmin,vmax=vmax)
         except:
-            im = ax_Wavelengths.contourf(self.x,self.wavelengths,self.transmission,50,cmap=cmap,vmin=vmin,vmax=vmax)
+            im = ax_Wavelengths.contourf(x,self.wavelengths,self.transmission,50,cmap=cmap,vmin=vmin,vmax=vmax)
         if ERV_axis:
             ax_Radius = ax_Wavelengths.secondary_yaxis('right', functions=(_forward,_backward))
             # ax_Wavelengths.callbacks.connect("ylim_changed", _convert_ax_Wavelength_to_Radius)
         
         if position_in_steps_axis:
             ax_steps=ax_Wavelengths.twiny()
-            ax_steps.set_xlim([np.min(self.x)/2.5,np.max(self.x)/2.5])
+            ax_steps.set_xlim([np.min(x)/2.5,np.max(x)/2.5])
             try:
                 clb=fig.colorbar(im,ax=ax_steps,pad=colorbar_pad,location=colorbar_location)
             except TypeError:
@@ -217,7 +219,7 @@ class SNAP():
         ax.grid(which='major', linestyle=':', linewidth='0.1', color='black')
         ax.grid(which='minor', linestyle=':', linewidth='0.1', color='black')
 
-        index=np.argmin(abs(x-self.x))
+        index=np.argmin(abs(x-x))
         plt.plot(self.wavelengths,self.transmission[:,index])
         
         if language=='eng':
@@ -249,7 +251,7 @@ class SNAP():
         
         NumberOfWavelength,Number_of_positions = self.transmission.shape
         WavelengthArray=self.wavelengths
-        Positions=self.x
+        x=self.positions[:,self.axes_dict[self.axis_key]]
         number_of_spectral_points=len(WavelengthArray)
         
         PeakWavelengthArray=np.empty((Number_of_positions,number_of_peaks_to_search))
@@ -310,13 +312,13 @@ class SNAP():
             if len(self.fig_spectrogram.axes[0].lines)>1:
                 for line in self.fig_spectrogram.axes[0].lines[1:]: line.remove()
             for i in range(0,number_of_peaks_to_search):
-                self.fig_spectrogram.axes[0].plot(self.x,PeakWavelengthArray[:,i])
+                self.fig_spectrogram.axes[0].plot(x,PeakWavelengthArray[:,i])
             self.fig_spectrogram.canvas.draw()
         elif self.fig_spectrogram is None and indicate_ERV_on_spectrogram:
             self.plot_spectrogram()
             for i in range(0,number_of_peaks_to_search):
-                self.fig_spectrogram.axes[0].plot(self.x,PeakWavelengthArray[:,i])
-                line=self.fig_spectrogram.axes[0].plot(self.x,PeakWavelengthArray[:,i])
+                self.fig_spectrogram.axes[0].plot(x,PeakWavelengthArray[:,i])
+                line=self.fig_spectrogram.axes[0].plot(x,PeakWavelengthArray[:,i])
                 # self.fig_spectrogram_ERV_lines.append[line]
 
         
@@ -326,7 +328,7 @@ class SNAP():
         if plot_results_separately:
             plt.figure()
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(self.x,PeakWavelengthArray[:,i])
+                plt.plot(x,PeakWavelengthArray[:,i])
             plt.xlabel('Distance, $\mu$m')
             plt.ylabel('Cut-off wavelength, nm')
             plt.title('Cut-off wavelength')
@@ -336,14 +338,14 @@ class SNAP():
             plt.figure()
             plt.title('Depth and Linewidth $\Delta \lambda$')
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(self.x,resonance_parameters_array[:,i,2],color='blue')
+                plt.plot(x,resonance_parameters_array[:,i,2],color='blue')
             plt.xlabel('Distance, $\mu$m')
             plt.ylabel('Depth ',color='blue')
             plt.gca().tick_params(axis='y', colors='blue')
             plt.gca().twinx()
             # plt.figure()
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(self.x,resonance_parameters_array[:,i,3], color='red')
+                plt.plot(x,resonance_parameters_array[:,i,3], color='red')
             plt.ylabel('Linewidth $\Delta \lambda$, nm',color='red')
             plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
@@ -351,14 +353,14 @@ class SNAP():
             plt.figure()
             plt.title('Nonresonanse transmission $|S_0|$ and its phase')
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(self.x,resonance_parameters_array[:,i,0],color='blue')
+                plt.plot(x,resonance_parameters_array[:,i,0],color='blue')
             plt.xlabel('Distance, $\mu$m')
             plt.ylabel('Nonresonance transmission $|S_0|$',color='blue')
             plt.gca().tick_params(axis='y', colors='blue')
             plt.gca().twinx()
             # plt.figure()
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(self.x,resonance_parameters_array[:,i,1], color='red')
+                plt.plot(x,resonance_parameters_array[:,i,1], color='red')
             plt.ylabel('Phase',color='red')
             plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
@@ -366,49 +368,23 @@ class SNAP():
             plt.figure()
             plt.title('$\delta_0$ and $\delta_c$')
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(self.x,resonance_parameters_array[:,i,4],color='blue')
+                plt.plot(x,resonance_parameters_array[:,i,4],color='blue')
             plt.xlabel('Distance, $\mu$m')
             plt.ylabel('$\delta_c$, MHz',color='blue')
             plt.gca().tick_params(axis='y', colors='blue')
             plt.gca().twinx()
             # plt.figure()
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(self.x,resonance_parameters_array[:,i,5], color='red')
+                plt.plot(x,resonance_parameters_array[:,i,5], color='red')
             plt.ylabel('$\delta_0$, MHz',color='red')
             plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
         
         
-        return self.x,np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
+        return x,np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
     
-def load_data(file_name):
-              
-        print('loading data for analyzer from ',file_name)
-        f=open(file_name,'rb')
-        D=(pickle.load(f))
-        f.close()
-        SNAP_object=SNAP()
-        SNAP_object.axis=D['axis']
-        Positions=np.array(D['Positions'])
-        wavelengths,exp_data=D['Wavelengths'],D['Signal']
-        x=Positions[:,SNAP_object.axes_number[SNAP_object.axis]]
-        try:
-            scale=D['spatial_scale']
-            if scale=='microns':
-                pass
-        except KeyError:
-            print('Old spectrogram file determined. Spatial scale is defined as steps 2.5 um each')
-            x=x*2.5
-            
-        
-        
-        SNAP_object.x=x
-        SNAP_object.wavelengths=wavelengths
-        SNAP_object.transmission=exp_data
-        
-        SNAP_object.lambda_0=np.min(wavelengths)
-        SNAP_object.positions=Positions
-        return SNAP_object
+           
+
         
 def get_Fano_fit(waves,signal,peak_wavelength=None):
     '''

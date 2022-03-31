@@ -3,7 +3,7 @@
 NOTE that positions are in microns!
 '''
 
-__data__='2022.03.31'
+__date__='2022.03.31'
 
 from PyQt5.QtCore import QObject,  pyqtSignal
 import sys
