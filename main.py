@@ -1,6 +1,11 @@
 
+<<<<<<< Updated upstream
 __version__='20.1.2'
 __date__='31.03.2021'
+=======
+__version__='20.2'
+__date__='2022.04.01'
+>>>>>>> Stashed changes
 
 
 import sys

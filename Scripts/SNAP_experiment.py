@@ -6,8 +6,13 @@ Created on Fri Sep 25 16:30:03 2020
 matplotlib 3.4.2 is needed! 
 
 """
+<<<<<<< Updated upstream
 __version__='4'
 __data__='2022.03.31'
+=======
+__version__='5'
+__date__='2022.04.01'
+>>>>>>> Stashed changes
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -62,7 +67,7 @@ class SNAP():
     
     def load_ERV_estimation(self,file_name):
         A=np.loadtxt(file_name)
-        x_ERV=A[:,0]*2.5
+        x_ERV=A[:,0]
         Waves=A[:,1]
         lambda_0=np.nanmin(Waves)
         ERV=(Waves-lambda_0)/np.nanmean(Waves)*self.R_0*1e3
@@ -103,6 +108,7 @@ class SNAP():
             self.transmission[:,ii]=FFTFilter(spectrum)
     
 
+<<<<<<< Updated upstream
     def plot_spectrogram(self,new_figure=True,figsize=(8,4),font_size=11,title=False,vmin=None,vmax=None,
                          cmap='jet',language='eng',enable_offset=True, 
                          position_in_steps_axis=False,ERV_axis=True,
@@ -229,9 +235,13 @@ class SNAP():
         return fig
     
 
+=======
+     
+    
+>>>>>>> Stashed changes
     # @numba.njit
     def extract_ERV(self,number_of_peaks_to_search=1,min_peak_level=1,min_peak_distance=10000,min_wave=0,max_wave=1e4,find_widths=True,
-                    indicate_ERV_on_spectrogram=True, plot_results_separately=False,N_points_for_fitting=100,iterate_different_N_points=False,max_N_points_for_fitting=100):
+                    N_points_for_fitting=100,iterate_different_N_points=False,max_N_points_for_fitting=100):
         '''
         analyze 2D spectrogram
         return position of several first (higher-wavelegth) main resonances. Number of resonances is defined by number_of_peaks_to_search
@@ -306,6 +316,7 @@ class SNAP():
         lambdas_0=np.amin(PeakWavelengthArray,axis=0)
         ERV=(PeakWavelengthArray-lambdas_0)/np.nanmean(PeakWavelengthArray,axis=0)*self.R_0*self.refractive_index*1e3 # in nm
         print('Analyzing finished')
+<<<<<<< Updated upstream
         if self.fig_spectrogram is not None and indicate_ERV_on_spectrogram:
             if len(self.fig_spectrogram.axes[0].lines)>1:
                 for line in self.fig_spectrogram.axes[0].lines[1:]: line.remove()
@@ -380,6 +391,10 @@ class SNAP():
         
         
         return self.x,np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
+=======
+        resonance_parameters_array=np.array(resonance_parameters_array)
+        return x,np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
+>>>>>>> Stashed changes
     
 def load_data(file_name):
               
