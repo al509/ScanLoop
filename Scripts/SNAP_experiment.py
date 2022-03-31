@@ -392,6 +392,15 @@ def load_data(file_name):
         Positions=np.array(D['Positions'])
         wavelengths,exp_data=D['Wavelengths'],D['Signal']
         x=Positions[:,SNAP_object.axes_number[SNAP_object.axis]]
+        try:
+            scale=D['spatial_scale']
+            if scale=='microns':
+                pass
+        except KeyError:
+            print('Old spectrogram file determined. Spatial scale is defined as steps 2.5 um each')
+            x=x*2.5
+            
+        
         
         SNAP_object.x=x
         SNAP_object.wavelengths=wavelengths

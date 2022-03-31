@@ -306,9 +306,11 @@ class Spectral_processor(QObject):
         f=open(self.processedData_dir_path+f_name,'wb')
         D={}
         D['axis']=self.axis_to_plot_along
+        D['spatial_scale']='microns'
         D['Positions']=Positions
         D['Wavelengths']=MainWavelengths
         D['Signal']=SignalArray
+        
         pickle.dump(D,f)
         f.close()
 
