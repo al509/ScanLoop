@@ -1,6 +1,10 @@
 
 
+<<<<<<< Updated upstream
 __data__='2022.03.31'
+=======
+__date__='2022.04.01'
+>>>>>>> Stashed changes
 
 import os
 import numpy as np
@@ -302,6 +306,7 @@ class Spectral_processor(QObject):
         elif self.axis_to_plot_along=='p':
             f_name='Processed_spectrogram_at_spot.pkl3d'     
         else:
+<<<<<<< Updated upstream
             f_name='Processed_spectrogram.pkl3d'     
         f=open(self.processedData_dir_path+f_name,'wb')
         D={}
@@ -310,6 +315,31 @@ class Spectral_processor(QObject):
         D['Positions']=Positions
         D['Wavelengths']=MainWavelengths
         D['Signal']=SignalArray
+=======
+            f_name='Processed_spectrogram.'+self.type_of_output_data         
+        from datetime import datetime
+        if self.type_of_output_data=='SNAP':
+            SNAP=SNAP_experiment.SNAP()
+            SNAP.date=datetime.today().strftime('%Y.%m.%d')
+            SNAP.positions=np.array(Positions)
+            SNAP.wavelengths=MainWavelengths
+            SNAP.transmission=SignalArray
+            SNAP.axis_key=self.axis_to_plot_along
+            SNAP.lambda_0=min(MainWavelengths)
+            f=open(self.processedData_dir_path+f_name,'wb')
+            pickle.dump(SNAP,f)
+            f.close()
+        elif  self.type_of_output_data=='pkl3d':
+            f=open(self.processedData_dir_path+f_name,'wb')
+            D={}
+            D['axis']=self.axis_to_plot_along
+            D['spatial_scale']='microns'
+            D['Positions']=Positions
+            D['Wavelengths']=MainWavelengths
+            D['Signal']=SignalArray
+            from datetime import datetime
+            D['date']=datetime.today().strftime('%Y.%m.%d')
+>>>>>>> Stashed changes
         
         pickle.dump(D,f)
         f.close()
