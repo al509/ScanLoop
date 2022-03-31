@@ -62,7 +62,7 @@ class Ui_Dialog(object):
         self.lineEdit_max_wave.setGeometry(QtCore.QRect(80, 50, 41, 20))
         self.lineEdit_max_wave.setObjectName("lineEdit_max_wave")
         self.groupBox_11 = QtWidgets.QGroupBox(self.groupBox)
-        self.groupBox_11.setGeometry(QtCore.QRect(20, 220, 461, 50))
+        self.groupBox_11.setGeometry(QtCore.QRect(10, 220, 451, 50))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
