@@ -152,7 +152,7 @@ class MainWindow(ThreadedMainWindow):
 
         self.ui.label_Luna_mode.setVisible(False)
         self.ui.comboBox_Luna_mode.setVisible(False)
-        self.ui.comboBox_Luna_mode.currentTextChanged.connect(self.enable_scanning_process)
+        self.ui.comboBox_Luna_mode.currentTextChanged.connect(lambda : self.enable_scanning_process())
         self.ui.comboBox_Type_of_OSA.currentTextChanged.connect(self.features_visibility)
         
         

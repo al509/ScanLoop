@@ -85,7 +85,7 @@ class Logger(QObject):
         try:
             dictionary=json.load(f)
             f.close()
-            return int(dictionary['X_0']),int(dictionary['Y_0']),int(dictionary['Z_0'])
+            return float(dictionary['X_0']),float(dictionary['Y_0']),float(dictionary['Z_0'])
         except:
             return 0,0,0
 

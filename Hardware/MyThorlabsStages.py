@@ -35,7 +35,7 @@ from Hardware.thorlabs_kinesis import KCube_DC_Servo as kdc
 
 kdc_encoder_step=0.03 # micron per step
 bsm_encoder_step=0.002 # micron per step
-tolerance_kdc=0.1 #  um 
+tolerance_kdc=0.2 #  um 
 tolerance_bsm=0.3 # um 
 
 
@@ -171,7 +171,6 @@ class ThorlabsStages(QObject):
                 while abs(diff)>tolerance_kdc:
                     pos= self.get_position('X')
                     diff=pos-new_pos
-                    print(diff)
             kdc.CC_StopPolling(self._serial_no_x)  
                     
         if key=='Z':
@@ -189,12 +188,13 @@ class ThorlabsStages(QObject):
                 while abs(diff)>tolerance_bsm:
                     pos= self.get_position('Z')
                     diff=pos-new_pos
-                    print(diff)
+
  
             bsm.SBC_StopPolling(self._serial_no_z, self.channel_z) 
         time.sleep(self._short_pause)
         self.abs_position[key]=self.get_position(key)
         self.update_relative_positions()
+        print('stage moved')
         self.stopped.emit()
             
     def shiftAbsolute(self, key:str, move_to:int):
