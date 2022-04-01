@@ -43,6 +43,7 @@ class ScanningProcess(QObject):
         self.is_squeeze_span=False
         self.is_seeking_contact=False
         self.is_follow_peak=False
+        self.max_allowed_shift=1000
         
         self.save_out_of_contact=False
         self.LunaJonesMeasurement=False
@@ -116,15 +117,20 @@ class ScanningProcess(QObject):
         print("OSA's range is set to initial")
 
     def search_contact(self): ## move taper towards sample until contact has been obtained
+        total_seeking_steps=0    
         wavelengthdata, spectrum=self.OSA.acquire_spectrum()
         time.sleep(0.05)
         self.IsInContact=self.checkIfContact(spectrum) #check if there is contact already
         while not self.IsInContact:
             self.stages.shiftOnArbitrary(self.axis_to_get_contact,self.seeking_step)
+            total_seeking_steps+=self.seeking_step
             print('Moved to Sample')
             wavelengthdata, spectrum=self.OSA.acquire_spectrum()
             time.sleep(0.05)
             self.IsInContact=self.checkIfContact(spectrum)
+            if total_seeking_steps>self.max_allowed_shift:
+                self.is_running=False
+                print('max allowed shift for seeking is approached. Scanning is interrupted')
             if not self.is_running : ##if scanning process is interrupted,stop searching contact
                 if self.is_squeeze_span:
                     self.set_OSA_to_Measuring_State()

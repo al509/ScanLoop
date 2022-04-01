@@ -10,3 +10,4 @@ Windows/__pycache__/MainWindow.cpython-37.pyc
 plotting_parameters.txt
 ZeroPosition.txt
 Parameters.txt
+*.png
