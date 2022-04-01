@@ -1,10 +1,6 @@
 
 
-<<<<<<< Updated upstream
-__data__='2022.03.31'
-=======
 __date__='2022.04.01'
->>>>>>> Stashed changes
 
 import os
 import numpy as np
@@ -13,6 +9,10 @@ import time
 from scipy import interpolate
 from PyQt5.QtCore import QObject
 import pickle
+try:
+    import Scripts.SNAP_experiment as SNAP_experiment
+except ModuleNotFoundError:
+    import SNAP_experiment
 
 
 class Spectral_processor(QObject):
@@ -28,9 +28,10 @@ class Spectral_processor(QObject):
         self.isShifting=False
         self.isInterpolation=True
         self.axis_to_plot_along='Z'
-        self.type_of_data='pkl'
+        self.type_of_input_data='pkl'
         self.is_remove_background_out_of_contact=False
         self.file_naming_style='new'
+        self.type_of_output_data='SNAP'
         
 
     skip_Header=3
@@ -76,7 +77,7 @@ class Spectral_processor(QObject):
             a=s.find(' ')
             s=s[0:a]
             return float(s)
-        if self.type_of_data=='txt':
+        if self.type_of_input_data=='txt':
             with open(file, "rb") as f:
                 min_wavelength = extract_wavelength_from_line(f.readline())        # Read the first line.
                 f.seek(-2, os.SEEK_END)     # Jump to the second last byte.
@@ -199,9 +200,9 @@ class Spectral_processor(QObject):
         """
         Create main wavelength array
         """
-        if self.type_of_data=='pkl':
+        if self.type_of_input_data=='pkl':
             Wavelengths = pickle.load(open(self.source_dir_path +ContactFileList[0], "rb"))[:,0]
-        elif self.type_of_data=='txt':
+        elif self.type_of_input_data=='txt':
             Wavelengths=np.genfromtxt(self.source_dir_path +ContactFileList[0],skip_header=self.skip_Header)[:,0]
             
         if self.isInterpolation:
@@ -254,9 +255,9 @@ class Spectral_processor(QObject):
  
             for jj, FileName in enumerate(FileNameListAtPoint):
                 try:
-                    if self.type_of_data=='pkl':
+                    if self.type_of_input_data=='pkl':
                         Data = pickle.load(open(self.source_dir_path +FileName, "rb"))
-                    elif self.type_of_data=='txt':
+                    elif self.type_of_input_data=='txt':
                         Data = np.genfromtxt(self.source_dir_path +FileName,skip_header=self.skip_Header)
                 except UnicodeDecodeError:
                     print('Error while getting data from file {}'.format(FileName))
@@ -302,20 +303,10 @@ class Spectral_processor(QObject):
                 SignalArray[:,ii]=SmallSignalArray[:,0]
 
         if self.axis_to_plot_along=='W':
-            f_name='Processed_spectra_VS_wavelength.pkl3d'     
+            f_name='Processed_spectra_VS_wavelength.'+self.type_of_output_data     
         elif self.axis_to_plot_along=='p':
-            f_name='Processed_spectrogram_at_spot.pkl3d'     
+            f_name='Processed_spectrogram_at_spot.'+self.type_of_output_data         
         else:
-<<<<<<< Updated upstream
-            f_name='Processed_spectrogram.pkl3d'     
-        f=open(self.processedData_dir_path+f_name,'wb')
-        D={}
-        D['axis']=self.axis_to_plot_along
-        D['spatial_scale']='microns'
-        D['Positions']=Positions
-        D['Wavelengths']=MainWavelengths
-        D['Signal']=SignalArray
-=======
             f_name='Processed_spectrogram.'+self.type_of_output_data         
         from datetime import datetime
         if self.type_of_output_data=='SNAP':
@@ -334,15 +325,14 @@ class Spectral_processor(QObject):
             D={}
             D['axis']=self.axis_to_plot_along
             D['spatial_scale']='microns'
-            D['Positions']=Positions
+            D['Positions']=np.array(Positions)
             D['Wavelengths']=MainWavelengths
             D['Signal']=SignalArray
             from datetime import datetime
             D['date']=datetime.today().strftime('%Y.%m.%d')
->>>>>>> Stashed changes
         
-        pickle.dump(D,f)
-        f.close()
+            pickle.dump(D,f)
+            f.close()
 
         if self.file_naming_style=='old': # legacy code
             plt.figure()
