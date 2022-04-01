@@ -154,6 +154,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.comboBox_Luna_mode.setVisible(False)
         self.ui.comboBox_Luna_mode.currentTextChanged.connect(lambda : self.enable_scanning_process())
         self.ui.comboBox_Type_of_OSA.currentTextChanged.connect(self.features_visibility)
+        self.ui.pushButton_set_max_OSA_range.pressed.connect(self.set_max_OSA_range)
         
         
 
@@ -703,6 +704,11 @@ class MainWindow(ThreadedMainWindow):
     def on_pushButton_acquireSpectrum_pressed(self):
         self.force_OSA_acquire.emit()
 
+    def set_max_OSA_range(self):
+        if self.OSA is not None:
+            self.OSA.change_range(self.OSA.min_wavelength,self.OSA.max_wavelength)
+        else:
+            print('OSA not connected')
 
     @pyqtSlotWExceptions()
     def on_pushButton_acquireSpectrumRep_pressed(self,pressed):

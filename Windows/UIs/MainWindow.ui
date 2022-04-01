@@ -197,7 +197,7 @@
             <string>Freeze</string>
            </property>
           </widget>
-          <widget class="QPushButton" name="pushButton_setMAXrange">
+          <widget class="QPushButton" name="pushButton_set_max_OSA_range">
            <property name="geometry">
             <rect>
              <x>240</x>
@@ -537,7 +537,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>98</width>
              <height>700</height>
             </rect>
            </property>
@@ -1274,8 +1274,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>575</height>
+             <width>98</width>
+             <height>28</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1445,7 +1445,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>98</width>
              <height>600</height>
             </rect>
            </property>
@@ -1783,8 +1783,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>575</height>
+             <width>98</width>
+             <height>500</height>
             </rect>
            </property>
            <property name="minimumSize">
