@@ -1,10 +1,9 @@
+   
 # -*- coding: utf-8 -*-
 """
 Created on Fri Sep 25 16:30:03 2020
-
 @author: Ilya Vatnik
 matplotlib 3.4.2 is needed! 
-
 """
 __version__='5'
 __date__='2022.04.01'
@@ -207,7 +206,6 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
     meay use peak_wavelength
     return [transmission, Fano_phase, resonance_position,linewidth,depth], [x_fitted,y_fitted]
     
-
     '''
     signal_lin=10**(signal/10)
     transmission=np.mean(signal_lin)
@@ -256,7 +254,6 @@ if __name__ == "__main__":
     
     SNAP=SNAP('Processed_spectrogram.pkl')
     #%%
-    SNAP.plot_spectrogram(position_in_steps_axis=False,language='ru')
     
     #%%
     time1=time.time()
@@ -265,4 +262,3 @@ if __name__ == "__main__":
     SNAP.apply_FFT_filter()
     SNAP.plot_spectrogram(position_in_steps_axis=False,language='ru')
     print(time2-time1)
-

@@ -6,7 +6,7 @@ This is the wrapper of SNAP_experiment.SNAP class to incorporate it to the SCANL
 
 
 """
-__date__='2022.04.01'
+__date__='2022.04.02'
 
 import os
 import sys
@@ -245,7 +245,12 @@ class Analyzer(QObject):
                     clb=fig.colorbar(im,ax=ax_Wavelengths,pad=p['colorbar_pad'])
     
             if p['language']=='eng':
-                ax_Wavelengths.set_xlabel(r'Position, $\mu$m')
+                if self.SNAP.axis_key=='W':
+                    ax_Wavelengths.set_xlabel('Wavelength, nm')    
+                elif self.SNAP.axis_key=='p':
+                    ax_Wavelengths.set_xlabel('Position, number')   
+                else:
+                    ax_Wavelengths.set_xlabel(r'Position, $\mu$m')
                 ax_Wavelengths.set_ylabel('Wavelength, nm')
                 try:
                     ax_Radius.set_ylabel('$\Delta r_{eff}$, nm')
@@ -262,7 +267,12 @@ class Analyzer(QObject):
                 except: pass 
             
             elif p['language']=='ru':
-                ax_Wavelengths.set_xlabel('Расстояние, мкм')
+                if self.SNAP.axis_key=='W':
+                    ax_Wavelengths.set_xlabel('Длина волны, нм')    
+                elif self.SNAP.axis_key=='p':
+                    ax_Wavelengths.set_xlabel('Позиция, #')    
+                else:
+                    ax_Wavelengths.set_xlabel('Расстояние, мкм')
                 ax_Wavelengths.set_ylabel('Длина волны, нм')
                 try:
                     ax_Radius.set_ylabel('$\Delta r_{eff}$, нм')
