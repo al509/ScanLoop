@@ -196,9 +196,7 @@ class SNAP():
         
         return x,np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
     
-           
-
-        
+    
 def get_Fano_fit(waves,signal,peak_wavelength=None):
     '''
     fit shape, given in log scale, with Lorenzian 10*np.log10(abs(transmission*np.exp(1j*phase) - 1j*depth/(w-w0+1j*width/2))**2)  # Gorodetsky, (9.19), p.253
