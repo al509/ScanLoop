@@ -537,7 +537,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
+             <width>283</width>
              <height>700</height>
             </rect>
            </property>
@@ -1274,8 +1274,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>28</height>
+             <width>300</width>
+             <height>575</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1445,7 +1445,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
+             <width>283</width>
              <height>600</height>
             </rect>
            </property>
@@ -1783,8 +1783,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>500</height>
+             <width>300</width>
+             <height>575</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -1811,75 +1811,46 @@
             <property name="title">
              <string>Scanning wavelength and save data </string>
             </property>
-            <widget class="QLineEdit" name="lineEdit_laser_lambda_scanning_min">
+            <widget class="QLineEdit" name="lineEdit_laser_scanning_max_detuning">
              <property name="geometry">
               <rect>
                <x>10</x>
                <y>50</y>
-               <width>61</width>
+               <width>91</width>
                <height>20</height>
               </rect>
              </property>
              <property name="text">
-              <string>1550.0000</string>
+              <string>200</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-            <widget class="QLineEdit" name="lineEdit_laser_lambda_scanning_max">
-             <property name="geometry">
-              <rect>
-               <x>80</x>
-               <y>50</y>
-               <width>61</width>
-               <height>20</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>1550.0500</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-            <widget class="QLabel" name="label_16">
-             <property name="geometry">
-              <rect>
-               <x>20</x>
-               <y>22</y>
-               <width>47</width>
-               <height>21</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;?&lt;span style=&quot; vertical-align:sub;&quot;&gt;min&lt;/span&gt;, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
             <widget class="QLabel" name="label_18">
              <property name="geometry">
               <rect>
-               <x>90</x>
+               <x>16</x>
                <y>22</y>
-               <width>47</width>
+               <width>121</width>
                <height>21</height>
               </rect>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;?&lt;span style=&quot; vertical-align:sub;&quot;&gt;max&lt;/span&gt;, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Max detuning, pm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
             <widget class="QLineEdit" name="lineEdit_laser_lambda_scanning_step">
              <property name="geometry">
               <rect>
-               <x>150</x>
+               <x>110</x>
                <y>50</y>
-               <width>41</width>
+               <width>81</width>
                <height>20</height>
               </rect>
              </property>
              <property name="text">
-              <string>20</string>
+              <string>0.1</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1888,17 +1859,20 @@
             <widget class="QLabel" name="label_19">
              <property name="geometry">
               <rect>
-               <x>160</x>
+               <x>120</x>
                <y>22</y>
-               <width>47</width>
+               <width>81</width>
                <height>21</height>
               </rect>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;d?, pm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;detuning step, pm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
             <widget class="QPushButton" name="pushButton_scan_laser_wavelength">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="geometry">
               <rect>
                <x>200</x>
@@ -1912,32 +1886,6 @@
              </property>
              <property name="checkable">
               <bool>true</bool>
-             </property>
-            </widget>
-            <widget class="QLabel" name="label_20">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>90</y>
-               <width>51</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Current ?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-            </widget>
-            <widget class="QLabel" name="label_current_scanning_laser_wavelength">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>120</y>
-               <width>101</width>
-               <height>21</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>1550</string>
              </property>
             </widget>
             <widget class="QCheckBox" name="checkBox_OSA_for_laser_scanning">
@@ -1979,6 +1927,9 @@
              </property>
             </widget>
             <widget class="QPushButton" name="pushButton_hold_laser_wavelength">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="geometry">
               <rect>
                <x>200</x>
@@ -2011,6 +1962,9 @@
              <string>Laser operation</string>
             </property>
             <widget class="QLineEdit" name="lineEdit_laser_lambda">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="geometry">
               <rect>
                <x>10</x>
@@ -2164,6 +2118,35 @@
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_20">
+             <property name="geometry">
+              <rect>
+               <x>90</x>
+               <y>70</y>
+               <width>121</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Actual wavelength, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_current_laser_wavelength">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="geometry">
+              <rect>
+               <x>90</x>
+               <y>90</y>
+               <width>121</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;1550.001&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
            </widget>

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__date__='2022.04.01'
+__date__='2022.04.11'
+
 import os
 if __name__=='__main__':
     os.chdir('..')
@@ -17,6 +18,7 @@ from Hardware.YokogawaOSA import OSA_AQ6370
 from Hardware.ova5000 import Luna
 from Hardware.KeysightOscilloscope import Scope
 from Hardware.APEX_OSA import APEX_OSA_with_additional_features
+
 from Logger.Logger import Logger
 from Visualization.Painter import MyPainter
 from Utils.PyQtUtils import pyqtSlotWExceptions
@@ -24,6 +26,8 @@ from Windows.UIs.MainWindowUI import Ui_MainWindow
 # from Scripts import AnalyzerForSpectrogram
 from Scripts import Analyzer
 from Scripts import Spectral_processor
+
+
 import sys
 
 
@@ -469,9 +473,25 @@ class MainWindow(ThreadedMainWindow):
             self.laser.fineTuning(0)
             print('Laser has been connected')
             self.ui.groupBox_laser_operation.setEnabled(True)
-            self.ui.groupBox_laser_sweeping.setEnabled(True)
-            self.ui.groupBox_laser_scanning.setEnabled(True)
+            # self.ui.groupBox_laser_sweeping.setEnabled(False)
+            # self.ui.groupBox_laser_scanning.setEnabled(False)
     #            self.add_thread([self.laser])
+            from Scripts.ScanningProcessLaser import LaserScanningProcess        
+            self.laser_scanning_process=LaserScanningProcess(OSA=(self.OSA if self.ui.checkBox_OSA_for_laser_scanning.isChecked() else None),
+                laser=self.laser,
+                powermeter=(self.powermeter if self.ui.checkBox_powermeter_for_laser_scanning.isChecked() else None),
+                scanstep=float(self.ui.lineEdit_laser_lambda_scanning_step.text()),
+                wavelength_start=float(self.ui.lineEdit_laser_lambda.text()),
+                max_detuning=float(self.ui.lineEdit_laser_scanning_max_detuning.text()),
+                file_to_save='ProcessedData\\Power_from_powermeter_VS_laser_wavelength.txt')
+            self.add_thread([self.laser_scanning_process])
+            self.laser_scanning_process.S_updateCurrentWavelength.connect(lambda S:self.ui.label_current_laser_wavelength.setText(S))
+            self.laser_scanning_process.S_update_fine_tune.connect(lambda S:self.ui.lineEdit_laser_fine_tune.setText(S))
+            self.laser_scanning_process.S_saveData.connect(lambda Data,prefix: self.logger.save_data(Data,prefix,0,0,0,'FromOSA'))
+            
+            self.laser_scanning_process.S_finished.connect(lambda: self.ui.pushButton_scan_laser_wavelength.setChecked(False))
+            self.laser_scanning_process.S_finished.connect(
+                    lambda : self.laser_scanning(False))
         except:
             print('Connection to laser failed. Check the COM port number')
 
@@ -491,7 +511,9 @@ class MainWindow(ThreadedMainWindow):
 
         '''
         if pressed:
-            self.ui.pushButton_scan_laser_wavelength.setEnabled(False)
+            # self.ui.pushButton_scan_laser_wavelength.setEnabled(True)
+            self.ui.groupBox_laser_sweeping.setEnabled(True)
+            self.ui.groupBox_laser_sweeping.setEnabled(True)
             self.laser.setPower(float(self.ui.lineEdit_laser_power.text()))
             self.laser.setWavelength(float(self.ui.lineEdit_laser_lambda.text()))
             self.laser.setOn()
@@ -499,7 +521,9 @@ class MainWindow(ThreadedMainWindow):
             self.ui.lineEdit_laser_fine_tune.setEnabled(True)
         else:
             self.laser.setOff()
-            self.ui.pushButton_scan_laser_wavelength.setEnabled(True)
+            self.ui.groupBox_laser_sweeping.setEnabled(False)
+            self.ui.groupBox_laser_sweeping.setEnabled(False)
+            # self.ui.pushButton_scan_laser_wavelength.setEnabled(False)
             self.ui.comboBox_laser_mode.setEnabled(False)
             self.ui.lineEdit_laser_fine_tune.setEnabled(False)
 
@@ -543,42 +567,25 @@ class MainWindow(ThreadedMainWindow):
 
         '''
         if pressed:
-            self.ui.pushButton_laser_On.setEnabled(False)
-            from Scripts.ScanningProcessLaser import LaserScanningProcess
-            self.laser_scanning_process=LaserScanningProcess(OSA=(self.OSA if self.ui.checkBox_OSA_for_laser_scanning.isChecked() else None),
-                laser=self.laser,
-                powermeter=(self.powermeter if self.ui.checkBox_powermeter_for_laser_scanning.isChecked() else None),
-                laser_power=float(self.ui.lineEdit_laser_power.text()),
-                scanstep=float(self.ui.lineEdit_laser_lambda_scanning_step.text()),
-                wavelength_start=float(self.ui.lineEdit_laser_lambda_scanning_min.text()),
-                wavelength_stop=float(self.ui.lineEdit_laser_lambda_scanning_max.text()),
-                file_to_save='ProcessedData\\Power_from_powermeter_VS_laser_wavelength.txt')
-            self.add_thread([self.laser_scanning_process])
-            self.laser_scanning_process.S_updateCurrentWavelength.connect(
-                lambda S:self.ui.label_current_scanning_laser_wavelength.setText(S))
+            self.ui.groupBox_laser_operation.setEnabled(False)
             
-            self.laser_scanning_process.S_saveData.connect(
-                lambda Data,prefix: self.logger.save_data(Data,prefix,0,0,0,'FromOSA'))
-            print('Start laser scanning')
-            self.laser_scanning_process.S_toggle_button.connect(lambda:
-                self.ui.pushButton_scan_laser_wavelength.setChecked(False))
-            self.laser_scanning_process.S_toggle_button.connect(lambda : self.laser_scanning(False))
             self.ui.tabWidget_instruments.setEnabled(False)
             self.ui.pushButton_scan_in_space.setEnabled(False)
             self.ui.pushButton_sweep_laser_wavelength.setEnabled(False)
             self.ui.pushButton_hold_laser_wavelength.setEnabled(True)
-            self.laser_scanning_process.initialize_laser()
+            # self.laser_scanning_process.initialize_laser()
             self.force_laser_scanning_process.connect(self.laser_scanning_process.run)
             self.force_laser_scanning_process.emit()
+            print('Start laser scanning')
 
         else:
-            self.ui.pushButton_laser_On.setEnabled(True)
             self.laser_scanning_process.is_running=False
+            self.ui.pushButton_laser_On.setEnabled(True)
             self.ui.tabWidget_instruments.setEnabled(True)
             self.ui.pushButton_scan_in_space.setEnabled(True)
             self.ui.pushButton_sweep_laser_wavelength.setEnabled(True)
             self.ui.pushButton_hold_laser_wavelength.setEnabled(False)
-            del self.laser_scanning_process
+            
             
     def laser_scaning_hold_wavelength(self,pressed:bool):
         '''

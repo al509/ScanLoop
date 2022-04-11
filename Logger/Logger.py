@@ -90,6 +90,8 @@ class Logger(QObject):
             return 0,0,0
 
 
+    
+
 
 if __name__ == "__main__":
     logger = Logger()

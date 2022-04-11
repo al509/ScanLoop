@@ -1,3 +1,6 @@
+
+__date__='2022.04.11'
+
 import serial
 from Hardware import ITLA
 import numpy as np
@@ -16,6 +19,7 @@ class Laser(serial.Serial):
              timeout = 0.4)
         ITLA.ITLAConnect(COMPort)
         self.maximum_tuning=199 # in pm
+        self.tuning=0
 
 
     def setOn(self):
@@ -47,6 +51,7 @@ class Laser(serial.Serial):
         l1 =  C / (THz + (dGHz * 10 ** (-4)))
         df = -1 * C * pm / (l1 * (l1 + pm))
         dfe = df * (10 ** (6))
+        self.tuning=pm
         return ITLA.ITLA(self, ITLA.REG_Ftf, np.uint16(dfe), ITLA.WRITE)
 
 

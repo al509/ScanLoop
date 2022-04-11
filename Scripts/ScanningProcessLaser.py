@@ -13,6 +13,8 @@ Version Nov 22 2019
 @author: Ilya
 """
 
+__date__='2022.04.11'
+
 from PyQt5.QtCore import pyqtSignal, QObject
 import numpy as np
 import time
@@ -23,8 +25,9 @@ class LaserScanningProcess(QObject):
     is_running=False  ## Variable is "True" during scanning process. Pushing on "scanning" button in main window sets is_running True and start scanning process.
 
     S_updateCurrentWavelength=pyqtSignal(str) #signal to initiate update the index of the current file in lineEdit_CurrentFile of main window
+    S_update_fine_tune=pyqtSignal(str)  # signal to update the current fine tune value
     S_saveData=pyqtSignal(object,str) #signal to initiate saving measured spectrum to a file
-    S_toggle_button=pyqtSignal()  # signal to finish
+    S_finished=pyqtSignal()  # signal to finish
     S_saveSpectrumToOSA=pyqtSignal(str)
     S_add_powers_to_file=pyqtSignal(object) # signal to initiate saving current wavelength and power from powermeter to file
 
@@ -32,42 +35,39 @@ class LaserScanningProcess(QObject):
                  OSA:QObject,
                  laser:QObject,
                  powermeter:QObject,
-                 laser_power:float,
-                 scanstep:float,
-                 wavelength_start:float,
-                 wavelength_stop:float,
+                 scanstep:float, # in pm
+                 wavelength_start:float, # in nm
+                 max_detuning:float, # in pm
                  file_to_save:str):
         super().__init__()
         
         self.OSA=OSA
+        self.powermeter=powermeter
+        self.laser=laser
         self.step=scanstep
         self.wavelength=wavelength_start
-        self.wavelength_stop=wavelength_stop
-        self.laser=laser
-        self.Power=laser_power
-        self.powermeter=powermeter
+        self.wavelength_stop=wavelength_start+max_detuning*1e3
         self.short_pause=0.1
         self.long_pause=2
         self.tuning=0
         self.hold_wavelength=False
         self.file_to_save=file_to_save
         
-    def initialize_laser(self):
-        self.laser.setPower(self.Power)
-        self.laser.setMode('Whisper')
-        self.laser.setWavelength(self.wavelength)
-        self.laser.setOn()
-        time.sleep(self.long_pause)
+    # def initialize_laser(self):
+    #     self.laser.setPower(self.Power)
+    #     self.laser.setMode('Whisper')
+    #     self.laser.setWavelength(self.wavelength)
+    #     self.laser.setOn()
+    #     time.sleep(self.long_pause)
 
     def run(self):
         self.is_running=True
         self.tuning=0
-        PowerVSWavelength=[]
         time_start=time.time()
         file=open(self.file_to_save,'a')
         
         while self.is_running and (self.wavelength-self.wavelength_stop)*np.sign(self.step)<0:
-            print(self.wavelength)
+            
             if self.OSA is not None:
                 wavelengthdata, spectrum=self.OSA.acquire_spectrum()
                 time.sleep(0.05)
@@ -84,7 +84,7 @@ class LaserScanningProcess(QObject):
             #     break
             if not self.hold_wavelength:
                 self.tuning+=self.step
-                self.wavelength+=self.step*1e-3
+                self.wavelength+=self.step*1e3
                 if self.tuning<self.laser.maximum_tuning:
                     self.laser.fineTuning(self.tuning)
                     time.sleep(self.short_pause)
@@ -96,6 +96,7 @@ class LaserScanningProcess(QObject):
                     self.laser.setOn()
                     time.sleep(self.long_pause)
                 self.S_updateCurrentWavelength.emit(str(self.wavelength))
+                self.S_update_fine_tune.emit(str(self.tuning))
 
             # if self.is_running and (self.wavelength-self.wavelength_stop)*np.sign(self.step)>0:
             #     self.S_add_powers_to_file.emit(PowerVSWavelength)
@@ -104,8 +105,11 @@ class LaserScanningProcess(QObject):
             #     print('\nScanning finished\n')
             #     self.laser.setOff()
 
-        if (self.wavelength-self.wavelength_stop)*np.sign(self.step)>0 : self.S_toggle_button.emit()
-        self.laser.setOff()
+        # if (self.wavelength-self.wavelength_stop)*np.sign(self.step)>0 : 
+            
+        # self.laser.setOff()
+        self.S_finished.emit()
+        file.close()
         print('\nScanning finished\n')
         
     def __del__(self):
@@ -168,4 +172,4 @@ class LaserSweepingProcess(QObject):
 
 if __name__ == "__main__":
 
-       ScanningProcess=ScanningProcess(None,None,1,1,1,1,1,1,1,1,1,1,1)
+       ScanningProcess=LaserScanningProcess(None,None,1,1,1,1,1,1,1,1,1,1,1)
