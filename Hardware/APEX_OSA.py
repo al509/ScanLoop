@@ -11,6 +11,8 @@ from os.path import isdir, dirname
 from random import random
 from math import log10
 import time
+if __name__=='__main__':
+    os.chdir('..')
 
 from Hardware.PyApex.AP2XXX import AP2XXX
 from Hardware.PyApex.AP2XXX.osa import OSA
@@ -59,7 +61,7 @@ class APEX_OSA_with_additional_features(OSA,QObject):
             try:
                 self.SaveToFile("D:temp", Type="txt")
                 time.sleep(0.1)
-                temp = np.loadtxt('//' + Consts.APEX.HOST + '/d/temp_spectrum.txt', skiprows=3, dtype=np.float64)
+                temp = np.loadtxt('//' + Consts.APEX.HOST + '/D/temp_spectrum.txt', skiprows=3, dtype=np.float64)
                 self.spectrum=temp[:,1]
                 self.wavelengtharray=temp[:,0]
             except Exception:
@@ -103,3 +105,6 @@ if __name__=='__main__':
     a=OSA.GetMode()
     OSA.ListModes()
     print(a)
+    b=OSA.acquire_spectrum()
+    print(b)
+    

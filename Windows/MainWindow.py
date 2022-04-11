@@ -177,6 +177,7 @@ class MainWindow(ThreadedMainWindow):
 # =============================================================================
     def init_power_meter_interface(self):        
         self.ui.pushButton_powermeter_connect.pressed.connect(self.connect_powermeter)
+        self.ui.checkBox_powermeter_for_laser_scanning.setEnabled(True)
 
 
 # =============================================================================
@@ -266,7 +267,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_laser_connect.clicked.connect(self.connect_laser)
         self.ui.pushButton_laser_On.clicked[bool].connect(self.on_pushButton_laser_On)
         self.ui.comboBox_laser_mode.currentIndexChanged.connect(self.change_laser_mode)
-        self.ui.lineEdit_laser_fine_tune.textChanged.connect(self.laser_fine_tuning)
+        self.ui.lineEdit_laser_fine_tune.editingFinished.connect(self.laser_fine_tuning)
         self.ui.pushButton_scan_laser_wavelength.clicked[bool].connect(self.laser_scanning)
         self.ui.pushButton_hold_laser_wavelength.clicked[bool].connect(self.laser_scaning_hold_wavelength)
         self.ui.pushButton_sweep_laser_wavelength.clicked[bool].connect(self.laser_sweeping)
@@ -471,8 +472,8 @@ class MainWindow(ThreadedMainWindow):
             from Hardware.PurePhotonicsLaser import Laser
             self.laser=Laser(COMPort)
             self.laser.fineTuning(0)
-            print('Laser has been connected')
-            self.ui.groupBox_laser_operation.setEnabled(True)
+            print('Connected to Laser')
+            self.ui.pushButton_laser_On.setEnabled(True)
             # self.ui.groupBox_laser_sweeping.setEnabled(False)
             # self.ui.groupBox_laser_scanning.setEnabled(False)
     #            self.add_thread([self.laser])
@@ -480,18 +481,20 @@ class MainWindow(ThreadedMainWindow):
             self.laser_scanning_process=LaserScanningProcess(OSA=(self.OSA if self.ui.checkBox_OSA_for_laser_scanning.isChecked() else None),
                 laser=self.laser,
                 powermeter=(self.powermeter if self.ui.checkBox_powermeter_for_laser_scanning.isChecked() else None),
-                scanstep=float(self.ui.lineEdit_laser_lambda_scanning_step.text()),
+                step=float(self.ui.lineEdit_laser_lambda_scanning_step.text()),
                 wavelength_start=float(self.ui.lineEdit_laser_lambda.text()),
+                detuning=0,   
                 max_detuning=float(self.ui.lineEdit_laser_scanning_max_detuning.text()),
-                file_to_save='ProcessedData\\Power_from_powermeter_VS_laser_wavelength.txt')
+                file_to_save='ProcessedData\\Power_from_powermeter_VS_laser_wavelength.laserdata')
             self.add_thread([self.laser_scanning_process])
             self.laser_scanning_process.S_updateCurrentWavelength.connect(lambda S:self.ui.label_current_laser_wavelength.setText(S))
             self.laser_scanning_process.S_update_fine_tune.connect(lambda S:self.ui.lineEdit_laser_fine_tune.setText(S))
             self.laser_scanning_process.S_saveData.connect(lambda Data,prefix: self.logger.save_data(Data,prefix,0,0,0,'FromOSA'))
-            
+            self.laser_scanning_process.S_update_main_wavelength.connect(lambda S:self.ui.lineEdit_laser_lambda.setText(S))
             self.laser_scanning_process.S_finished.connect(lambda: self.ui.pushButton_scan_laser_wavelength.setChecked(False))
             self.laser_scanning_process.S_finished.connect(
                     lambda : self.laser_scanning(False))
+            self.force_laser_scanning_process.connect(self.laser_scanning_process.run)
         except:
             print('Connection to laser failed. Check the COM port number')
 
@@ -511,21 +514,30 @@ class MainWindow(ThreadedMainWindow):
 
         '''
         if pressed:
-            # self.ui.pushButton_scan_laser_wavelength.setEnabled(True)
-            self.ui.groupBox_laser_sweeping.setEnabled(True)
+            # self.ui.pushButton_texscan_laser_wavelength.setEnabled(True)
+            self.ui.pushButton_scan_laser_wavelength.setEnabled(True)
             self.ui.groupBox_laser_sweeping.setEnabled(True)
             self.laser.setPower(float(self.ui.lineEdit_laser_power.text()))
             self.laser.setWavelength(float(self.ui.lineEdit_laser_lambda.text()))
             self.laser.setOn()
             self.ui.comboBox_laser_mode.setEnabled(True)
+
             self.ui.lineEdit_laser_fine_tune.setEnabled(True)
+            self.laser.tuning=0
+            self.ui.lineEdit_laser_fine_tune.setText('0')
+            self.ui.label_current_laser_wavelength.setText('{:.5f}'.format(self.laser.main_wavelength))
+            self.ui.lineEdit_laser_lambda.setEnabled(False) 
+            self.ui.lineEdit_laser_power.setEnabled(False)
+
         else:
             self.laser.setOff()
-            self.ui.groupBox_laser_sweeping.setEnabled(False)
+            self.ui.pushButton_scan_laser_wavelength.setEnabled(False)
             self.ui.groupBox_laser_sweeping.setEnabled(False)
             # self.ui.pushButton_scan_laser_wavelength.setEnabled(False)
             self.ui.comboBox_laser_mode.setEnabled(False)
             self.ui.lineEdit_laser_fine_tune.setEnabled(False)
+            self.ui.lineEdit_laser_lambda.setEnabled(True) 
+            self.ui.lineEdit_laser_power.setEnabled(True)
 
     def change_laser_mode(self):
         '''
@@ -536,7 +548,10 @@ class MainWindow(ThreadedMainWindow):
         None.
 
         '''
-        self.laser.setMode(self.ui.comboBox_laser_mode.currentText())
+        try:
+            self.laser.setMode(self.ui.comboBox_laser_mode.currentText())
+        except:
+                pass
 
     def laser_fine_tuning(self):
         '''
@@ -548,7 +563,13 @@ class MainWindow(ThreadedMainWindow):
         None.
 
         '''
-        self.laser.fineTuning(float(self.ui.lineEdit_laser_fine_tune.text()))
+        try:
+            tuning=float(self.ui.lineEdit_laser_fine_tune.text())
+            self.laser.fineTuning(tuning)
+            self.ui.label_current_laser_wavelength.setText('{:.5f}'.format(self.laser.main_wavelength+tuning*1e-3))
+        except AttributeError as e:
+            pass
+            # print(e)
 
     def laser_scanning(self,pressed:bool):
         '''
@@ -568,20 +589,31 @@ class MainWindow(ThreadedMainWindow):
         '''
         if pressed:
             self.ui.groupBox_laser_operation.setEnabled(False)
-            
-            self.ui.tabWidget_instruments.setEnabled(False)
+            if self.ui.checkBox_OSA_for_laser_scanning.isChecked()==True:
+                self.ui.tabWidget_instruments.setEnabled(False)
             self.ui.pushButton_scan_in_space.setEnabled(False)
             self.ui.pushButton_sweep_laser_wavelength.setEnabled(False)
             self.ui.pushButton_hold_laser_wavelength.setEnabled(True)
             # self.laser_scanning_process.initialize_laser()
-            self.force_laser_scanning_process.connect(self.laser_scanning_process.run)
+            self.laser_scanning_process.powermeter=self.powermeter
+            self.laser_scanning_process.OSA=self.OSA
+            
+            self.laser_scanning_process.powermeter_for_laser_scanning=self.ui.checkBox_powermeter_for_laser_scanning.isChecked()
+            self.laser_scanning_process.OSA_for_laser_scanning=self.ui.checkBox_OSA_for_laser_scanning.isChecked()
+            self.laser_scanning_process.step=float(self.ui.lineEdit_laser_lambda_scanning_step.text())
+            self.laser_scanning_process.wavelength_start=float(self.ui.lineEdit_laser_lambda.text())
+            self.laser_scanning_process.tuning=float(self.ui.lineEdit_laser_fine_tune.text())
+            self.laser_scanning_process.max_detuning=float(self.ui.lineEdit_laser_scanning_max_detuning.text())
+
             self.force_laser_scanning_process.emit()
             print('Start laser scanning')
 
         else:
             self.laser_scanning_process.is_running=False
-            self.ui.pushButton_laser_On.setEnabled(True)
-            self.ui.tabWidget_instruments.setEnabled(True)
+            if self.ui.checkBox_OSA_for_laser_scanning.isChecked()==True:
+                self.ui.tabWidget_instruments.setEnabled(True)
+            self.ui.groupBox_laser_operation.setEnabled(True)
+            # self.ui.pushButton_laser_On.setEnabled(True)
             self.ui.pushButton_scan_in_space.setEnabled(True)
             self.ui.pushButton_sweep_laser_wavelength.setEnabled(True)
             self.ui.pushButton_hold_laser_wavelength.setEnabled(False)
@@ -724,14 +756,17 @@ class MainWindow(ThreadedMainWindow):
             self.ui.pushButton_OSA_Acquire.setEnabled(False)
             self.ui.pushButton_OSA_AcquireAll.setEnabled(False)
             self.ui.pushButton_scan_in_space.setEnabled(False)
-            self.ui.pushButton_scan_laser_wavelength.setEnabled(False)
+            self.ui.checkBox_OSA_for_laser_scanning.setChecked(False)
+            self.ui.checkBox_OSA_for_laser_scanning.setEnabled(False)
+            # self.ui.pushButton_scan_laser_wavelength.setEnabled(False)
             self.force_OSA_acquire.emit()
         else:
             self.painter.ReplotEnded.disconnect(self.force_OSA_acquire)
             self.ui.pushButton_OSA_Acquire.setEnabled(True)
             self.ui.pushButton_OSA_AcquireAll.setEnabled(True)
             self.ui.pushButton_scan_in_space.setEnabled(True)
-            self.ui.pushButton_scan_laser_wavelength.setEnabled(True)
+            # self.ui.pushButton_scan_laser_wavelength.setEnabled(True)
+            self.ui.checkBox_OSA_for_laser_scanning.setEnabled(True)
 
 #
 #    @pyqtSlotWExceptions()
@@ -1000,7 +1035,7 @@ class MainWindow(ThreadedMainWindow):
 
     def plot_single_spectrum_from_file(self):
         DataFilePath= str(QFileDialog.getOpenFileName(
-            self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]
+            self, "Select Data File",'','*.pkl *.laserdata')).split("\',")[0].split("('")[1]
         self.analyzer.single_spectrum_path=DataFilePath
         self.analyzer.plot_single_spectrum_from_file()
         self.ui.label_analyzer_single_spectrum_file.setText(self.analyzer.single_spectrum_path)
@@ -1157,7 +1192,7 @@ def set_widget_values(window,d:dict)->None:
              s=d[key]
              w.setText(str(s))
          except KeyError:
-             print('error')
+             print('Set widget values error')
              pass
      for w in window.findChildren(QCheckBox):
          key=w.objectName().split('checkBox_')[1]
@@ -1166,7 +1201,7 @@ def set_widget_values(window,d:dict)->None:
              w.setChecked(s)
              w.clicked.emit(s)
          except KeyError:
-             print('error')
+             print('Set widget values error')
      for w in window.findChildren(QComboBox):
          key=w.objectName().split('comboBox_')[1]
          try:

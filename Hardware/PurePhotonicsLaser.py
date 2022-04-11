@@ -18,8 +18,9 @@ class Laser(serial.Serial):
              bytesize=serial.EIGHTBITS,
              timeout = 0.4)
         ITLA.ITLAConnect(COMPort)
-        self.maximum_tuning=199 # in pm
+        self.maximum_tuning=200.1 # in pm
         self.tuning=0
+        self.main_wavelength=0 # in nm
 
 
     def setOn(self):
@@ -42,18 +43,21 @@ class Laser(serial.Serial):
         dGHz = freq % 10000
         ITLA.ITLA(self, ITLA.REG_Fcf1, THz, ITLA.WRITE)
         ITLA.ITLA(self, ITLA.REG_Fcf2, dGHz, ITLA.WRITE)
+        self.main_wavelength=nm
         return
 
     def fineTuning(self, pm: int): # in pm, accuracy : 0.01 pm
-        C = 299792458
-        THz = ITLA.ITLA(self, ITLA.REG_Lf1, 0, ITLA.READ)
-        dGHz = ITLA.ITLA(self, ITLA.REG_Lf2, 0, ITLA.READ)
-        l1 =  C / (THz + (dGHz * 10 ** (-4)))
-        df = -1 * C * pm / (l1 * (l1 + pm))
-        dfe = df * (10 ** (6))
-        self.tuning=pm
-        return ITLA.ITLA(self, ITLA.REG_Ftf, np.uint16(dfe), ITLA.WRITE)
-
+        if pm<self.maximum_tuning:
+            C = 299792458
+            THz = ITLA.ITLA(self, ITLA.REG_Lf1, 0, ITLA.READ)
+            dGHz = ITLA.ITLA(self, ITLA.REG_Lf2, 0, ITLA.READ)
+            l1 =  C / (THz + (dGHz * 10 ** (-4)))
+            df = -1 * C * pm / (l1 * (l1 + pm))
+            dfe = df * (10 ** (6))
+            self.tuning=pm
+            return ITLA.ITLA(self, ITLA.REG_Ftf, np.uint16(dfe), ITLA.WRITE)
+        else:
+            print('Tuning larger than max possible')
 
 
 

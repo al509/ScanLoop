@@ -25,13 +25,13 @@ import json
 lambda_to_nu=125e3 #MHz/nm
 
 class Analyzer(QObject):
-        def __init__(self, path:str,parameters=None):
+        def __init__(self, file_path=None,parameters=None):
             '''
             path: 
             '''
             super().__init__(None)
             self.single_spectrum_path=None
-            self.file_path=path
+            self.file_path=file_path
             self.plotting_parameters_file_path=os.path.dirname(sys.argv[0])+'\\plotting_parameters.txt'
             self.single_spectrum_figure=None
             self.figure_spectrogram=None
@@ -87,6 +87,7 @@ class Analyzer(QObject):
                 SNAP_object.axis_key=D['axis']
                 Positions=np.array(D['Positions'])
                 wavelengths,exp_data=D['Wavelengths'],D['Signal']
+            
                 try:
                     scale=D['spatial_scale']
                     if scale=='microns':
@@ -173,14 +174,37 @@ class Analyzer(QObject):
         
 
         def plot_single_spectrum_from_file(self):
-            with open(self.single_spectrum_path,'rb') as f:
-                print('loading data for analyzer from ',self.single_spectrum_path)
-                Data=(pickle.load(f))
-            self.single_spectrum_figure=plt.figure()
-            plt.plot(Data[:,0],Data[:,1])
-            plt.xlabel('Wavelength, nm')
-            plt.ylabel('Spectral power density, dBm')
-            plt.tight_layout()
+            if self.single_spectrum_path.split('.')[-1]=='laserdata':
+
+                print('loading data for analyzer from ' +self.single_spectrum_path)
+                data=np.genfromtxt(self.single_spectrum_path)
+                times=data[:,0]
+                wavelengths=data[:,1]
+                powers=data[:,2]*1e3
+                plt.figure()
+                plt.plot(times,powers,color='red')
+                plt.xlabel('Time, s')
+                plt.ylabel('Power, mW',color='red')
+                plt.gca().twinx()
+                plt.plot(times,wavelengths,color='blue')
+                plt.ylabel('Wavelength, nm', color='blue')
+                plt.tight_layout()
+                
+                self.single_spectrum_figure=plt.figure()
+                plt.plot(wavelengths,powers,color='green')
+                plt.xlabel('Wavelength, nm')
+                plt.ylabel('Power, mW',color='green')
+                
+                
+            elif self.single_spectrum_path.split('.')[-1]=='pkl':
+                with open(self.single_spectrum_path,'rb') as f:
+                    print('loading data for analyzer from ',self.single_spectrum_path)
+                    Data=(pickle.load(f))
+                self.single_spectrum_figure=plt.figure()
+                plt.plot(Data[:,0],Data[:,1])
+                plt.xlabel('Wavelength, nm')
+                plt.ylabel('Spectral power density, dBm')
+                plt.tight_layout()
 
             
         def plot_spectrogram(self):
@@ -498,19 +522,21 @@ if __name__ == "__main__":
     
     
     #%%
-    analyzer=Analyzer(os.getcwd()+'\\ProcessedData\\flattened_spectrogram_cropped_cropped_1.pkl')
-    analyzer.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
+    analyzer=Analyzer()
+    # analyzer.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
     
-    analyzer.plot_spectrogram()
+    # analyzer.plot_spectrogram()
     # analyzer.plot_slice(800)
     
-    import json
-    f=open('Parameters.txt')
-    Dicts=json.load(f)
-    f.close()
-    analyzer.set_parameters(Dicts['Analyzer'])
-    analyzer.extract_ERV()
+    # import json
+    # f=open('Parameters.txt')
+    # Dicts=json.load(f)
+    # f.close()
+    # analyzer.set_parameters(Dicts['Analyzer'])
+    # analyzer.extract_ERV()
     
+    analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\Power_from_powermeter_VS_laser_wavelength.laserdata'
+    analyzer.plot_single_spectrum_from_file()
 
     # 
 

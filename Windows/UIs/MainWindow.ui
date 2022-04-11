@@ -55,64 +55,11 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1163</width>
-         <height>728</height>
+         <width>1159</width>
+         <height>714</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="2" colspan="2">
-         <widget class="QGroupBox" name="groupBox_spectrum">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>2</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="sizeIncrement">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="baseSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="toolTip">
-           <string comment="Plot results on new figures" extracomment="Plot results on new figures">10</string>
-          </property>
-          <property name="toolTipDuration">
-           <number>10</number>
-          </property>
-          <property name="title">
-           <string>Graph</string>
-          </property>
-          <widget class="QLabel" name="label_analyzer_plotting_file">
-           <property name="geometry">
-            <rect>
-             <x>-170</x>
-             <y>240</y>
-             <width>161</width>
-             <height>23</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>none</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </widget>
-        </item>
         <item row="1" column="2">
          <widget class="QGroupBox" name="groupBox_9">
           <property name="sizePolicy">
@@ -212,6 +159,145 @@
           </widget>
          </widget>
         </item>
+        <item row="1" column="3">
+         <widget class="QGroupBox" name="groupBox_11">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>300</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>FFT filter</string>
+          </property>
+          <widget class="QLineEdit" name="lineEdit_FilterLowFreqEdge">
+           <property name="geometry">
+            <rect>
+             <x>87</x>
+             <y>23</y>
+             <width>70</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>0.00001</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="lineEdit_FilterHighFreqEdge">
+           <property name="geometry">
+            <rect>
+             <x>163</x>
+             <y>23</y>
+             <width>71</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>0.01</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+          <widget class="QCheckBox" name="checkBox_ApplyFFTFilter">
+           <property name="geometry">
+            <rect>
+             <x>240</x>
+             <y>23</y>
+             <width>50</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Apply</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="lineEdit_FilterPointsToCut">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>23</y>
+             <width>71</width>
+             <height>17</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>100</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </widget>
+        </item>
+        <item row="0" column="2" colspan="2">
+         <widget class="QGroupBox" name="groupBox_spectrum">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>2</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="sizeIncrement">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string comment="Plot results on new figures" extracomment="Plot results on new figures">10</string>
+          </property>
+          <property name="toolTipDuration">
+           <number>10</number>
+          </property>
+          <property name="title">
+           <string>Graph</string>
+          </property>
+          <widget class="QLabel" name="label_analyzer_plotting_file">
+           <property name="geometry">
+            <rect>
+             <x>-170</x>
+             <y>240</y>
+             <width>161</width>
+             <height>23</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>none</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </widget>
+        </item>
         <item row="0" column="1" rowspan="2">
          <widget class="QToolBox" name="Toolbox">
           <property name="sizePolicy">
@@ -244,7 +330,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>575</height>
+             <height>537</height>
             </rect>
            </property>
            <attribute name="label">
@@ -537,7 +623,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>700</height>
             </rect>
            </property>
@@ -1082,8 +1168,8 @@
               <rect>
                <x>130</x>
                <y>110</y>
-               <width>32</width>
-               <height>20</height>
+               <width>37</width>
+               <height>22</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1275,7 +1361,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>575</height>
+             <height>537</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1445,7 +1531,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>600</height>
             </rect>
            </property>
@@ -1552,8 +1638,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>33</width>
-                <height>20</height>
+                <width>38</width>
+                <height>22</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -1784,7 +1870,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>575</height>
+             <height>537</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -1798,7 +1884,7 @@
            </attribute>
            <widget class="QGroupBox" name="groupBox_laser_scanning">
             <property name="enabled">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="geometry">
              <rect>
@@ -1830,8 +1916,8 @@
             <widget class="QLabel" name="label_18">
              <property name="geometry">
               <rect>
-               <x>16</x>
-               <y>22</y>
+               <x>0</x>
+               <y>20</y>
                <width>121</width>
                <height>21</height>
               </rect>
@@ -1841,6 +1927,9 @@
              </property>
             </widget>
             <widget class="QLineEdit" name="lineEdit_laser_lambda_scanning_step">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
              <property name="geometry">
               <rect>
                <x>110</x>
@@ -1859,9 +1948,9 @@
             <widget class="QLabel" name="label_19">
              <property name="geometry">
               <rect>
-               <x>120</x>
+               <x>110</x>
                <y>22</y>
-               <width>81</width>
+               <width>111</width>
                <height>21</height>
               </rect>
              </property>
@@ -1890,7 +1979,7 @@
             </widget>
             <widget class="QCheckBox" name="checkBox_OSA_for_laser_scanning">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
@@ -1909,7 +1998,7 @@
             </widget>
             <widget class="QCheckBox" name="checkBox_powermeter_for_laser_scanning">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
@@ -1928,7 +2017,7 @@
             </widget>
             <widget class="QPushButton" name="pushButton_hold_laser_wavelength">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
@@ -1948,7 +2037,7 @@
            </widget>
            <widget class="QGroupBox" name="groupBox_laser_operation">
             <property name="enabled">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="geometry">
              <rect>
@@ -1963,18 +2052,18 @@
             </property>
             <widget class="QLineEdit" name="lineEdit_laser_lambda">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
                <x>10</x>
                <y>40</y>
-               <width>61</width>
+               <width>71</width>
                <height>20</height>
               </rect>
              </property>
              <property name="text">
-              <string>1550.001</string>
+              <string>1550.000</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1983,9 +2072,9 @@
             <widget class="QLineEdit" name="lineEdit_laser_power">
              <property name="geometry">
               <rect>
-               <x>80</x>
-               <y>41</y>
-               <width>51</width>
+               <x>90</x>
+               <y>40</y>
+               <width>41</width>
                <height>20</height>
               </rect>
              </property>
@@ -2023,6 +2112,9 @@
              </property>
             </widget>
             <widget class="QPushButton" name="pushButton_laser_On">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="geometry">
               <rect>
                <x>210</x>
@@ -2063,7 +2155,7 @@
             <widget class="QLabel" name="label_23">
              <property name="geometry">
               <rect>
-               <x>10</x>
+               <x>0</x>
                <y>70</y>
                <width>91</width>
                <height>20</height>
@@ -2123,9 +2215,9 @@
             <widget class="QLabel" name="label_20">
              <property name="geometry">
               <rect>
-               <x>90</x>
+               <x>110</x>
                <y>70</y>
-               <width>121</width>
+               <width>151</width>
                <height>21</height>
               </rect>
              </property>
@@ -2135,18 +2227,21 @@
             </widget>
             <widget class="QLabel" name="label_current_laser_wavelength">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
-               <x>90</x>
+               <x>110</x>
                <y>90</y>
                <width>121</width>
                <height>21</height>
               </rect>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;1550.001&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;1550.00000&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </widget>
@@ -2301,92 +2396,6 @@
           </widget>
          </widget>
         </item>
-        <item row="1" column="3">
-         <widget class="QGroupBox" name="groupBox_11">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>300</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>300</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>FFT filter</string>
-          </property>
-          <widget class="QLineEdit" name="lineEdit_FilterLowFreqEdge">
-           <property name="geometry">
-            <rect>
-             <x>87</x>
-             <y>23</y>
-             <width>70</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>0.00001</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="lineEdit_FilterHighFreqEdge">
-           <property name="geometry">
-            <rect>
-             <x>163</x>
-             <y>23</y>
-             <width>71</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>0.01</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-          <widget class="QCheckBox" name="checkBox_ApplyFFTFilter">
-           <property name="geometry">
-            <rect>
-             <x>240</x>
-             <y>23</y>
-             <width>50</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Apply</string>
-           </property>
-          </widget>
-          <widget class="QLineEdit" name="lineEdit_FilterPointsToCut">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>23</y>
-             <width>71</width>
-             <height>17</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>100</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </widget>
-        </item>
        </layout>
       </widget>
      </widget>
@@ -2399,7 +2408,7 @@
      <x>0</x>
      <y>0</y>
      <width>1183</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuTools">
