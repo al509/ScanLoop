@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__date__='2022.04.12'
+__date__='2022.04.13'
 
 import os
 if __name__=='__main__':
@@ -527,11 +527,11 @@ class MainWindow(ThreadedMainWindow):
             # self.add_thread([self.powermeter_graph])
             
             self.painter.create_powermeter_plot()
-            self.powermeter.power_received[float].connect(self.painter.update_powermeter_plot)
+            self.powermeter.power_received.connect(self.painter.update_powermeter_plot)
             self.painter.powermeter_canvas_updated.connect(self.powermeter.get_power)
             self.painter.powermeter_canvas_updated.emit()
         else:
-            self.powermeter.power_received[float].disconnect(self.painter.update_powermeter_plot)
+            self.powermeter.power_received.disconnect(self.painter.update_powermeter_plot)
             self.painter.powermeter_canvas_updated.disconnect(self.powermeter.get_power)
             # self.painter.delete_powermeter_plot()
             

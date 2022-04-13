@@ -120,13 +120,13 @@ class MyPainter(Painter):
        
         
     def create_powermeter_plot(self):
-        self.powermeter_plot_N=1000
+        self.powermeter_plot_N=200
         # if self.powermeter_fig
         
         self.powermeter_fig=plt.figure()
         self.powermeter_ax=self.powermeter_fig.gca()
         self.powermeter_ax.set_xlabel('Time, s')
-        self.powermeter_ax.set_ylabel('Power, mW')
+        self.powermeter_ax.set_ylabel('Power, W')
         temp=np.empty(self.powermeter_plot_N)
         temp[:]=np.nan
         self.powers=collections.deque(temp)
@@ -136,19 +136,19 @@ class MyPainter(Painter):
         self.time0=time.time()
 
         
-    def update_powermeter_plot(self,power):
+    def update_powermeter_plot(self,power,time):
         self.powermeter_ax.clear()
         # print(power)
         self.powers.popleft()
         self.powers.append(power)
         self.times.popleft()
-        self.times.append(time.time()-self.time0)
+        self.times.append(time-self.time0)
         self.powermeter_ax.plot(self.times,self.powers)
         self.powermeter_ax.set_xlabel('Time, s')
-        self.powermeter_ax.set_ylabel('Power, mW')
+        self.powermeter_ax.set_ylabel('Power, W')
             # ax1.text(len(ram)-1, ram[-1]+2, "{}%".format(ram[-1]))
         self.powermeter_canvas.draw()
-        plt.pause(0.001)
+        plt.pause(0.02)
         self.powermeter_canvas_updated.emit()
         
     def delete_powermeter_plot(self):

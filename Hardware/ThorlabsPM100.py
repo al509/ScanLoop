@@ -6,6 +6,7 @@ Created on Fri May 28 13:02:47 2021
 """
 import pyvisa as visa
 from PyQt5.QtCore import QObject, pyqtSignal
+import time
 
 
 class PowerMeter(QObject):
@@ -15,7 +16,7 @@ class PowerMeter(QObject):
     
     uses the PyVISA library to communicate over USB.
     """
-    power_received=pyqtSignal(float)
+    power_received=pyqtSignal(float,float)
     
     def __init__(self,SerialNumber):
         
@@ -43,7 +44,7 @@ class PowerMeter(QObject):
     def get_power(self):
         self.device.write("READ?")
         power=float(self.device.read())
-        self.power_received.emit(power)
+        self.power_received.emit(power,time.time())
         return power
     
 if __name__=='__main__':
