@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1159</width>
-         <height>714</height>
+         <width>1163</width>
+         <height>728</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -330,11 +330,11 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>537</height>
+             <height>575</height>
             </rect>
            </property>
            <attribute name="label">
-            <string>Connection</string>
+            <string>Hardware control</string>
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
@@ -599,10 +599,29 @@
                 </rect>
                </property>
                <property name="text">
-                <string>Powermeter</string>
+                <string>Powermeter PM</string>
                </property>
                <property name="checkable">
                 <bool>false</bool>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="pushButton_powermeter_graph">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="geometry">
+                <rect>
+                 <x>210</x>
+                 <y>111</y>
+                 <width>61</width>
+                 <height>21</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>PM graph</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
                </property>
               </widget>
               <zorder>groupBox_features</zorder>
@@ -614,6 +633,7 @@
               <zorder>label_24</zorder>
               <zorder>pushButton_zeroing_stages</zorder>
               <zorder>pushButton_powermeter_connect</zorder>
+              <zorder>pushButton_powermeter_graph</zorder>
              </widget>
             </item>
            </layout>
@@ -622,8 +642,8 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
-             <width>279</width>
+             <y>-125</y>
+             <width>283</width>
              <height>700</height>
             </rect>
            </property>
@@ -1168,8 +1188,8 @@
               <rect>
                <x>130</x>
                <y>110</y>
-               <width>37</width>
-               <height>22</height>
+               <width>32</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1361,7 +1381,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>537</height>
+             <height>575</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1530,8 +1550,8 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
-             <width>279</width>
+             <y>-25</y>
+             <width>283</width>
              <height>600</height>
             </rect>
            </property>
@@ -1638,8 +1658,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>38</width>
-                <height>22</height>
+                <width>33</width>
+                <height>20</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -1870,7 +1890,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>537</height>
+             <height>575</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -1983,14 +2003,14 @@
              </property>
              <property name="geometry">
               <rect>
-               <x>190</x>
+               <x>160</x>
                <y>80</y>
-               <width>61</width>
+               <width>81</width>
                <height>20</height>
               </rect>
              </property>
              <property name="text">
-              <string>OSA</string>
+              <string>save OSA</string>
              </property>
              <property name="checked">
               <bool>false</bool>
@@ -2002,14 +2022,14 @@
              </property>
              <property name="geometry">
               <rect>
-               <x>190</x>
+               <x>160</x>
                <y>110</y>
-               <width>81</width>
+               <width>111</width>
                <height>20</height>
               </rect>
              </property>
              <property name="text">
-              <string>Powermeter</string>
+              <string>save powermeter</string>
              </property>
              <property name="checked">
               <bool>false</bool>
@@ -2408,7 +2428,7 @@
      <x>0</x>
      <y>0</y>
      <width>1183</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuTools">

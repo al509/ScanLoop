@@ -1,11 +1,14 @@
+__date__='2022.04.12'
+
 from PyQt5 import QtWidgets
 
-
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 import numpy as np
 import time
+import collections
 from scipy.fftpack import rfft, irfft, fftfreq
 
 from Utils.PyQtUtils import pyqtSlotWExceptions
@@ -41,7 +44,7 @@ class Painter(QtWidgets.QWidget):
 
 class MyPainter(Painter):
     ReplotEnded=pyqtSignal()
-
+    powermeter_canvas_updated=pyqtSignal()
 
 
     def __init__(self, parent=None):
@@ -113,6 +116,45 @@ class MyPainter(Painter):
         self.canvas.draw()
 
         self.ReplotEnded.emit()
+        
+       
+        
+    def create_powermeter_plot(self):
+        self.powermeter_plot_N=1000
+        # if self.powermeter_fig
+        
+        self.powermeter_fig=plt.figure()
+        self.powermeter_ax=self.powermeter_fig.gca()
+        self.powermeter_ax.set_xlabel('Time, s')
+        self.powermeter_ax.set_ylabel('Power, mW')
+        temp=np.empty(self.powermeter_plot_N)
+        temp[:]=np.nan
+        self.powers=collections.deque(temp)
+        self.times=collections.deque(np.zeros(self.powermeter_plot_N))
+        self.powermeter_canvas = FigureCanvas(self.powermeter_fig)
+        self.powermeter_canvas.draw()
+        self.time0=time.time()
+
+        
+    def update_powermeter_plot(self,power):
+        self.powermeter_ax.clear()
+        # print(power)
+        self.powers.popleft()
+        self.powers.append(power)
+        self.times.popleft()
+        self.times.append(time.time()-self.time0)
+        self.powermeter_ax.plot(self.times,self.powers)
+        self.powermeter_ax.set_xlabel('Time, s')
+        self.powermeter_ax.set_ylabel('Power, mW')
+            # ax1.text(len(ram)-1, ram[-1]+2, "{}%".format(ram[-1]))
+        self.powermeter_canvas.draw()
+        plt.pause(0.001)
+        self.powermeter_canvas_updated.emit()
+        
+    def delete_powermeter_plot(self):
+        plt.close(self.powermeter_fig)
+        
+        
 
 
 if __name__=='__main__':

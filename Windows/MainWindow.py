@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__date__='2022.04.11'
+__date__='2022.04.12'
 
 import os
 if __name__=='__main__':
@@ -88,6 +88,9 @@ class MainWindow(ThreadedMainWindow):
     force_scanning_process=pyqtSignal()
     force_laser_scanning_process=pyqtSignal()
     force_laser_sweeping_process=pyqtSignal()
+    
+    update_powermeter_graph=pyqtSignal(float)
+    
     '''
     Initialization
     '''
@@ -111,6 +114,9 @@ class MainWindow(ThreadedMainWindow):
         self.spectral_processor=Spectral_processor.Spectral_processor(self.path_to_main)
         from Scripts.ScanningProcessOSA import ScanningProcess
         self.scanningProcess=ScanningProcess()
+        # from Visualization.Powermeter_painter import Powermeter_painter
+        # self.powermeter_graph=Powermeter_painter()
+        # self.add_thread([self.powermeter_graph])
         self.add_thread([self.painter,self.logger,self.analyzer,self.spectral_processor,self.scanningProcess])
         
         
@@ -120,7 +126,7 @@ class MainWindow(ThreadedMainWindow):
         self.init_laser_interface()
         self.init_logger_interface()
         self.init_painter_interface()
-        self.init_power_meter_interface()
+        self.init_powermeter_interface()
         self.init_processing_interface()
         self.init_scanning_interface()
         self.init_scope_interface()
@@ -175,9 +181,12 @@ class MainWindow(ThreadedMainWindow):
 # =============================================================================
 #         powermeter interface
 # =============================================================================
-    def init_power_meter_interface(self):        
+    def init_powermeter_interface(self):        
         self.ui.pushButton_powermeter_connect.pressed.connect(self.connect_powermeter)
+        self.ui.pushButton_powermeter_graph.clicked[bool].connect(self.run_powermeter_graph)
         self.ui.checkBox_powermeter_for_laser_scanning.setEnabled(True)
+        
+        
 
 
 # =============================================================================
@@ -426,11 +435,11 @@ class MainWindow(ThreadedMainWindow):
             self.stages.stopped.connect(self.updatePositions)
             self.ui.groupBox_stand.setEnabled(True)
             self.ui.pushButton_zeroing_stages.pressed.connect(
-                self.on_pushButton_zeroing_stages)
+                self.zeroing_stages)
 
             self.enable_scanning_process()
 
-    def on_pushButton_zeroing_stages(self):
+    def zeroing_stages(self):
         '''
         move stages to zero position
 
@@ -455,6 +464,8 @@ class MainWindow(ThreadedMainWindow):
             from Hardware import ThorlabsPM100
             self.powermeter=ThorlabsPM100.PowerMeter(Consts.Powermeter.SERIAL_NUMBER)
             self.ui.checkBox_powermeter_for_laser_scanning.setEnabled(True)
+            self.ui.pushButton_powermeter_graph.setEnabled(True)
+            print('NOTE: if you want to use PM Graph feature, change the iPython Graphic preferences from ''Automatic'' to ''Tkinter''')
         except:
             print('Connection to power meter failed')
 
@@ -497,7 +508,33 @@ class MainWindow(ThreadedMainWindow):
             self.force_laser_scanning_process.connect(self.laser_scanning_process.run)
         except:
             print('Connection to laser failed. Check the COM port number')
+            
+    
+    def run_powermeter_graph(self,pressed:bool):
+        '''
+        plot live graph with data from powermeter
+        
+        Parameters
+        ----------
+        pressed : bool
+            DESCRIPTION. current state of the button
 
+
+        '''
+        if pressed:
+            # from Visualization.Powermeter_painter import Powermeter_painter
+            # self.powermeter_graph=Powermeter_painter(self.powermeter)
+            # self.add_thread([self.powermeter_graph])
+            
+            self.painter.create_powermeter_plot()
+            self.powermeter.power_received[float].connect(self.painter.update_powermeter_plot)
+            self.painter.powermeter_canvas_updated.connect(self.powermeter.get_power)
+            self.painter.powermeter_canvas_updated.emit()
+        else:
+            self.powermeter.power_received[float].disconnect(self.painter.update_powermeter_plot)
+            self.painter.powermeter_canvas_updated.disconnect(self.powermeter.get_power)
+            # self.painter.delete_powermeter_plot()
+            
 
     def on_pushButton_laser_On(self,pressed:bool):
         '''

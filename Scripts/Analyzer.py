@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-This is the wrapper of SNAP_experiment.SNAP class to incorporate it to the SCANLOOP
-
 @author: Ilya
 
 
@@ -150,10 +148,10 @@ class Analyzer(QObject):
             '''
             save data that is plotted on figure with slice
             '''
-            line = self.single_spectrum_figure.gca().get_lines()[0]
+            line = plt.gca().get_lines()[0]
             waves = line.get_xdata()
             signal = line.get_ydata()
-            wave_min,wave_max=self.single_spectrum_figure.gca().get_xlim()
+            wave_min,wave_max=plt.gca().get_xlim()
             index_min=np.argmin(abs(waves-wave_min))
             index_max=np.argmin(abs(waves-wave_max))
             signal=signal[index_min:index_max]

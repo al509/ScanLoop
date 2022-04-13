@@ -5,7 +5,7 @@ Created on Fri May 28 13:02:47 2021
 @author: Ilya
 """
 import pyvisa as visa
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, pyqtSignal
 
 
 class PowerMeter(QObject):
@@ -15,8 +15,10 @@ class PowerMeter(QObject):
     
     uses the PyVISA library to communicate over USB.
     """
+    power_received=pyqtSignal(float)
     
     def __init__(self,SerialNumber):
+        
         
         def FindDevice(SerialNumber) : #SerialNumber of Console
             rm = visa.ResourceManager()
@@ -35,10 +37,14 @@ class PowerMeter(QObject):
         super().__init__()
         self.device=FindDevice(SerialNumber)
         
+
+        
      
     def get_power(self):
         self.device.write("READ?")
-        return float(self.device.read())
+        power=float(self.device.read())
+        self.power_received.emit(power)
+        return power
     
 if __name__=='__main__':
     PM=PowerMeter('P0015055')

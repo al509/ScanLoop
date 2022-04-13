@@ -1,6 +1,6 @@
 
-__version__='20.3.1'
-__date__='2022.04.11'
+__version__='20.3.2'
+__date__='2022.04.12'
 
 
 import sys
@@ -12,7 +12,6 @@ from Windows.MainWindow import MainWindow
 
 
 def main():
-    '''Main function. Starts if you launch the program from this file.'''
     if not QtWidgets.QApplication.instance():
         app = QtWidgets.QApplication(sys.argv)
     else:
