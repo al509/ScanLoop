@@ -5,8 +5,8 @@ Created on Fri Sep 25 16:30:03 2020
 @author: Ilya Vatnik
 matplotlib 3.4.2 is needed! 
 """
-__version__='5'
-__date__='2022.04.01'
+__version__='5.1'
+__date__='2022.04.15'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -133,26 +133,33 @@ class SNAP():
         number_of_spectral_points=len(WavelengthArray)
         
         PeakWavelengthArray=np.empty((Number_of_positions,number_of_peaks_to_search))
-        resonance_parameters_array=np.empty((Number_of_positions,number_of_peaks_to_search,7))
         PeakWavelengthArray.fill(np.nan)
+        
+        resonance_parameters_array=np.empty((Number_of_positions,number_of_peaks_to_search,7))
         resonance_parameters_array.fill(np.nan)
 
             
         for Zind, Z in enumerate(range(0,Number_of_positions)):
-            peakind,_=scipy.signal.find_peaks(abs(self.transmission[:,Zind]-np.nanmean(self.transmission[:,Zind])),height=min_peak_level,distance=min_peak_distance)
-            NewPeakind=np.extract((WavelengthArray[peakind]>min_wave) & (WavelengthArray[peakind]<max_wave),peakind)
-            NewPeakind=NewPeakind[np.argsort(-WavelengthArray[NewPeakind])] ##sort in wavelength decreasing
-            if len(NewPeakind)>0:
-                if len(NewPeakind)>=number_of_peaks_to_search:
-                    shortWavArray=WavelengthArray[NewPeakind[:number_of_peaks_to_search]]
-                elif len(NewPeakind)<number_of_peaks_to_search:
-                    print(number_of_peaks_to_search-len(NewPeakind))
-                    shortWavArray=np.concatenate(WavelengthArray[NewPeakind],np.nan*np.zeros(number_of_peaks_to_search-len(NewPeakind)))
+            
+            peak_indexes,_=scipy.signal.find_peaks(abs(self.transmission[:,Zind]-np.nanmean(self.transmission[:,Zind])),height=min_peak_level,distance=min_peak_distance)
+            peak_indexes=np.extract((WavelengthArray[peak_indexes]>min_wave) & (WavelengthArray[peak_indexes]<max_wave),peak_indexes)
+     
+            peak_indexes=peak_indexes[np.argsort(-WavelengthArray[peak_indexes])] ##sort in wavelength decreasing
+            
+            if len(peak_indexes)>0:
+                if len(peak_indexes)>=number_of_peaks_to_search:
+                    shortWavArray=WavelengthArray[peak_indexes[:number_of_peaks_to_search]]
+                elif len(peak_indexes)<number_of_peaks_to_search:
+                    print(number_of_peaks_to_search-len(peak_indexes))
+                    shortWavArray=np.append(WavelengthArray[peak_indexes],np.nan*np.zeros(number_of_peaks_to_search-len(peak_indexes)))
+                    
+                    
                 PeakWavelengthArray[Zind]=shortWavArray
+                
                 if find_widths:
                     for ii,peak_wavelength in enumerate(shortWavArray):
                         if peak_wavelength is not np.nan:
-                            index=NewPeakind[ii]
+                            index=peak_indexes[ii]
                             # try:
                             if not iterate_different_N_points:
                                 if N_points_for_fitting==0:
@@ -239,24 +246,16 @@ if __name__ == "__main__":
     '''
     testing and debug
     '''
-    # plt.figure(2)
-    # waves=np.linspace(1550.64-0.05,1550.64+0.05,400)
-    # for phase in np.linspace(-np.pi,np.pi,5):
-    #     plt.plot(waves,Fano_lorenzian(waves, 0.5, 1550.64, 0.01, 0.001, phase),label=str(phase))
-    # plt.legend()
+
     #%%
     import os
     import time
-    
+    import pickle
     os.chdir('..')
+    f='ProcessedData\\Processed_spectrogram_at_spot_cropped_cropped_cropped.SNAP'
+    with open(f,'rb') as file:
+        SNAP=pickle.load(file)
+    x,waves,_,_=SNAP.extract_ERV(number_of_peaks_to_search=2,min_peak_level=0.2,min_peak_distance=10,find_widths=False)
+    import matplotlib.pyplot as plt
+    plt.plot(x,waves)
     
-    SNAP=SNAP('Processed_spectrogram.pkl')
-    #%%
-    
-    #%%
-    time1=time.time()
-    # SNAP.extract_ERV(min_peak_level=0.7,min_peak_distance=100,number_of_peaks_to_search=3,plot_results_separately=True,find_widths=False)
-    time2=time.time()
-    SNAP.apply_FFT_filter()
-    SNAP.plot_spectrogram(position_in_steps_axis=False,language='ru')
-    print(time2-time1)
