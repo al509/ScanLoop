@@ -117,18 +117,18 @@ class ScanningProcess(QObject):
         print("OSA's range is set to initial")
 
     def search_contact(self): ## move taper towards sample until contact has been obtained
-        total_seeking_steps=0    
+        total_seeking_shift=0    
         wavelengthdata, spectrum=self.OSA.acquire_spectrum()
         time.sleep(0.05)
         self.IsInContact=self.checkIfContact(spectrum) #check if there is contact already
         while not self.IsInContact:
             self.stages.shiftOnArbitrary(self.axis_to_get_contact,self.seeking_step)
-            total_seeking_steps+=self.seeking_step
+            total_seeking_shift+=self.seeking_step
             print('Moved to Sample')
             wavelengthdata, spectrum=self.OSA.acquire_spectrum()
             time.sleep(0.05)
             self.IsInContact=self.checkIfContact(spectrum)
-            if total_seeking_steps>self.max_allowed_shift:
+            if total_seeking_shift>self.max_allowed_shift:
                 self.is_running=False
                 print('max allowed shift for seeking is approached. Scanning is interrupted')
             if not self.is_running : ##if scanning process is interrupted,stop searching contact
@@ -154,9 +154,8 @@ class ScanningProcess(QObject):
         print('\nContact lost\n')
 
     def checkIfContact(self, spectrum):  ## take measured spectrum and decide if there is contact between the taper and the sample
-        mean=np.mean(spectrum)
-        print(mean)
-        if mean<self.level_to_detect_contact:
+        value=np.min(spectrum)
+        if value<self.level_to_detect_contact:
             return True
         else:
             return False

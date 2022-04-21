@@ -32,6 +32,7 @@ class Luna(QObject):
         self._StopWavelength=self._Center+self._Span/2
         self.min_wavelength=1525
         self.max_wavelength=1610
+        self._N_to_cut=10
 
 
     def recvall(self):
@@ -85,8 +86,8 @@ class Luna(QObject):
             raise self.ScanError(self.send_auto("SYST:ERRD?"))
         x_raw = self.send_auto("FETC:XAXI? " + str(x_mode))
         y_raw = self.send_auto("FETC:MEAS? " + str(y_mode))
-        x_final = np.array(x_raw[:-2].split('\r'),np.float64)
-        y_final = np.array(y_raw[:-2].split('\r'),np.float64)
+        x_final = np.array(x_raw[:-2].split('\r'),np.float64)[self._N_to_cut:-self._N_to_cut]
+        y_final = np.array(y_raw[:-2].split('\r'),np.float64)[self._N_to_cut:-self._N_to_cut]
         self.received_spectrum.emit(x_final,list([y_final]),[0])
         return x_final, y_final
 
