@@ -4,7 +4,7 @@
 
 
 """
-__date__='2022.04.02'
+__date__='2022.04.21'
 
 import os
 import sys
@@ -176,22 +176,54 @@ class Analyzer(QObject):
 
                 print('loading data for analyzer from ' +self.single_spectrum_path)
                 data=np.genfromtxt(self.single_spectrum_path)
-                times=data[:,0]
-                wavelengths=data[:,1]
-                powers=data[:,2]*1e3
-                plt.figure()
-                plt.plot(times,powers,color='red')
-                plt.xlabel('Time, s')
-                plt.ylabel('Power, mW',color='red')
-                plt.gca().twinx()
-                plt.plot(times,wavelengths,color='blue')
-                plt.ylabel('Wavelength, nm', color='blue')
-                plt.tight_layout()
+                attempts=[]
                 
+                indexes_of_attempt_start=np.where(np.diff(data[:,0])<0)[0]
+                ind_start=0
+                if len(indexes_of_attempt_start)>0:
+                    
+                    for ind_stop in indexes_of_attempt_start:
+                        d={}
+                        d['times']=data[ind_start:ind_stop,0]
+                        d['wavelengths']=data[ind_start:ind_stop,1]
+                        d['powers']=data[ind_start:ind_stop,2]*1e3
+                        
+                        attempts.append(d)
+                        ind_start=ind_stop+1
+                d={}
+                d['times']=data[ind_start:,0]
+                d['wavelengths']=data[ind_start:,1]
+                d['powers']=data[ind_start:,2]*1e3
+                attempts.append(d)
+                
+                fig1, (ax1, ax2) = plt.subplots(2, 1)
                 self.single_spectrum_figure=plt.figure()
-                plt.plot(wavelengths,powers,color='green')
-                plt.xlabel('Wavelength, nm')
-                plt.ylabel('Power, mW',color='green')
+                ax3=plt.gca()
+                for i,attempt in enumerate(attempts):
+                    ax1.plot(attempt['times'],attempt['powers'])
+                    ax2.plot(attempt['times'],attempt['wavelengths'])
+                    if attempt['wavelengths'][1]-attempt['wavelengths'][0]>0:
+                        label='increasing $\lambda$'
+                    else:
+                        label='decreasing $\lambda$'
+                    ax3.plot(attempt['wavelengths'],attempt['powers'],label=label)
+                    
+                    
+                ax2.set_xlabel('Time, s')
+                ax1.set_ylabel('Power, mW')
+                ax2.set_ylabel('Wavelength, nm')
+                ax3.legend()
+                ax3.set_xlabel('Wavelength, nm')
+                ax3.set_ylabel('Power, mW')
+                fig1.tight_layout()
+                self.single_spectrum_figure.tight_layout()
+                
+                    
+                
+  
+                # plt.plot(wavelengths,powers,color='green')
+                # plt.xlabel('Wavelength, nm')
+                # plt.ylabel('Power, mW',color='green')
                 
                 
             elif self.single_spectrum_path.split('.')[-1]=='pkl':
@@ -533,7 +565,7 @@ if __name__ == "__main__":
     # analyzer.set_parameters(Dicts['Analyzer'])
     # analyzer.extract_ERV()
     
-    analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\Power_from_powermeter_VS_laser_wavelength.laserdata'
+    analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\test.laserdata'
     analyzer.plot_single_spectrum_from_file()
 
     # 
