@@ -463,9 +463,10 @@ class MainWindow(ThreadedMainWindow):
         try:
             from Hardware import ThorlabsPM100
             self.powermeter=ThorlabsPM100.PowerMeter(Consts.Powermeter.SERIAL_NUMBER)
-            self.ui.checkBox_powermeter_for_laser_scanning.setEnabled(True)
-            self.ui.pushButton_powermeter_graph.setEnabled(True)
-            print('NOTE: if you want to use PM Graph feature, change the iPython Graphic preferences from ''Automatic'' to ''Tkinter''')
+            if self.powermeter is not None:
+                self.ui.checkBox_powermeter_for_laser_scanning.setEnabled(True)
+                self.ui.pushButton_powermeter_graph.setEnabled(True)
+                print('NOTE: if you want to use PM Graph feature, change the iPython Graphic preferences from ''Automatic'' to ''Tkinter''')
         except:
             print('Connection to power meter failed')
 

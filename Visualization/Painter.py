@@ -120,7 +120,7 @@ class MyPainter(Painter):
        
         
     def create_powermeter_plot(self):
-        self.powermeter_plot_N=200
+        self.powermeter_plot_N=10
         # if self.powermeter_fig
         
         self.powermeter_fig=plt.figure()
@@ -148,7 +148,7 @@ class MyPainter(Painter):
         self.powermeter_ax.set_ylabel('Power, W')
             # ax1.text(len(ram)-1, ram[-1]+2, "{}%".format(ram[-1]))
         self.powermeter_canvas.draw()
-        plt.pause(0.02)
+        plt.pause(0.01)
         self.powermeter_canvas_updated.emit()
         
     def delete_powermeter_plot(self):
