@@ -16,6 +16,7 @@ CONTROLLERNAME = 'C-663.12'  #
 # CONTROLLERNAME = 'C-885'  # 
 serial_numbers={'X':'0017550037','Y':'0017550079','Z':'0017550081'}
 
+import time
 from PyQt5.QtCore import QObject,  pyqtSignal
 try:
     from pipython import GCSDevice
@@ -41,7 +42,7 @@ class PIStages(QObject):
                 pidevice = GCSDevice(CONTROLLERNAME)
                 pidevice.ConnectUSB(serialnum=serial_numbers[k])
                 self.Stage_key[k]=pidevice
-   
+            self.isConnected=1
         except:
             print('Error: not connected to '+str(CONTROLLERNAME))
             
@@ -51,6 +52,7 @@ class PIStages(QObject):
     
     def set_zero_positions(self,l):
         self.zero_position['X']=l[0]
+        self.zero_position['Y']=l[1]
         self.zero_position['Z']=l[2]
         self.update_relative_positions()
         
@@ -60,18 +62,30 @@ class PIStages(QObject):
     
     def update_relative_positions(self):
         self.update_abs_positions()
-        self.relative_position['X']=round(self.abs_position['X']-self.zero_position['X'],1)
-        self.relative_position['Z']=round(self.abs_position['Z']-self.zero_position['Z'],1)
+        for k in self.relative_position:
+            self.relative_position[k]=round(self.abs_position[k]-self.zero_position[k],1)
+
         
     def get_position(self, key):
-         return self.Stage_key[key].qPOS('1')['1']
+        '''
+        returns
+        position in microns
+        '''
+        return round(self.Stage_key[key].qPOS('1')['1']*1e3,2)
             
     
-    def shiftOnArbitrary(self, key:str, distance:int):
-        self.Stage_key[key].MVR('1',distance)
-        pitools.waitontarget(self.Stage_key[key], '1')
-        self.stopped.emit()
+    def shiftOnArbitrary(self, key:str, distance:float):
+        '''
+        distance in microns!
+        '''
+        self.Stage_key[key].MVR('1',distance*1e-3)
+        while not all(list(self.Stage_key[key].qONT('1').values())):
+            # print(self.Stage_key[key].qONT('1').values())
+            time.sleep(0.05)
+        # pitools.waitontarget(self.Stage_key[key], '1')
+
         self.update_relative_positions()
+        self.stopped.emit()
  
 
 
@@ -82,7 +96,7 @@ if __name__ == "__main__":
     print(a)
     
     #%%
-    d=5
+    d=-50
     stages.shiftOnArbitrary('Z', d)
     b=stages.get_position('Z')
     print(b)

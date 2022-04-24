@@ -46,3 +46,5 @@ class Consts:
     class Powermeter:
         SERIAL_NUMBER='P0015055'
 
+    class LUNA:
+        PORT=1

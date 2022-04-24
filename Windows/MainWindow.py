@@ -344,7 +344,7 @@ class MainWindow(ThreadedMainWindow):
 
         '''
         if self.ui.comboBox_Type_of_OSA.currentText()=='Luna':
-            self.OSA=Luna()  
+            self.OSA=Luna(port=Consts.LUNA.PORT)  
         if self.ui.comboBox_Type_of_OSA.currentText()=='Yokogawa':
             HOST = Consts.Yokogawa.HOST
             PORT = 10001

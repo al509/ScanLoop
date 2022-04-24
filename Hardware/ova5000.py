@@ -9,6 +9,7 @@ RESPONSE_TIMEOUT = 2 # seconds
 BUFSIZE = 4096 # bytes
 
 
+
 class Luna(QObject):
     '''The class for controlling the OVA5000'''
     class ResponseError(Exception):
@@ -128,3 +129,6 @@ class Luna(QObject):
         self.sock.send("*QUIT".encode())
         time.sleep(RESPONSE_TIMEOUT)
         self.sock.close()
+        
+if __name__=='__main__':
+    l=Luna()
