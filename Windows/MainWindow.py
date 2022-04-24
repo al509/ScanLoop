@@ -412,6 +412,9 @@ class MainWindow(ThreadedMainWindow):
             self.stages=Hardware.MyThorlabsStages.ThorlabsStages()
             self.ui.pushButton_MovePlusY.setEnabled(False)
             self.ui.pushButton_MoveMinusY.setEnabled(False)
+        elif self.ui.comboBox_Type_of_Stages.currentText()=='3x Physik Instrumente':
+            import Hardware.PIStages
+            self.stages=Hardware.PIStages.PIStages()
 
         if self.stages.isConnected>0:
             print('Connected to stages')
