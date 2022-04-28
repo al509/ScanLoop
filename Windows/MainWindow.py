@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__date__='2022.04.13'
+__date__='2022.04.28'
 
 import os
 if __name__=='__main__':
@@ -263,11 +263,9 @@ class MainWindow(ThreadedMainWindow):
         
         self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(lambda: self.analyzer.apply_FFT_to_spectrogram())
         
-        self.ui.pushButton_analyzer_save_cropped_data.clicked.connect(
-            self.analyzer.save_cropped_data)
-        
+        self.ui.pushButton_analyzer_resave_SNAP.clicked.connect(lambda : self.analyzer.resave(self.ui.comboBox_analyzer_resave_type.currentText()))        
         self.ui.pushButton_set_analyzer_parameters.clicked.connect(self.on_pushButton_set_analyzer_parameters)
-        self.ui.pushButton_analyzer_save_as_pkl3d.clicked.connect(lambda: self.analyzer.save_as_pkl3d())
+        # self.ui.pushButton_analyzer_save_as_pkl3d.clicked.connect(lambda: self.analyzer.save_as_pkl3d())
 
 # =============================================================================
 #         Pure Photonics Tunable laser

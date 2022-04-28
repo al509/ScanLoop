@@ -648,7 +648,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>98</width>
              <height>700</height>
             </rect>
            </property>
@@ -1385,8 +1385,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>575</height>
+             <width>98</width>
+             <height>28</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1699,19 +1699,6 @@
               </item>
              </widget>
             </widget>
-            <widget class="QPushButton" name="pushButton_analyzer_save_cropped_data">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>50</y>
-               <width>111</width>
-               <height>23</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Save cropped</string>
-             </property>
-            </widget>
             <widget class="QPushButton" name="pushButton_analyzer_choose_plotting_param_file">
              <property name="geometry">
               <rect>
@@ -1741,9 +1728,9 @@
             <widget class="QPushButton" name="pushButton_analyzer_apply_FFT_filter">
              <property name="geometry">
               <rect>
-               <x>10</x>
-               <y>140</y>
-               <width>111</width>
+               <x>140</x>
+               <y>80</y>
+               <width>131</width>
                <height>21</height>
               </rect>
              </property>
@@ -1764,7 +1751,7 @@
               <string>Load ERV from file</string>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton_analyzer_save_as_pkl3d">
+            <widget class="QPushButton" name="pushButton_analyzer_resave_SNAP">
              <property name="geometry">
               <rect>
                <x>10</x>
@@ -1774,7 +1761,40 @@
               </rect>
              </property>
              <property name="text">
-              <string>Save as pkl3d</string>
+              <string>Resave spectrogram </string>
+             </property>
+            </widget>
+            <widget class="QComboBox" name="comboBox_analyzer_resave_type">
+             <property name="geometry">
+              <rect>
+               <x>200</x>
+               <y>170</y>
+               <width>69</width>
+               <height>22</height>
+              </rect>
+             </property>
+             <item>
+              <property name="text">
+               <string>SNAP</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>pkl3d</string>
+              </property>
+             </item>
+            </widget>
+            <widget class="QLabel" name="label_3">
+             <property name="geometry">
+              <rect>
+               <x>137</x>
+               <y>175</y>
+               <width>47</width>
+               <height>13</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>as</string>
              </property>
             </widget>
            </widget>
@@ -1875,9 +1895,9 @@
            <widget class="QLabel" name="label_analyzer_file">
             <property name="geometry">
              <rect>
-              <x>120</x>
+              <x>170</x>
               <y>50</y>
-              <width>151</width>
+              <width>101</width>
               <height>23</height>
              </rect>
             </property>
@@ -1894,8 +1914,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>575</height>
+             <width>98</width>
+             <height>500</height>
             </rect>
            </property>
            <property name="minimumSize">

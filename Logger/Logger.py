@@ -45,6 +45,7 @@ class Logger(QObject):
 
     def save_parameters(self, list_dictionaries):
         f=open(self.ParametersFileName,'w')
+        json.encoder.FLOAT_REPR = lambda x: format(x, '.5f') if (x<0.01) else x
         json.dump(list_dictionaries,f)
         f.close()
         print('\nParameters saved\n')

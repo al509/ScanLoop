@@ -4,7 +4,7 @@
 
 
 """
-__date__='2022.04.21'
+__date__='2022.04.28'
 
 import os
 import sys
@@ -108,41 +108,66 @@ class Analyzer(QObject):
                 self.SNAP=SNAP_object
                 
 
-        def save_as_pkl3d(self):
-            path,FileName = os.path.split(self.file_path)    
-            NewFileName=path+'\\'+FileName.split('.')[-2]+'.pkl3d'
-
-            D={}
-            D['axis']=self.SNAP.axis_key
-            D['spatial_scale']='microns'
-            D['Positions']=self.SNAP.positions
-            D['Wavelengths']=self.SNAP.wavelengths
-            D['Signal']=self.SNAP.transmission
-            from datetime import datetime
-            D['date']=self.SNAP.date
-            print('spectrogram saved as ' +NewFileName)
-            with open(NewFileName,'wb') as f:
-                pickle.dump(D,f)
-                        
-        def save_cropped_data(self):
-            x_lim=self.figure_spectrogram.axes[0].get_xlim() #positions
-            wave_lim=self.figure_spectrogram.axes[0].get_ylim()
-            i_x_min=np.argmin(abs(self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]-x_lim[0]))
-            i_x_max=np.argmin(abs(self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]-x_lim[1]))
-            
-            i_w_min=np.argmin(abs(self.SNAP.wavelengths-wave_lim[0]))
-            i_w_max=np.argmin(abs(self.SNAP.wavelengths-wave_lim[1]))
-            path,FileName = os.path.split(self.file_path)
-            NewFileName=path+'\\'+FileName.split('.')[-2]+'_cropped.SNAP'
+        def resave(self,output_file_type='SNAP'):
+            try:
+                x_lim=self.figure_spectrogram.axes[0].get_xlim() #positions
+                wave_lim=self.figure_spectrogram.axes[0].get_ylim()
+                i_x_min=np.argmin(abs(self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]-x_lim[0]))
+                i_x_max=np.argmin(abs(self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]-x_lim[1]))
+                i_w_min=np.argmin(abs(self.SNAP.wavelengths-wave_lim[0]))
+                i_w_max=np.argmin(abs(self.SNAP.wavelengths-wave_lim[1]))
+            except:
+                i_x_min=0
+                i_x_max=-1
+                i_w_min=0
+                i_w_max=-1
             import copy
-            new_SNAP=copy.deepcopy(self.SNAP)
-            new_SNAP.positions=self.SNAP.positions[i_x_min:i_x_max,:]
-            new_SNAP.wavelengths=self.SNAP.wavelengths[i_w_min:i_w_max]
-            new_SNAP.transmission=self.SNAP.transmission[i_w_min:i_w_max,i_x_min:i_x_max]
-            f=open(NewFileName,'wb')
-            pickle.dump(new_SNAP,f)
-            f.close()
-            print('Cropped data saved to {}'.format(NewFileName))
+            path,FileName = os.path.split(self.file_path)
+            if output_file_type=='SNAP':
+                NewFileName=path+'\\'+FileName.split('.')[-2]+'_resaved.SNAP'
+                new_SNAP=copy.deepcopy(self.SNAP)
+                new_SNAP.positions=self.SNAP.positions[i_x_min:i_x_max,:]
+                new_SNAP.wavelengths=self.SNAP.wavelengths[i_w_min:i_w_max]
+                new_SNAP.transmission=self.SNAP.transmission[i_w_min:i_w_max,i_x_min:i_x_max]
+                f=open(NewFileName,'wb')
+                pickle.dump(new_SNAP,f)
+                f.close()
+                print('Data resaved to {}'.format(NewFileName))
+            elif output_file_type=='pkl3d':
+                NewFileName=path+'\\'+FileName.split('.')[-2]+'_resaved.pkl3d'
+                D={}
+                D['axis']=self.SNAP.axis_key
+                D['spatial_scale']='microns'
+                D['Positions']=self.SNAP.positions
+                D['Wavelengths']=self.SNAP.wavelengths
+                D['Signal']=self.SNAP.transmission
+                from datetime import datetime
+                D['date']=self.SNAP.date
+                print('spectrogram saved as ' +NewFileName)
+                with open(NewFileName,'wb') as f:
+                    pickle.dump(D,f)
+
+   
+                        
+        # def save_cropped_data(self):
+        #     x_lim=self.figure_spectrogram.axes[0].get_xlim() #positions
+        #     wave_lim=self.figure_spectrogram.axes[0].get_ylim()
+        #     i_x_min=np.argmin(abs(self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]-x_lim[0]))
+        #     i_x_max=np.argmin(abs(self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]-x_lim[1]))
+            
+        #     i_w_min=np.argmin(abs(self.SNAP.wavelengths-wave_lim[0]))
+        #     i_w_max=np.argmin(abs(self.SNAP.wavelengths-wave_lim[1]))
+        #     path,FileName = os.path.split(self.file_path)
+        #     NewFileName=path+'\\'+FileName.split('.')[-2]+'_cropped.SNAP'
+        #     import copy
+        #     new_SNAP=copy.deepcopy(self.SNAP)
+        #     new_SNAP.positions=self.SNAP.positions[i_x_min:i_x_max,:]
+        #     new_SNAP.wavelengths=self.SNAP.wavelengths[i_w_min:i_w_max]
+        #     new_SNAP.transmission=self.SNAP.transmission[i_w_min:i_w_max,i_x_min:i_x_max]
+        #     f=open(NewFileName,'wb')
+        #     pickle.dump(new_SNAP,f)
+        #     f.close()
+        #     print('Cropped data saved to {}'.format(NewFileName))
             
         def save_slice_data(self):
             '''
@@ -278,6 +303,7 @@ class Analyzer(QObject):
             try:
                 im = ax_Wavelengths.pcolorfast(x,self.SNAP.wavelengths,self.SNAP.transmission,50,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
             except:
+                print("pcolorfast does not work. Using contourf instead")
                 im = ax_Wavelengths.contourf(x,self.SNAP.wavelengths,self.SNAP.transmission,50,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
             if p['ERV_axis']:
                 ax_Radius = ax_Wavelengths.secondary_yaxis('right', functions=(_forward,_backward))
@@ -541,6 +567,7 @@ class Analyzer(QObject):
         def apply_FFT_to_spectrogram(self):
             self.SNAP.apply_FFT_filter(self.FFTFilter_low_freq_edge,self.FFTFilter_high_freq_edge)
             self.plot_spectrogram()
+            print('Filter applied. New spectrogram plotted')
                 
         
   
@@ -553,6 +580,7 @@ if __name__ == "__main__":
     
     #%%
     analyzer=Analyzer()
+    analyzer.load_data('ProcessedData\\Processed_spectrogram_at_spot_cropped_cropped_cropped.SNAP')
     # analyzer.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
     
     # analyzer.plot_spectrogram()
@@ -563,10 +591,10 @@ if __name__ == "__main__":
     # Dicts=json.load(f)
     # f.close()
     # analyzer.set_parameters(Dicts['Analyzer'])
-    # analyzer.extract_ERV()
+    analyzer.extract_ERV()
     
-    analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\test.laserdata'
+    # analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\test.laserdata'
     analyzer.plot_single_spectrum_from_file()
-
+# 
     # 
 

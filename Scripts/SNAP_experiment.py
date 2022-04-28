@@ -5,8 +5,8 @@ Created on Fri Sep 25 16:30:03 2020
 @author: Ilya Vatnik
 matplotlib 3.4.2 is needed! 
 """
-__version__='5.1'
-__date__='2022.04.15'
+__version__='6'
+__date__='2022.04.28'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -111,7 +111,7 @@ class SNAP():
 
     # @numba.njit
     def extract_ERV(self,number_of_peaks_to_search=1,min_peak_level=1,min_peak_distance=10000,min_wave=0,max_wave=1e4,find_widths=True,
-                    N_points_for_fitting=100,iterate_different_N_points=False,max_N_points_for_fitting=100):
+                    N_points_for_fitting=100,iterate_different_N_points=False,max_N_points_for_fitting=100,window_width=0.1):
         '''
         analyze 2D spectrogram
         return position of several first (higher-wavelegth) main resonances. Number of resonances is defined by number_of_peaks_to_search
@@ -136,60 +136,106 @@ class SNAP():
         PeakWavelengthArray.fill(np.nan)
         
         resonance_parameters_array=np.empty((Number_of_positions,number_of_peaks_to_search,7))
-        resonance_parameters_array.fill(np.nan)
+        resonance_parameters_array.fill(np.nan)       
+        temp_signal=abs(self.transmission-np.nanmean(self.transmission))
+        
+        for Zind,Z in enumerate(range(0,Number_of_positions)):
+        # for Zind,Z in enumerate(range(Number_of_positions-1,-1,-1)):
+            if Zind==0:
+                peak_indexes,_=scipy.signal.find_peaks(temp_signal[:,Z],height=min_peak_level,distance=min_peak_distance)
+                peak_indexes=peak_indexes.astype('float')
+                peak_indexes=np.extract((WavelengthArray[peak_indexes.astype('int')]>min_wave) & (WavelengthArray[peak_indexes.astype('int')]<max_wave),peak_indexes)
+            
+                # peak_indexes=-np.sort(-peak_indexes) ##sort in wavelength decreasing
+                peak_indexes=peak_indexes[np.argsort(temp_signal[peak_indexes.astype('int'),0])] ##sort in resonanse dip
+            
+                if len(peak_indexes)>0:
+                    if len(peak_indexes)>=number_of_peaks_to_search:
+                        peak_indexes=peak_indexes[:number_of_peaks_to_search]
+                    elif len(peak_indexes)<number_of_peaks_to_search:
+                        print(number_of_peaks_to_search-len(peak_indexes))
+                        peak_indexes=np.hstack((peak_indexes,np.nan*np.zeros(number_of_peaks_to_search-len(peak_indexes))))
+            
+                peak_indexes=np.sort(peak_indexes) ##sort in wavelength decreasing
+                window_indexes=[]
+                for i,p in enumerate(peak_indexes):
+                    if not np.isnan(peak_indexes[i]):   
+                        if i>0:
+                            ind_min=int(peak_indexes[i]-(peak_indexes[i]-peak_indexes[i-1])*window_width)
+                        else:
+                            ind_min=0
+                        if i<len(peak_indexes)-1:
+                            ind_max=int(peak_indexes[i]+(peak_indexes[i+1]-peak_indexes[i])*window_width)
+                        else:
+                            ind_max=-1
+                    window_indexes.append([ind_min,ind_max])
+                        
+                    
+                
+                
+            elif Zind!= 0:
+                previous_peak_indexes = np.copy(peak_indexes) # Создаю массив с индексами предыдущих пиков
+                for i,p in enumerate(peak_indexes):
+                    print(Z,p)
+                    try:
+                        if i>0:
+                            ind_min=int(peak_indexes[i]-(peak_indexes[i]-peak_indexes[i-1])*window_width)
+                        else:
+                            ind_min=0
+                        if i<len(previous_peak_indexes)-1:
+                            ind_max=int(peak_indexes[i]+(peak_indexes[i+1]-peak_indexes[i])*window_width)
+                        else:
+                            ind_max=-1
+                        window_indexes[i]=[ind_min,ind_max]
+                    except:
+                        pass
+                    temp_peak_indexes,_=scipy.signal.find_peaks(temp_signal[window_indexes[i][0]:window_indexes[i][1],Z],height=min_peak_level,distance=min_peak_distance)
+                    if len(temp_peak_indexes)>0:
+                        peak_indexes[i]=-np.sort(-temp_peak_indexes)[0]+window_indexes[i][0] ##sort in wavelength decreasing
+                    else:
+                        peak_indexes[i]=np.nan
 
             
-        for Zind, Z in enumerate(range(0,Number_of_positions)):
+
+            for ind in range(number_of_peaks_to_search):
+                if not np.isnan(peak_indexes[ind]):
+                    PeakWavelengthArray[Z,ind]=WavelengthArray[int(peak_indexes[ind])]
             
-            peak_indexes,_=scipy.signal.find_peaks(abs(self.transmission[:,Zind]-np.nanmean(self.transmission[:,Zind])),height=min_peak_level,distance=min_peak_distance)
-            peak_indexes=np.extract((WavelengthArray[peak_indexes]>min_wave) & (WavelengthArray[peak_indexes]<max_wave),peak_indexes)
-     
-            peak_indexes=peak_indexes[np.argsort(-WavelengthArray[peak_indexes])] ##sort in wavelength decreasing
             
-            if len(peak_indexes)>0:
-                if len(peak_indexes)>=number_of_peaks_to_search:
-                    shortWavArray=WavelengthArray[peak_indexes[:number_of_peaks_to_search]]
-                elif len(peak_indexes)<number_of_peaks_to_search:
-                    print(number_of_peaks_to_search-len(peak_indexes))
-                    shortWavArray=np.append(WavelengthArray[peak_indexes],np.nan*np.zeros(number_of_peaks_to_search-len(peak_indexes)))
-                    
-                    
-                PeakWavelengthArray[Zind]=shortWavArray
-                
-                if find_widths:
-                    for ii,peak_wavelength in enumerate(shortWavArray):
-                        if peak_wavelength is not np.nan:
-                            index=peak_indexes[ii]
-                            # try:
-                            if not iterate_different_N_points:
-                                if N_points_for_fitting==0:
-                                    fitting_parameters,_,_=get_Fano_fit(WavelengthArray, self.transmission[:,Zind],peak_wavelength)
-                                else:
-                                     i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
-                                     i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
-                                     fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Zind],peak_wavelength)
+            if find_widths:
+                for ii,peak_wavelength in enumerate(PeakWavelengthArray[Z]):
+                    if peak_wavelength is not np.nan:
+                        index=peak_indexes[ii]
+                        # try:
+                        if not iterate_different_N_points:
+                            if N_points_for_fitting==0:
+                                fitting_parameters,_,_=get_Fano_fit(WavelengthArray, self.transmission[:,Z],peak_wavelength)
                             else:
-                                N_points_for_fitting=10
-                                minimal_linewidth=max(WavelengthArray)-min(WavelengthArray)
-                                for N_points in np.arange(10,max_N_points_for_fitting,2):
-                                     i_min=0 if index-N_points<0 else index-N_points
-                                     i_max=number_of_spectral_points-1 if index+N_points>number_of_spectral_points-1 else index+N_points
-                                     fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Zind],peak_wavelength)
-                                     if (N_points%10==0): print('Z={},i_peak={},N_points={},linewidth={}'.format(Z,ii,N_points,fitting_parameters[3]))
-                                     if minimal_linewidth>fitting_parameters[3]:
-                                         minimal_linewidth=fitting_parameters[3]
-                                         N_points_for_fitting=N_points
-                                         
-                                i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
-                                i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
-                                fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Zind],peak_wavelength)
-                            [non_res_transmission, Fano_phase, resonance_position,linewidth,depth]=fitting_parameters
-                            delta_coupling=depth/2*lambda_to_nu #MHz/nm
-                            delta_0=(linewidth/2-depth/2)*lambda_to_nu #MHz/nm
-                            resonance_parameters_array[Zind,ii]=([non_res_transmission,Fano_phase,
-                                                                  depth,linewidth,delta_coupling,delta_0,N_points_for_fitting])
-                            # except:
-                            #     print('error while fitting')
+                                 i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
+                                 i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
+                                 fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Z],peak_wavelength)
+                        else:
+                            N_points_for_fitting=10
+                            minimal_linewidth=max(WavelengthArray)-min(WavelengthArray)
+                            for N_points in np.arange(10,max_N_points_for_fitting,2):
+                                 i_min=0 if index-N_points<0 else index-N_points
+                                 i_max=number_of_spectral_points-1 if index+N_points>number_of_spectral_points-1 else index+N_points
+                                 fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Z],peak_wavelength)
+                                 if (N_points%10==0): print('Z={},i_peak={},N_points={},linewidth={}'.format(Z,ii,N_points,fitting_parameters[3]))
+                                 if minimal_linewidth>fitting_parameters[3]:
+                                     minimal_linewidth=fitting_parameters[3]
+                                     N_points_for_fitting=N_points
+                                     
+                            i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
+                            i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
+                            fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Z],peak_wavelength)
+                        [non_res_transmission, Fano_phase, resonance_position,linewidth,depth]=fitting_parameters
+                        delta_coupling=depth/2*lambda_to_nu #MHz/nm
+                        delta_0=(linewidth/2-depth/2)*lambda_to_nu #MHz/nm
+                        resonance_parameters_array[Z,ii]=([non_res_transmission,Fano_phase,
+                                                              depth,linewidth,delta_coupling,delta_0,N_points_for_fitting])
+                        # except:
+                        #     print('error while fitting')
         lambdas_0=np.amin(PeakWavelengthArray,axis=0)
         ERV=(PeakWavelengthArray-lambdas_0)/np.nanmean(PeakWavelengthArray,axis=0)*self.R_0*self.refractive_index*1e3 # in nm
         print('Analyzing finished')
@@ -252,10 +298,18 @@ if __name__ == "__main__":
     import time
     import pickle
     os.chdir('..')
-    f='ProcessedData\\Processed_spectrogram_at_spot_cropped_cropped_cropped.SNAP'
+    f='ProcessedData\\Processed_spectrogram_at_spot_cropped.SNAP'
     with open(f,'rb') as file:
         SNAP=pickle.load(file)
-    x,waves,_,_=SNAP.extract_ERV(number_of_peaks_to_search=2,min_peak_level=0.2,min_peak_distance=10,find_widths=False)
+    x,waves,_,_=SNAP.extract_ERV(number_of_peaks_to_search=7,min_peak_level=0.3,min_peak_distance=50,find_widths=False, window_width=0.05)
     import matplotlib.pyplot as plt
-    plt.plot(x,waves)
     
+    
+    fig=plt.figure(1)
+    plt.clf()
+    fig.gca().contourf(SNAP.positions[:,4],SNAP.wavelengths,SNAP.transmission,50,cmap='jet')
+    # fig.gca().pcolorfast(SNAP.positions[:,4],SNAP.wavelengths,SNAP.transmission,cmap='jet')
+    plt.plot(x,waves,'o')
+    
+    # plt.figure(2)
+    # plt.plot(SNAP.wavelengths,SNAP.transmission[:,70])
