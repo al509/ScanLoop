@@ -4,7 +4,7 @@
 
 
 """
-__date__='2022.04.28'
+__date__='2022.05.17'
 
 import os
 import sys
@@ -16,8 +16,10 @@ import pickle
 from scipy.signal import find_peaks
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
+    import Scripts.QuantumNumbersStructure as QuantumNumbersStructure
 except ModuleNotFoundError:
     import SNAP_experiment
+    import QuantumNumbersStructure
 import json
 
 lambda_to_nu=125e3 #MHz/nm
@@ -47,6 +49,10 @@ class Analyzer(QObject):
             self.max_N_points_for_fitting=100
             self.FFTFilter_low_freq_edge=0.00001
             self.FFTFilter_high_freq_edge=0.01
+            
+            self.quantum_numbers_fitter_dispersion=False
+            self.quantum_numbers_fitter_p_max=3
+            self.quantum_numbers_fitter_polarizations='both'
             
             self.SNAP=None
             
@@ -92,7 +98,7 @@ class Analyzer(QObject):
                         pass
                 except KeyError:
                         print('Spatial scale is defined as steps 2.5 um each')
-                        Positions=Positions*2.5
+                        Positions[:,0:3]=Positions[:,0:3]*2.5
                 try:
                     SNAP_object.date=D['date']
                 except KeyError:
@@ -568,6 +574,30 @@ class Analyzer(QObject):
             self.SNAP.apply_FFT_filter(self.FFTFilter_low_freq_edge,self.FFTFilter_high_freq_edge)
             self.plot_spectrogram()
             print('Filter applied. New spectrogram plotted')
+            
+        def run_quantum_numbers_fitter(self):
+            axes=self.single_spectrum_figure.gca()
+            line =axes.get_lines()[0]
+            waves = line.get_xdata()
+            signal = line.get_ydata()
+            wave_min,wave_max=axes.get_xlim()
+            index_min=np.argmin(abs(waves-wave_min))
+            index_max=np.argmin(abs(waves-wave_max))
+            waves=waves[index_min:index_max]
+            signal=signal[index_min:index_max]
+            if all(np.isnan(signal)):
+                print('Error. Signal is NAN only')
+                return
+            
+            fitter=QuantumNumbersStructure.fitter(waves,signal,self.min_peak_level,self.min_peak_distance,
+                                                  wave_min=None,wave_max=None,p_guess_array=[self.quantum_numbers_fitter_p_max],
+                                                  dispersion=self.quantum_numbers_fitter_dispersion,
+                                                  polarizations=self.quantum_numbers_fitter_polarizations)
+            print('start finding quantum numbers...')
+            fitter.run()
+            print('quantum numbers found')
+            fitter.plot_results()
+            
                 
         
   

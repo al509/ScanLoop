@@ -648,7 +648,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
+             <width>283</width>
              <height>700</height>
             </rect>
            </property>
@@ -1385,8 +1385,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>28</height>
+             <width>300</width>
+             <height>575</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1802,9 +1802,9 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>340</y>
+              <y>350</y>
               <width>281</width>
-              <height>121</height>
+              <height>161</height>
              </rect>
             </property>
             <property name="title">
@@ -1849,7 +1849,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>Analyze</string>
+              <string>Fit Lorenzian</string>
              </property>
             </widget>
             <widget class="QPushButton" name="pushButton_analyzer_save_slice">
@@ -1863,6 +1863,19 @@
              </property>
              <property name="text">
               <string>Save</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_analyzer_quantum_numbers_fitter">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>130</y>
+               <width>121</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Find quantum numbers</string>
              </property>
             </widget>
            </widget>
@@ -1914,8 +1927,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>500</height>
+             <width>300</width>
+             <height>575</height>
             </rect>
            </property>
            <property name="minimumSize">
