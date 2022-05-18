@@ -4,7 +4,7 @@
 
 
 """
-__date__='2022.05.17'
+__date__='2022.05.18'
 
 import os
 import sys
@@ -588,15 +588,29 @@ class Analyzer(QObject):
             if all(np.isnan(signal)):
                 print('Error. Signal is NAN only')
                 return
-            
             fitter=QuantumNumbersStructure.fitter(waves,signal,self.min_peak_level,self.min_peak_distance,
                                                   wave_min=None,wave_max=None,p_guess_array=[self.quantum_numbers_fitter_p_max],
                                                   dispersion=self.quantum_numbers_fitter_dispersion,
-                                                  polarizations=self.quantum_numbers_fitter_polarizations)
+                                                  polarization=self.quantum_numbers_fitter_polarizations)
+            axes.plot(fitter.exp_resonances,fitter.signal[fitter.resonances_indexes],'.')
+            self.single_spectrum_figure.canvas.draw()
+            # plt.show(block=False)
             print('start finding quantum numbers...')
             fitter.run()
             print('quantum numbers found')
-            fitter.plot_results()
+                    
+            resonances,labels=fitter.th_resonances.create_unstructured_list(self.quantum_numbers_fitter_polarizations)
+            y_min,y_max=axes.get_ylim()
+            for i,wave in enumerate(resonances):
+                if labels[i].split(',')[0]=='TM':
+                    color='blue'
+                else:
+                    color='red'
+                axes.axvline(wave,0,1,color=color)
+                y=y_min+(y_max-y_min)/fitter.th_resonances.pmax*float(labels[i].split(',')[2])
+                axes.annotate(labels[i],(wave,y))
+                # plt.show(block=True)
+            self.single_spectrum_figure.canvas.draw()
             
                 
         
