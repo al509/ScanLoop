@@ -4,7 +4,7 @@
 
 
 """
-__date__='2022.05.18'
+__date__='2022.05.19'
 
 import os
 import sys
@@ -25,13 +25,13 @@ import json
 lambda_to_nu=125e3 #MHz/nm
 
 class Analyzer(QObject):
-        def __init__(self, file_path=None,parameters=None):
+        def __init__(self, spectrogram_file_path=None,parameters=None):
             '''
             path: 
             '''
             super().__init__(None)
             self.single_spectrum_path=None
-            self.file_path=file_path
+            self.spectrogram_file_path=spectrogram_file_path
             self.plotting_parameters_file_path=os.path.dirname(sys.argv[0])+'\\plotting_parameters.txt'
             self.single_spectrum_figure=None
             self.figure_spectrogram=None
@@ -114,7 +114,7 @@ class Analyzer(QObject):
                 self.SNAP=SNAP_object
                 
 
-        def resave(self,output_file_type='SNAP'):
+        def resave_SNAP(self,output_file_type='SNAP'):
             try:
                 x_lim=self.figure_spectrogram.axes[0].get_xlim() #positions
                 wave_lim=self.figure_spectrogram.axes[0].get_ylim()
@@ -128,7 +128,7 @@ class Analyzer(QObject):
                 i_w_min=0
                 i_w_max=-1
             import copy
-            path,FileName = os.path.split(self.file_path)
+            path,FileName = os.path.split(self.spectrogram_file_path)
             if output_file_type=='SNAP':
                 NewFileName=path+'\\'+FileName.split('.')[-2]+'_resaved.SNAP'
                 new_SNAP=copy.deepcopy(self.SNAP)
@@ -163,7 +163,7 @@ class Analyzer(QObject):
             
         #     i_w_min=np.argmin(abs(self.SNAP.wavelengths-wave_lim[0]))
         #     i_w_max=np.argmin(abs(self.SNAP.wavelengths-wave_lim[1]))
-        #     path,FileName = os.path.split(self.file_path)
+        #     path,FileName = os.path.split(self.spectrogram_file_path)
         #     NewFileName=path+'\\'+FileName.split('.')[-2]+'_cropped.SNAP'
         #     import copy
         #     new_SNAP=copy.deepcopy(self.SNAP)
@@ -175,9 +175,9 @@ class Analyzer(QObject):
         #     f.close()
         #     print('Cropped data saved to {}'.format(NewFileName))
             
-        def save_slice_data(self):
+        def save_single_spectrum(self):
             '''
-            save data that is plotted on figure with slice
+            save data that is plotted on current self.single_spectrum_figure
             '''
             line = plt.gca().get_lines()[0]
             waves = line.get_xdata()
@@ -191,18 +191,24 @@ class Analyzer(QObject):
             # signal=signal[indexes]
             # waves=waves[indexes]
             Data=np.column_stack((waves,signal))
-            if self.file_path is not None:
-                path,FileName = os.path.split(self.file_path)
-            elif self.single_spectrum_path is not None:
+            if self.slice_position is None:
                 path,FileName = os.path.split(self.single_spectrum_path)
-            NewFileName=path+'\\'+FileName.split('.')[-2]+'_at_{}'.format(self.slice_position)
+                if FileName.endswith('.pkl'): FileName=FileName[:-4]
+                NewFileName=path+'\\'+FileName+'_resaved'
+            else:
+                path,FileName = os.path.split(self.spectrogram_file_path)
+                if FileName.endswith('.pkl'): FileName=FileName[:-4]
+                if FileName.endswith('.SNAP'): FileName=FileName[:-5]
+                if FileName.endswith('.pkl3d'): FileName=FileName[:-6]
+                NewFileName=path+'\\'+FileName+'_at_{}'.format(self.slice_position)
             f = open(NewFileName+'.pkl',"wb")
             pickle.dump(Data,f)
             f.close()
             print('spectrum has been saved to ', NewFileName+'.pkl')
         
 
-        def plot_single_spectrum_from_file(self):
+        def plot_single_spectrum(self):
+            self.slice_position=None
             if self.single_spectrum_path.split('.')[-1]=='laserdata':
 
                 print('loading data for analyzer from ' +self.single_spectrum_path)
@@ -270,7 +276,7 @@ class Analyzer(QObject):
             
         def plot_spectrogram(self):
             if self.SNAP is None:
-                self.load_data(self.file_path)
+                self.load_data(self.spectrogram_file_path)
             
             with open(self.plotting_parameters_file_path,'r') as f:
                 p=json.load(f)
@@ -394,7 +400,7 @@ class Analyzer(QObject):
             '''
             self.slice_position=position
             if self.SNAP.transmission is None:
-                self.load_data(self.file_path)
+                self.load_data(self.spectrogram_file_path)
             with open(self.plotting_parameters_file_path,'r') as f:
                 p=json.load(f)
                 
@@ -479,7 +485,7 @@ class Analyzer(QObject):
                                                                                         self.min_peak_distance,self.min_wave,self.max_wave,
                                                                                         self.find_widths, self.N_points_for_fitting,
                                                                                         self.iterate_different_N_points,self.max_N_points_for_fitting)
-            path,FileName = os.path.split(self.file_path)
+            path,FileName = os.path.split(self.spectrogram_file_path)
             NewFileName=path+'\\'+FileName.split('.')[-2]+'_ERV.pkl'
             with open(NewFileName,'wb') as f:
                 ERV_params={'positions':positions,'peak_wavelengths':peak_wavelengths,'ERVs':ERV,'resonance_parameters':resonance_parameters,'fitting_parameters':self.get_parameters()}

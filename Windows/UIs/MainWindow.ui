@@ -1804,13 +1804,13 @@
               <x>0</x>
               <y>350</y>
               <width>281</width>
-              <height>161</height>
+              <height>181</height>
              </rect>
             </property>
             <property name="title">
              <string>Single spectrum</string>
             </property>
-            <widget class="QPushButton" name="pushButton_analyzer_plot_single_spectrum_from_file">
+            <widget class="QPushButton" name="pushButton_analyzer_choose_single_spectrum">
              <property name="geometry">
               <rect>
                <x>20</x>
@@ -1820,7 +1820,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>Load </string>
+              <string>Spectrum file</string>
              </property>
             </widget>
             <widget class="QLabel" name="label_analyzer_single_spectrum_file">
@@ -1839,11 +1839,37 @@
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
+            <widget class="QPushButton" name="pushButton_analyzer_plot_single_spectrum">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>50</y>
+               <width>101</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Plot</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_analyzer_save_single_spectrum">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>80</y>
+               <width>101</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Save/Resave</string>
+             </property>
+            </widget>
             <widget class="QPushButton" name="pushButton_analyzer_analyze_spectrum">
              <property name="geometry">
               <rect>
                <x>20</x>
-               <y>90</y>
+               <y>110</y>
                <width>101</width>
                <height>23</height>
               </rect>
@@ -1852,30 +1878,17 @@
               <string>Fit Lorenzian</string>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton_analyzer_save_slice">
+            <widget class="QPushButton" name="pushButton_analyzer_quantum_numbers_fitter">
              <property name="geometry">
               <rect>
                <x>20</x>
-               <y>53</y>
+               <y>140</y>
                <width>101</width>
                <height>23</height>
               </rect>
              </property>
              <property name="text">
-              <string>Save</string>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="pushButton_analyzer_quantum_numbers_fitter">
-             <property name="geometry">
-              <rect>
-               <x>20</x>
-               <y>130</y>
-               <width>121</width>
-               <height>21</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Find quantum numbers</string>
+              <string>Quantum numbers</string>
              </property>
             </widget>
            </widget>

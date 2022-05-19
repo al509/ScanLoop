@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__date__='2022.05.17'
+__date__='2022.05.19'
 
 import os
 if __name__=='__main__':
@@ -243,28 +243,25 @@ class MainWindow(ThreadedMainWindow):
             self.choose_file_for_analyzer)
         self.ui.pushButton_analyzer_choose_plotting_param_file.clicked.connect(
             self.choose_file_for_analyzer_plotting_parameters)
-
-        self.ui.pushButton_analyzer_plot_single_spectrum_from_file.clicked.connect(
-            self.plot_single_spectrum_from_file)
+        self.ui.pushButton_analyzer_choose_single_spectrum.clicked.connect(
+            self.choose_single_spectrum_file_for_analyzer)
         
-        self.ui.pushButton_analyzer_plot_ERV_from_file.clicked.connect(
-            self.plot_ERV_from_file)
 
-        self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(
-            self.analyzer.plot_sample_shape)
+        self.ui.pushButton_analyzer_plot_ERV_from_file.clicked.connect(self.plot_ERV_from_file)
+        self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(self.analyzer.plot_sample_shape)
         self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot_spectrogram())
         self.ui.pushButton_analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plot_slice(float(self.ui.lineEdit_slice_position.text())))
-        self.ui.pushButton_analyzer_save_slice.clicked.connect(self.analyzer.save_slice_data)
+        self.ui.pushButton_analyzer_plot_single_spectrum.clicked.connect(lambda: self.analyzer.plot_single_spectrum())
+        
+        
+
         self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(self.analyzer.single_spectrum_figure))
-        self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(self.analyzer.single_spectrum_figure))
-            
         self.ui.pushButton_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum( self.painter.figure))
-     
         self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
-        
         self.ui.pushButton_analyzer_quantum_numbers_fitter.clicked.connect(self.analyzer.run_quantum_numbers_fitter)
-        
-        self.ui.pushButton_analyzer_resave_SNAP.clicked.connect(lambda : self.analyzer.resave(self.ui.comboBox_analyzer_resave_type.currentText()))        
+
+        self.ui.pushButton_analyzer_save_single_spectrum.clicked.connect(self.analyzer.save_single_spectrum)        
+        self.ui.pushButton_analyzer_resave_SNAP.clicked.connect(lambda : self.analyzer.resave_SNAP(self.ui.comboBox_analyzer_resave_type.currentText()))        
         self.ui.pushButton_set_analyzer_parameters.clicked.connect(self.on_pushButton_set_analyzer_parameters)
         # self.ui.pushButton_analyzer_save_as_pkl3d.clicked.connect(lambda: self.analyzer.save_as_pkl3d())
 
@@ -1073,13 +1070,7 @@ class MainWindow(ThreadedMainWindow):
             channel_number=self.ui.comboBox_TD_channel_to_plot_arb_data.currentIndex())
         Thread.quit()
 
-    def plot_single_spectrum_from_file(self):
-        DataFilePath= str(QFileDialog.getOpenFileName(
-            self, "Select Data File",'','*.pkl *.laserdata')).split("\',")[0].split("('")[1]
-        self.analyzer.single_spectrum_path=DataFilePath
-        self.analyzer.plot_single_spectrum_from_file()
-        self.ui.label_analyzer_single_spectrum_file.setText(self.analyzer.single_spectrum_path)
-        
+       
     def plot_ERV_from_file(self):
         DataFilePath= str(QFileDialog.getOpenFileName(
             self, "Select Data File",'','*.pkl')).split("\',")[0].split("('")[1]
@@ -1091,7 +1082,7 @@ class MainWindow(ThreadedMainWindow):
         DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl *.pkl3d *.SNAP' )).split("\',")[0].split("('")[1]
         if DataFilePath=='':
             print('file is not chosen or previous choice is preserved')
-        self.analyzer.file_path=DataFilePath
+        self.analyzer.spectrogram_file_path=DataFilePath
         self.ui.label_analyzer_file.setText(DataFilePath)
         self.analyzer.load_data(DataFilePath)
        
@@ -1103,6 +1094,14 @@ class MainWindow(ThreadedMainWindow):
             FilePath=os.getcwd()+'\\plotting_parameters.txt'
         self.analyzer.plotting_parameters_file=FilePath
         self.ui.label_analyzer_plotting_file.setText(FilePath)
+        
+    def choose_single_spectrum_file_for_analyzer(self):
+        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl *.laserdata' )).split("\',")[0].split("('")[1]
+        if DataFilePath=='':
+            print('file is not chosen or previous choice is preserved')
+        self.analyzer.single_spectrum_path=DataFilePath
+        self.ui.label_analyzer_single_spectrum_file.setText(DataFilePath)
+
         
     def on_pushButton_set_analyzer_parameters(self):
         '''
