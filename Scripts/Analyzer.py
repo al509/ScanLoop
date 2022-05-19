@@ -583,7 +583,7 @@ class Analyzer(QObject):
             
         def run_quantum_numbers_fitter(self):
             axes=self.single_spectrum_figure.gca()
-            line =axes.get_lines()[0]
+            line = axes.get_lines()[0]
             waves = line.get_xdata()
             signal = line.get_ydata()
             wave_min,wave_max=axes.get_xlim()
@@ -594,10 +594,11 @@ class Analyzer(QObject):
             if all(np.isnan(signal)):
                 print('Error. Signal is NAN only')
                 return
-            fitter=QuantumNumbersStructure.fitter(waves,signal,self.min_peak_level,self.min_peak_distance,
+            fitter=QuantumNumbersStructure.Fitter(waves,signal,self.min_peak_level,self.min_peak_distance,
                                                   wave_min=None,wave_max=None,p_guess_array=[self.quantum_numbers_fitter_p_max],
                                                   dispersion=self.quantum_numbers_fitter_dispersion,
-                                                  polarization=self.quantum_numbers_fitter_polarizations)
+                                                  polarization=self.quantum_numbers_fitter_polarizations,
+                                                  type_of_optimizer=self.quantum_numbers_fitter_type_of_optimizer)
             axes.plot(fitter.exp_resonances,fitter.signal[fitter.resonances_indexes],'.')
             self.single_spectrum_figure.canvas.draw()
             # plt.show(block=False)
@@ -612,11 +613,13 @@ class Analyzer(QObject):
                     color='blue'
                 else:
                     color='red'
-                axes.axvline(wave,0,1,color=color)
+                axes.axvline(wave,0,0.9,color=color)
                 y=y_min+(y_max-y_min)/fitter.th_resonances.pmax*float(labels[i].split(',')[2])
                 axes.annotate(labels[i],(wave,y))
                 # plt.show(block=True)
+            axes.set_title('R_fitted={} nm, cost_function={}'.format(fitter.R_best,fitter.cost_best))
             self.single_spectrum_figure.canvas.draw()
+            
             
                 
         

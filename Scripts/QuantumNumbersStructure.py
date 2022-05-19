@@ -189,12 +189,12 @@ def FFTFilter(y_array):
 #        f_array[] = 0
     return irfft(f_array)
      
-class fitter():
+class Fitter():
     
     def __init__(self,
                  wavelengths,signal,peak_depth,peak_distance,wave_min=None,wave_max=None,
                  p_guess_array=None,dispersion=True,simplified=False,polarization='both',
-                 FFT_filter=False):
+                 FFT_filter=True, type_of_optimizer='bruteforce' ):
         
         p_guess_max=5
         
@@ -218,6 +218,7 @@ class fitter():
         self.exp_resonances=self.wavelengths[self.resonances_indexes]
         self.polarizations=polarization
         self.dispersion=dispersion
+        self.type_of_optimizer=type_of_optimizer
         
         self.cost_best=1e3
         self.n_best,self.R_best,self.p_best,self.th_resonances=None,None,None,None
@@ -229,8 +230,12 @@ class fitter():
         
     def run(self):
         for p in self.p_guess_array:
-            res=sciopt.minimize(self.cost_function,((1.4445,62.5e3)),bounds=((1.443,1.4447),(62e3,63e3)),
-                            args=p,method='Powell',options={'maxiter':1000},tol=1e-11)
+            if self.type_of_optimizer=='Nelder-Mead':
+                res=sciopt.minimize(self.cost_function,((1.4445,62.5e3)),bounds=((1.443,1.4447),(62e3,63e3)),
+                            args=p,method='Nelder-Mead',options={'maxiter':1000},tol=1e-11)
+            elif self.type_of_optimizer=='bruteforce':
+                res=bruteforce_optimizer(self.cost_function,args=(p,1.4445),R_bounds=(61.8e3,63.2e3),R_step=2)
+                
             # res=sciopt.least_squares(func_to_minimize,((1.43,62.5e3)),bounds=((1.4,1.5),(62e3,63e3)),
             #                 args=(Wavelength_min,Wavelength_max,Resonances_exp,p),xtol=1e-10,ftol=1e-10)
             # res=sciopt.least_squares(func_to_minimize,(62.5e3),bounds=(62e3,63e3),
@@ -249,7 +254,8 @@ class fitter():
                 
     def cost_function(self,param,p_max): # try one and another polarization
         def measure(exp,theory):
-            return sum((exp-theory)**2)
+            closest_indexes=closest_argmin(exp,theory)
+            return sum((exp-theory[closest_indexes])**2)
         
         n,R=param
         # (p_max)=p
@@ -258,44 +264,55 @@ class fitter():
         if self.polarizations=='both':
             if resonances.N_of_resonances['Total']>0:
                 th_resonances,labels=resonances.create_unstructured_list('both')
-                closest_indexes=closest_argmin(self.exp_resonances,th_resonances)   
-                return measure(self.exp_resonances,th_resonances[closest_indexes])
+                return measure(self.exp_resonances,th_resonances)
             else:
                 return 1e3
             
         elif self.polarizations=='single':
             if resonances.N_of_resonances['TE']>0:
                 th_resonances,labels=resonances.create_unstructured_list('TE')
-                closest_indexes=closest_argmin(self.exp_resonances,th_resonances)   
-                cost_TE=measure(self.exp_resonances,th_resonances[closest_indexes])
+                cost_TE=measure(self.exp_resonances,th_resonances)
             else:
                 cost_TE=1e3
             if resonances.N_of_resonances['TM']>0:
                 th_resonances,labels=resonances.create_unstructured_list('TM')
-                closest_indexes=closest_argmin(self.exp_resonances,th_resonances)
-                cost_TM=measure(self.exp_resonances,th_resonances[closest_indexes])
+                cost_TM=measure(self.exp_resonances,th_resonances)
             else:
                 cost_TM=1e3
             return min([cost_TE,cost_TM])    
         
+    
+        
     def plot_results(self):
-        fig, axs = plt.subplots(2, 1, sharex=True)
-        axs[0].plot(self.wavelengths,self.signal)
-        axs[0].plot(self.exp_resonances,self.signal[self.resonances_indexes],'.')
-        axs[0].set_title('N=%d' % len(self.exp_resonances))
+        # fig, axs = plt.subplots(2, 1, sharex=True)
+        fig, axs = plt.subplots(1, 1)
+        axs.plot(self.wavelengths,self.signal)
+        axs.plot(self.exp_resonances,self.signal[self.resonances_indexes],'.')
+        # axs.set_title('N=%d' % len(self.exp_resonances))
 
         
-        plt.sca(axs[1])
+        # plt.sca(axs[1])
         self.th_resonances.plot_all(-1,1,'both')
-        axs[1].set_title('N=%d,n=%f,R=%f,p_max=%d' % (self.th_resonances.N_of_resonances['Total'],self.n_best,self.R_best,self.p_best))
+        axs.set_title('N_exp=%d , N_th=%d,n=%f,R=%f,p_max=%d, cost_function=%f' % (len(self.exp_resonances),self.th_resonances.N_of_resonances['Total'],self.n_best,self.R_best,self.p_best, self.cost_best))
         plt.xlabel('Wavelength,nm')
     
     
-
+def bruteforce_optimizer(f,args,R_bounds,R_step):
+    p,n=args
+    cost_best=1e5
+    R_best=None
+    for current_R in np.arange(R_bounds[0],R_bounds[1],R_step):
+        cost=f((n,current_R),p)
+        if cost<cost_best:
+            cost_best=cost
+            R_best=current_R
+        print('R={}, Cost={}'.format(current_R,cost))
+    return {'x':(n,R_best),'fun':cost_best}
+        
             
 if __name__=='__main__': 
     
-    print(lambda_m_p(m=354,p=1,polarization='TM',n=1.445,R=62.5e3,dispersion=True))
+    # print(lambda_m_p(m=354,p=1,polarization='TM',n=1.445,R=62.5e3,dispersion=True))
     # wave_min=1540
     # wave_max=1549
     # n=1.446
@@ -313,5 +330,12 @@ if __name__=='__main__':
     # # tempdict=resonances.__dict__
     # resonances2.plot_all(0,1,'both')
     # plt.xlim([wave_min,wave_max])
+    filename="G:\!Projects\!SNAP system\Modifications\Bending\\2022.02.25 loop spectra\Processed_spectrogram_at_spot_at_2.0.pkl"
+    import pickle
+    with open(filename,'rb') as f:
+        Temp=pickle.load(f)
+    fitter=Fitter(Temp[:,0],Temp[:,1],0.8,100,p_guess_array=[1])
+    fitter.run()
+    fitter.plot_results()
 
 
