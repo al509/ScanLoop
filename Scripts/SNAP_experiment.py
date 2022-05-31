@@ -5,8 +5,8 @@ Created on Fri Sep 25 16:30:03 2020
 @author: Ilya Vatnik
 matplotlib 3.4.2 is needed! 
 """
-__version__='6'
-__date__='2022.04.28'
+__version__='7'
+__date__='2022.05.31'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -116,7 +116,7 @@ class SNAP():
         analyze 2D spectrogram
         return position of several first (higher-wavelegth) main resonances. Number of resonances is defined by number_of_peaks_to_search
         return corresponding ERV in nm, and resonance parameters:
-            nonresonance transmission, Fano phase shift, depth/width, linewidth
+            nonresonance transmission, Fano phase shift [-pi:pi], depth/width, linewidth
         for each slice along position axis
         
         uses scipy.find_peak
@@ -229,11 +229,11 @@ class SNAP():
                             i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
                             i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
                             fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Z],peak_wavelength)
-                        [non_res_transmission, Fano_phase, resonance_position,linewidth,depth]=fitting_parameters
-                        delta_coupling=depth/2*lambda_to_nu #MHz/nm
-                        delta_0=(linewidth/2-depth/2)*lambda_to_nu #MHz/nm
+                        [non_res_transmission, Fano_phase, resonance_position,delta_0,delta_c]=fitting_parameters
+                        linewidth=(delta_0+delta_c)*2/lambda_to_nu
+                        depth=4*delta_0*delta_c/(delta_0+delta_c)**2
                         resonance_parameters_array[Z,ii]=([non_res_transmission,Fano_phase,
-                                                              depth,linewidth,delta_coupling,delta_0,N_points_for_fitting])
+                                                              depth,linewidth,delta_c,delta_0,N_points_for_fitting])
                         # except:
                         #     print('error while fitting')
         lambdas_0=np.amin(PeakWavelengthArray,axis=0)
@@ -252,10 +252,12 @@ class SNAP():
     
 def get_Fano_fit(waves,signal,peak_wavelength=None):
     '''
-    fit shape, given in log scale, with Lorenzian 10*np.log10(abs(transmission*np.exp(1j*phase) - 1j*depth/(w-w0+1j*width/2))**2)  # Gorodetsky, (9.19), p.253
+    fit shape, given in log scale, with 
+    Lorenzian 10*np.log10(abs(transmission*np.exp(1j*phase*np.pi) - 1j*2*delta_c/(1j*(w0-w)+delta_0+delta_c))**2)  
+    Gorodetsky, (9.19), p.253
     
-    meay use peak_wavelength
-    return [transmission, Fano_phase, resonance_position,linewidth,depth], [x_fitted,y_fitted]
+    may use peak_wavelength
+    return [transmission, Fano_phase, resonance_position,delta_0,delta_c], [x_fitted,y_fitted]
     
     '''
     signal_lin=10**(signal/10)
@@ -265,14 +267,15 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
         peak_wavelength_lower_bound=0
         peak_wavelength_higher_bound=np.inf
     else:
-        peak_wavelength_lower_bound=peak_wavelength-1e-3
-        peak_wavelength_higher_bound=peak_wavelength+1e-3
+        peak_wavelength_lower_bound=peak_wavelength-2e-3
+        peak_wavelength_higher_bound=peak_wavelength+2e-3
     
-    width=(waves[-1]-waves[0])/5
-    phase=0
-    depth=0.001
-    initial_guess=[transmission,phase,peak_wavelength,width,depth]
-    bounds=((0,0,peak_wavelength_lower_bound,0,0),(1,2,peak_wavelength_higher_bound,np.inf,np.inf))
+    delta_0=30 # MHz
+    delta_c=50 # MHz
+    phase=0.0
+    
+    initial_guess=[transmission,phase,peak_wavelength,delta_0,delta_c]
+    bounds=((0,-1,peak_wavelength_lower_bound,0,0),(1,1,peak_wavelength_higher_bound,np.inf,np.inf))
     
     try:
         popt, pcov=scipy.optimize.curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds)
@@ -282,11 +285,14 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
         return initial_guess,waves,Fano_lorenzian(waves,*initial_guess)
     
        
-def Fano_lorenzian(w,transmission,phase,w0,width,depth):
+def Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c):
     '''
     return log of Fano shape
+
+    Modified formula (9.19), p.253 by Gorodetsky
     '''
-    return 10*np.log10(abs(transmission*np.exp(1j*phase*np.pi) - 1j*depth/(w-w0+1j*width/2))**2) 
+    
+    return 10*np.log10(abs(transmission*np.exp(1j*phase*np.pi) - 2*delta_c/(lambda_to_nu)/(1j*(w0-w)+(delta_0+delta_c)/(lambda_to_nu)))**2) 
 
 if __name__ == "__main__":
     '''
@@ -297,19 +303,12 @@ if __name__ == "__main__":
     import os
     import time
     import pickle
-    os.chdir('..')
-    f='ProcessedData\\Processed_spectrogram_at_spot_cropped.SNAP'
-    with open(f,'rb') as file:
-        SNAP=pickle.load(file)
-    x,waves,_,_=SNAP.extract_ERV(number_of_peaks_to_search=7,min_peak_level=0.3,min_peak_distance=50,find_widths=False, window_width=0.05)
     import matplotlib.pyplot as plt
+    os.chdir('..')
+    f='ProcessedData\\1.pkl'
+    with open(f,'rb') as file:
+        spectrum=pickle.load(file)
+    plt.plot(spectrum[:,0],spectrum[:,1])
+    [popt, waves, Fano_lorenzian]=get_Fano_fit(spectrum[:,0],spectrum[:,1],peak_wavelength=1551.355)
+    plt.plot(waves,Fano_lorenzian,color='g')
     
-    
-    fig=plt.figure(1)
-    plt.clf()
-    fig.gca().contourf(SNAP.positions[:,4],SNAP.wavelengths,SNAP.transmission,50,cmap='jet')
-    # fig.gca().pcolorfast(SNAP.positions[:,4],SNAP.wavelengths,SNAP.transmission,cmap='jet')
-    plt.plot(x,waves,'o')
-    
-    # plt.figure(2)
-    # plt.plot(SNAP.wavelengths,SNAP.transmission[:,70])
