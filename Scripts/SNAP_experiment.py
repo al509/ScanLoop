@@ -5,8 +5,8 @@ Created on Fri Sep 25 16:30:03 2020
 @author: Ilya Vatnik
 matplotlib 3.4.2 is needed! 
 """
-__version__='7'
-__date__='2022.05.31'
+__version__='8'
+__date__='2022.06.03'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,9 +19,11 @@ import scipy.signal
 from  scipy.ndimage import center_of_mass
 from scipy.fftpack import rfft, irfft, fftfreq
 import scipy.optimize
+from numba import njit
 # from mpl_toolkits.mplot3d import Axes3D
 
 lambda_to_nu=125e3 #MHz/nm
+lambda_to_omega=lambda_to_nu*2*np.pi 
 
 class SNAP():
     def __init__(self,
@@ -111,7 +113,7 @@ class SNAP():
 
     # @numba.njit
     def extract_ERV(self,number_of_peaks_to_search=1,min_peak_level=1,min_peak_distance=10000,min_wave=0,max_wave=1e4,find_widths=True,
-                    N_points_for_fitting=100,iterate_different_N_points=False,max_N_points_for_fitting=100,window_width=0.1):
+                    N_points_for_fitting=100,iterate_different_N_points=False,max_N_points_for_fitting=100,iterating_cost_function_type='linewidth',window_width=0.1):
         '''
         analyze 2D spectrogram
         return position of several first (higher-wavelegth) main resonances. Number of resonances is defined by number_of_peaks_to_search
@@ -135,7 +137,7 @@ class SNAP():
         PeakWavelengthArray=np.empty((Number_of_positions,number_of_peaks_to_search))
         PeakWavelengthArray.fill(np.nan)
         
-        resonance_parameters_array=np.empty((Number_of_positions,number_of_peaks_to_search,7))
+        resonance_parameters_array=np.empty((Number_of_positions,number_of_peaks_to_search,8))
         resonance_parameters_array.fill(np.nan)       
         temp_signal=abs(self.transmission-np.nanmean(self.transmission))
         
@@ -176,7 +178,7 @@ class SNAP():
             elif Zind!= 0:
                 previous_peak_indexes = np.copy(peak_indexes) # Создаю массив с индексами предыдущих пиков
                 for i,p in enumerate(peak_indexes):
-                    print(Z,p)
+                    print('Z={},p={}'.format(Z,p))
                     try:
                         if i>0:
                             ind_min=int(peak_indexes[i]-(peak_indexes[i]-peak_indexes[i-1])*window_width)
@@ -204,35 +206,12 @@ class SNAP():
             
             if find_widths:
                 for ii,peak_wavelength in enumerate(PeakWavelengthArray[Z]):
-                    if peak_wavelength is not np.nan:
-                        index=peak_indexes[ii]
-                        # try:
-                        if not iterate_different_N_points:
-                            if N_points_for_fitting==0:
-                                fitting_parameters,_,_=get_Fano_fit(WavelengthArray, self.transmission[:,Z],peak_wavelength)
-                            else:
-                                 i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
-                                 i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
-                                 fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Z],peak_wavelength)
-                        else:
-                            N_points_for_fitting=10
-                            minimal_linewidth=max(WavelengthArray)-min(WavelengthArray)
-                            for N_points in np.arange(10,max_N_points_for_fitting,2):
-                                 i_min=0 if index-N_points<0 else index-N_points
-                                 i_max=number_of_spectral_points-1 if index+N_points>number_of_spectral_points-1 else index+N_points
-                                 fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Z],peak_wavelength)
-                                 if (N_points%10==0): print('Z={},i_peak={},N_points={},linewidth={}'.format(Z,ii,N_points,fitting_parameters[3]))
-                                 if minimal_linewidth>fitting_parameters[3]:
-                                     minimal_linewidth=fitting_parameters[3]
-                                     N_points_for_fitting=N_points
-                                     
-                            i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
-                            i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
-                            fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Z],peak_wavelength)
-                        [non_res_transmission, Fano_phase, resonance_position,delta_0,delta_c]=fitting_parameters
-                        linewidth=(delta_0+delta_c)*2/lambda_to_nu
-                        depth=4*delta_0*delta_c/(delta_0+delta_c)**2
-                        resonance_parameters_array[Z,ii]=([non_res_transmission,Fano_phase,
+                    if not np.isnan(peak_wavelength):
+                        [non_res_transmission,Fano_phase,res_wavelength,depth,linewidth,delta_c,delta_0,N_points_for_fitting]=find_width(WavelengthArray, self.transmission[:,Z], 
+                                                                                                                          peak_wavelength,N_points_for_fitting,iterate_different_N_points,max_N_points_for_fitting,
+                                                                                                                          iterating_cost_function_type)
+                                                                                                                       
+                        resonance_parameters_array[Z,ii]=([non_res_transmission,Fano_phase,res_wavelength,
                                                               depth,linewidth,delta_c,delta_0,N_points_for_fitting])
                         # except:
                         #     print('error while fitting')
@@ -248,8 +227,59 @@ class SNAP():
    
         
         return x,np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
+
+# @njit
+def find_width(waves,signal,peak_wavelength,N_points_for_fitting=0,iterate_different_N_points=False,max_N_points_for_fitting=100,iterating_cost_function_type='linewidth'):
+    index=np.argmin(np.abs(waves-peak_wavelength))
+    number_of_spectral_points=np.shape(waves)[0]
+    if not iterate_different_N_points:
+        if N_points_for_fitting==0:
+            fitting_parameters,_,_,_=get_Fano_fit(waves, signal,peak_wavelength)
+        else:
+            i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
+            i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
+            fitting_parameters,_,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
+    else:
+        N_points_for_fitting=10
+        minimal_linewidth=np.max(waves)-np.min(waves)
+        minimal_err=1000
+        error=0
+        for N_points in np.arange(10,max_N_points_for_fitting,2):
+             i_min=0 if index-N_points<0 else index-N_points
+             i_max=number_of_spectral_points-1 if index+N_points>number_of_spectral_points-1 else index+N_points
+             fitting_parameters,_,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
+             [transmission,phase,peak_wavelength,delta_0,delta_c]=fitting_parameters
+             linewidth=(delta_0+delta_c)*2/lambda_to_nu
+             
+             
+             if iterating_cost_function_type=='linewidth':
+                 if minimal_linewidth>linewidth:
+                     minimal_linewidth=linewidth
+                     N_points_for_fitting=N_points
+             
+             elif iterating_cost_function_type=='net error':
+                 error = np.sum(np.abs(10**(Fano_lorenzian(waves[i_min:i_max], *fitting_parameters)/10) - 10**(signal[i_min:i_max])/10))/N_points
+                 if minimal_err>error:
+                     minimal_err=error
+                     minimal_linewidth=linewidth
+                     N_points_for_fitting=N_points
+             else:
+                 print('wrong cost function')
+                 return
+             if (N_points%10==0): print('N_points={},linewidth={},error={}'.format(N_points,linewidth,error))
+             
+
+                 
+        i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
+        i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
+        fitting_parameters,_,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
+    [non_res_transmission, Fano_phase, res_wavelength,delta_0,delta_c]=fitting_parameters
     
-    
+    linewidth=(delta_0+delta_c)*2/lambda_to_omega
+    depth=4*delta_0*delta_c/(delta_0+delta_c)**2
+    return [non_res_transmission,Fano_phase, res_wavelength, depth,linewidth,delta_c,delta_0,N_points_for_fitting]
+
+# @njit
 def get_Fano_fit(waves,signal,peak_wavelength=None):
     '''
     fit shape, given in log scale, with 
@@ -279,20 +309,61 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
     
     try:
         popt, pcov=scipy.optimize.curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds)
-        return popt, waves, Fano_lorenzian(waves,*popt)
+        return popt,pcov, waves, Fano_lorenzian(waves,*popt)
     except RuntimeError as E:
+        pass
         print(E)
-        return initial_guess,waves,Fano_lorenzian(waves,*initial_guess)
+        return initial_guess,0,waves,Fano_lorenzian(waves,*initial_guess)
     
-       
-def Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c):
+    # @njit
+def get_complex_Fano_fit(waves,signal,peak_wavelength=None):
+    '''
+    fit shape, given in lin scale, with  complex Lorenzian 
+    Gorodetsky, (9.19), p.253
+    
+    may use peak_wavelength
+    return [transmission, Fano_phase, resonance_position,delta_0,delta_c], [x_fitted,y_fitted]
+    
+    '''
+    signal_abs=np.abs(signal)
+    transmission=np.mean(signal_abs)
+    if peak_wavelength is None:
+        peak_wavelength=waves[scipy.signal.find_peaks(signal_abs-transmission)[0][0]]
+        peak_wavelength_lower_bound=0
+        peak_wavelength_higher_bound=np.inf
+    else:
+        peak_wavelength_lower_bound=peak_wavelength-2e-3
+        peak_wavelength_higher_bound=peak_wavelength+2e-3
+    
+    delta_0=30 # MHz
+    delta_c=50 # MHz
+    phase=0.0
+    
+    initial_guess=[transmission,phase,peak_wavelength,delta_0,delta_c]
+    bounds=((0,-1,peak_wavelength_lower_bound,0,0),(1,1,peak_wavelength_higher_bound,np.inf,np.inf))
+    
+    try:
+        popt, pcov=scipy.optimize.curve_fit(complex_Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds)
+        return popt,pcov, waves, Fano_lorenzian(waves,*popt)
+    except RuntimeError as E:
+        pass
+        print(E)
+        return initial_guess,0,waves,Fano_lorenzian(waves,*initial_guess)
+    
+def complex_Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c):
+    return transmission*np.exp(1j*phase*np.pi) - 2*delta_c/(1j*(w0-w)*lambda_to_omega+(delta_0+delta_c))
+    
+@njit
+def Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c,scale='log'):
     '''
     return log of Fano shape
 
     Modified formula (9.19), p.253 by Gorodetsky
+    w is wavelength
+    delta_0, delta_c is in MHz
     '''
     
-    return 10*np.log10(abs(transmission*np.exp(1j*phase*np.pi) - 2*delta_c/(lambda_to_nu)/(1j*(w0-w)+(delta_0+delta_c)/(lambda_to_nu)))**2) 
+    return 10*np.log10(np.abs(transmission*np.exp(1j*phase*np.pi) - 2*delta_c/(1j*(w0-w)*lambda_to_omega+(delta_0+delta_c)))**2) 
 
 if __name__ == "__main__":
     '''
@@ -305,10 +376,13 @@ if __name__ == "__main__":
     import pickle
     import matplotlib.pyplot as plt
     os.chdir('..')
-    f='ProcessedData\\1.pkl'
+    f='ProcessedData\\2.pkl'
     with open(f,'rb') as file:
         spectrum=pickle.load(file)
     plt.plot(spectrum[:,0],spectrum[:,1])
-    [popt, waves, Fano_lorenzian]=get_Fano_fit(spectrum[:,0],spectrum[:,1],peak_wavelength=1551.355)
+    [popt, pcov, waves, Fano_lorenzian]=get_Fano_fit(spectrum[:,0],spectrum[:,1],peak_wavelength=1552.165)
     plt.plot(waves,Fano_lorenzian,color='g')
+    print(popt)
+    plt.figure()
+    plt.plot(spectrum[:,0],10**(spectrum[:,1]/10))
     

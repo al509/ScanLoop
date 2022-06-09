@@ -1084,7 +1084,7 @@ class MainWindow(ThreadedMainWindow):
             print('file is not chosen or previous choice is preserved')
         self.analyzer.spectrogram_file_path=DataFilePath
         self.ui.label_analyzer_file.setText(DataFilePath)
-        self.analyzer.load_data(DataFilePath)
+        self.analyzer.load_data()
        
 
     def choose_file_for_analyzer_plotting_parameters(self):

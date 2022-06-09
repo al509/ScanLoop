@@ -4,7 +4,7 @@
 
 
 """
-__date__='2022.05.31'
+__date__='2022.06.03'
 
 import os
 import sys
@@ -18,7 +18,7 @@ try:
     import Scripts.SNAP_experiment as SNAP_experiment
     import Scripts.QuantumNumbersStructure as QuantumNumbersStructure
 except ModuleNotFoundError:
-    import SNAP_experiment
+    import SNAP_experiment 
     import QuantumNumbersStructure
 import json
 
@@ -46,6 +46,7 @@ class Analyzer(QObject):
             self.plot_results_separately=False
             self.N_points_for_fitting=0
             self.iterate_different_N_points=False
+            self.iterating_cost_function_type='linewidth'
             self.max_N_points_for_fitting=100
             self.FFTFilter_low_freq_edge=0.00001
             self.FFTFilter_high_freq_edge=0.01
@@ -78,40 +79,45 @@ class Analyzer(QObject):
             del d['figure_spectrogram']
             return d
         
-        def load_data(self,path):
-            f=open(path,'rb')
-            D=(pickle.load(f))
-            f.close()
-            if isinstance(D,SNAP_experiment.SNAP):
-                print('loading SNAP data for analyzer from ',path)
-                self.SNAP=D
+        def load_data(self,file_path=None):
+            if file_path is not None:
+                self.spectrogram_file_path=file_path
+            if self.spectrogram_file_path is not None:    
+                f=open(self.spectrogram_file_path,'rb')
+                D=(pickle.load(f))
+                f.close()
+                if isinstance(D,SNAP_experiment.SNAP):
+                    print('loading SNAP data for analyzer from ',self.spectrogram_file_path)
+                    self.SNAP=D
+                else:
+                    print('loading old style SNAP data for analyzer from ',self.spectrogram_file_path)
+                    SNAP_object=SNAP_experiment.SNAP()
+                    SNAP_object.axis_key=D['axis']
+                    Positions=np.array(D['Positions'])
+                    wavelengths,exp_data=D['Wavelengths'],D['Signal']
+                
+                    try:
+                        scale=D['spatial_scale']
+                        if scale=='microns':
+                            pass
+                    except KeyError:
+                            print('Spatial scale is defined as steps 2.5 um each')
+                            Positions[:,0:3]=Positions[:,0:3]*2.5
+                    try:
+                        SNAP_object.date=D['date']
+                    except KeyError:
+                        print('No date indicated')
+                        SNAP_object.date='_'
+                    
+    
+                    SNAP_object.wavelengths=wavelengths
+                    SNAP_object.transmission=exp_data
+                    
+                    SNAP_object.lambda_0=np.min(wavelengths)
+                    SNAP_object.positions=Positions
+                    self.SNAP=SNAP_object
             else:
-                print('loading old style SNAP data for analyzer from ',path)
-                SNAP_object=SNAP_experiment.SNAP()
-                SNAP_object.axis_key=D['axis']
-                Positions=np.array(D['Positions'])
-                wavelengths,exp_data=D['Wavelengths'],D['Signal']
-            
-                try:
-                    scale=D['spatial_scale']
-                    if scale=='microns':
-                        pass
-                except KeyError:
-                        print('Spatial scale is defined as steps 2.5 um each')
-                        Positions[:,0:3]=Positions[:,0:3]*2.5
-                try:
-                    SNAP_object.date=D['date']
-                except KeyError:
-                    print('No date indicated')
-                    SNAP_object.date='_'
-                
-
-                SNAP_object.wavelengths=wavelengths
-                SNAP_object.transmission=exp_data
-                
-                SNAP_object.lambda_0=np.min(wavelengths)
-                SNAP_object.positions=Positions
-                self.SNAP=SNAP_object
+                print('SNAP file not chosen')
                 
 
         def resave_SNAP(self,output_file_type='SNAP'):
@@ -276,7 +282,7 @@ class Analyzer(QObject):
             
         def plot_spectrogram(self):
             if self.SNAP is None:
-                self.load_data(self.spectrogram_file_path)
+                self.load_data()
             
             with open(self.plotting_parameters_file_path,'r') as f:
                 p=json.load(f)
@@ -400,7 +406,7 @@ class Analyzer(QObject):
             '''
             self.slice_position=position
             if self.SNAP.transmission is None:
-                self.load_data(self.spectrogram_file_path)
+                self.load_data()
             with open(self.plotting_parameters_file_path,'r') as f:
                 p=json.load(f)
                 
@@ -451,13 +457,14 @@ class Analyzer(QObject):
                 
                 
                 try:
-                    parameters, waves_fitted,signal_fitted=SNAP_experiment.get_Fano_fit(waves,signal,wavelength_main_peak)
+                    [non_res_transmission,Fano_phase,resonance_position,depth,linewidth,delta_c,delta_0,N_points_for_fitting]=SNAP_experiment.find_width(waves, signal, wavelength_main_peak,
+                                                                                                                                      self.N_points_for_fitting,self.iterate_different_N_points,
+                                                                                                                                      self.max_N_points_for_fitting,self.iterating_cost_function_type)
+                    # parameters, waves_fitted,signal_fitted=SNAP_experiment.get_Fano_fit(waves,signal,wavelength_main_peak)
+                    signal_fitted=SNAP_experiment.Fano_lorenzian(waves,non_res_transmission,Fano_phase,resonance_position,delta_0,delta_c)
                 except Exception as e:
                         print('Error: {}'.format(e))
-                axes.plot(waves_fitted, signal_fitted, color='green')             
-                [non_res_transmission, Fano_phase, resonance_position,delta_0,delta_c]=parameters
-                linewidth=(delta_0+delta_c)*2/lambda_to_nu
-                depth=4*delta_0*delta_c/(delta_0+delta_c)**2
+                axes.plot(waves, signal_fitted, color='green')             
                 results_text1='$|S_0|$={:.2f} \n arg(S)={:.2f} $\pi$  \n $\lambda_0$={:.4f}  nm \n $\Delta \lambda={:.5f}$ nm \n Depth={:.3e} \n'.format(non_res_transmission,Fano_phase, resonance_position,linewidth,depth)
                 Q_factor=resonance_position/linewidth
                 results_text2='\n $\delta_c$={:.2f} MHz \n $\delta_0$={:.2f} MHz \n Q-factor={:.2e}'.format(delta_c,delta_0,Q_factor)
@@ -484,7 +491,7 @@ class Analyzer(QObject):
             positions,peak_wavelengths, ERV, resonance_parameters=self.SNAP.extract_ERV(self.number_of_peaks_to_search,self.min_peak_level,
                                                                                         self.min_peak_distance,self.min_wave,self.max_wave,
                                                                                         self.find_widths, self.N_points_for_fitting,
-                                                                                        self.iterate_different_N_points,self.max_N_points_for_fitting)
+                                                                                        self.iterate_different_N_points,self.max_N_points_for_fitting,self.iterating_cost_function_type)
             path,FileName = os.path.split(self.spectrogram_file_path)
             NewFileName=path+'\\'+FileName.split('.')[-2]+'_ERV.pkl'
             with open(NewFileName,'wb') as f:
@@ -527,14 +534,14 @@ class Analyzer(QObject):
             plt.figure()
             plt.title('Depth and Linewidth $\Delta \lambda$')
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,resonance_parameters_array[:,i,2],color='blue')
+                plt.plot(positions,resonance_parameters_array[:,i,3],color='blue')
             plt.xlabel('Distance, $\mu$m')
             plt.ylabel('Depth ',color='blue')
             plt.gca().tick_params(axis='y', colors='blue')
             plt.gca().twinx()
             # plt.figure()
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,resonance_parameters_array[:,i,3], color='red')
+                plt.plot(positions,resonance_parameters_array[:,i,4], color='red')
             plt.ylabel('Linewidth $\Delta \lambda$, nm',color='red')
             plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
@@ -557,15 +564,15 @@ class Analyzer(QObject):
             plt.figure()
             plt.title('$\delta_0$ and $\delta_c$')
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,resonance_parameters_array[:,i,4],color='blue')
+                plt.plot(positions,resonance_parameters_array[:,i,5],color='blue')
             plt.xlabel('Distance, $\mu$m')
-            plt.ylabel('$\delta_c$, nm',color='blue')
+            plt.ylabel('$\delta_c$, MHz',color='blue')
             plt.gca().tick_params(axis='y', colors='blue')
             plt.gca().twinx()
             # plt.figure()
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,resonance_parameters_array[:,i,5], color='red')
-            plt.ylabel('$\delta_0$, nm',color='red')
+                plt.plot(positions,resonance_parameters_array[:,i,6], color='red')
+            plt.ylabel('$\delta_0$, MHz',color='red')
             plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
         
@@ -627,14 +634,15 @@ class Analyzer(QObject):
 
 if __name__ == "__main__":
     
-    os.chdir('..')
+    # os.chdir('..')
     
     
     
     #%%
-    analyzer=Analyzer()
-    analyzer.load_data('ProcessedData\\Processed_spectrogram_at_spot_cropped_cropped_cropped.SNAP')
-    # analyzer.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
+    a=Analyzer()
+    os.chdir('..')
+    a.load_data('ProcessedData\\Processed_spectrogram_resaved.pkl3d')
+    a.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
     
     # analyzer.plot_spectrogram()
     # analyzer.plot_slice(800)
@@ -644,10 +652,12 @@ if __name__ == "__main__":
     # Dicts=json.load(f)
     # f.close()
     # analyzer.set_parameters(Dicts['Analyzer'])
-    analyzer.extract_ERV()
+    a.find_widths=True
+    a.plot_results_separately=True
+    a.extract_ERV()
     
     # analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\test.laserdata'
-    analyzer.plot_single_spectrum_from_file()
+    # analyzer.plot_single_spectrum_from_file()
 # 
     # 
 
