@@ -322,7 +322,7 @@ def get_complex_Fano_fit(waves,signal,peak_wavelength=None):
     Gorodetsky, (9.19), p.253
     
     may use peak_wavelength
-    return [transmission, Fano_phase, resonance_position,delta_0,delta_c], [x_fitted,y_fitted]
+    return [transmission, Fano_phase, resonance_position,delta_0,delta_c], [x_fitted,Re(y_fitted),Im(y_fitted)]
     
     '''
     signal_abs=np.abs(signal)
