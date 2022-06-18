@@ -467,7 +467,7 @@ class Analyzer(QObject):
                 axes.plot(waves, signal_fitted, color='green')             
                 results_text1='$|S_0|$={:.2f} \n arg(S)={:.2f} $\pi$  \n $\lambda_0$={:.4f}  nm \n $\Delta \lambda={:.5f}$ nm \n Depth={:.3e} \n'.format(non_res_transmission,Fano_phase, resonance_position,linewidth,depth)
                 Q_factor=resonance_position/linewidth
-                results_text2='\n $\delta_c$={:.2f} MHz \n $\delta_0$={:.2f} MHz \n Q-factor={:.2e}'.format(delta_c,delta_0,Q_factor)
+                results_text2='\n $\delta_c$={:.2f} 1e6/s \n $\delta_0$={:.2f} 1e6/s \n Q-factor={:.2e}'.format(delta_c,delta_0,Q_factor)
                 results_text=results_text1+results_text2
                 for t in axes.texts:
                     t.set_visible(False)
