@@ -5,8 +5,8 @@ Created on Fri Sep 25 16:30:03 2020
 @author: Ilya Vatnik
 matplotlib 3.4.2 is needed! 
 """
-__version__='9'
-__date__='2022.06.10'
+__version__='10'
+__date__='2022.07.04'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -215,9 +215,11 @@ class SNAP():
                                                               depth,linewidth,delta_c,delta_0,N_points_for_fitting])
                         # except:
                         #     print('error while fitting')
-        lambdas_0=np.amin(PeakWavelengthArray,axis=0)
-        ERV=(PeakWavelengthArray-lambdas_0)/np.nanmean(PeakWavelengthArray,axis=0)*self.R_0*self.refractive_index*1e3 # in nm
+        lambdas_0=np.nanmin(PeakWavelengthArray,axis=0)
+        ERV=(PeakWavelengthArray-lambdas_0)/lambdas_0*self.R_0*self.refractive_index*1e3 # in nm
+        
         print('Analyzing finished')
+
 
                 # self.fig_spectrogram_ERV_lines.append[line]
 
@@ -316,7 +318,7 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
         return initial_guess,0,waves,Fano_lorenzian(waves,*initial_guess)
     
     # @njit
-def get_complex_Fano_fit(waves,signal,peak_wavelength=None):
+def get_complex_Fano_fit(waves,signal,peak_wavelength=None,height=None):
     '''
     fit shape, given in lin scale, with  complex Lorenzian 
     Gorodetsky, (9.19), p.253
@@ -327,46 +329,46 @@ def get_complex_Fano_fit(waves,signal,peak_wavelength=None):
     '''
     signal_abs=np.abs(signal)
     transmission=np.mean(signal_abs)
+    
     if peak_wavelength is None:
-        peak_wavelength=waves[scipy.signal.find_peaks(signal_abs-transmission)[0][0]]
-        peak_wavelength_lower_bound=0
-        peak_wavelength_higher_bound=np.inf
-    else:
-        peak_wavelength_lower_bound=peak_wavelength-2e-3
-        peak_wavelength_higher_bound=peak_wavelength+2e-3
+        indexes=scipy.signal.find_peaks(signal_abs-transmission,height=height)
+        print(indexes)
+        peak_wavelength=waves[indexes[0][0]]
+
+    peak_wavelength_lower_bound=peak_wavelength-1e-3
+    peak_wavelength_higher_bound=peak_wavelength+1e-3
     
-    delta_0=30 # MHz
+    delta_0=300 # MHz
     delta_c=50 # MHz
-    phase=0.0
+    total_phase=0
+    fano_phase=0.0
     
-    initial_guess=[transmission,phase,peak_wavelength,delta_0,delta_c]
-    bounds=((0,-1,peak_wavelength_lower_bound,0,0),(1,1,peak_wavelength_higher_bound,np.inf,np.inf))
+    initial_guess=[transmission,total_phase,fano_phase,peak_wavelength,delta_0,delta_c]
+    bounds=((0,-1,-1,peak_wavelength_lower_bound,0,0),(1,1,1,peak_wavelength_higher_bound,np.inf,np.inf))
     
     re_im_signal=np.hstack([np.real(signal),np.imag(signal)])
     
     try:
-        popt, pcov=scipy.optimize.curve_fit(complex_Fano_lorenzian,np.hstack([waves,waves]),re_im_signal,p0=initial_guess,bounds=bounds)
-        return popt,pcov, waves, Fano_lorenzian(waves,*popt)
+        popt, pcov=scipy.optimize.curve_fit(complex_Fano_lorenzian_splitted,np.hstack([waves,waves]),re_im_signal,p0=initial_guess,bounds=bounds)
+        return popt,pcov, waves, complex_Fano_lorenzian(waves,*popt)
     except RuntimeError as E:
         pass
         print(E)
         return initial_guess,0,waves,Fano_lorenzian(waves,*initial_guess)
 
-def complex_Fano_lorenzian_splitted(w,transmission,phase,w0,delta_0,delta_c):
+def complex_Fano_lorenzian_splitted(w,transmission,total_phase, fano_phase,w0,delta_0,delta_c):
     N=len(w)
     w_real = w[:N//2]
     w_imag = w[N//2:]
-    y_real = np.real(complex_Fano_lorenzian(w_real,transmission,phase,w0,delta_0,delta_c))
-    y_imag = np.imag(complex_Fano_lorenzian(w_imag,transmission,phase,w0,delta_0,delta_c))
+    y_real = np.real(complex_Fano_lorenzian(w_real,transmission,total_phase, fano_phase,w0,delta_0,delta_c))
+    y_imag = np.imag(complex_Fano_lorenzian(w_imag,transmission,total_phase, fano_phase,w0,delta_0,delta_c))
     return np.hstack([y_real,y_imag])
     
-def complex_Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c):
-    '''    
-    w is wavelength
-    delta_0, delta_c is in 1/s
+def complex_Fano_lorenzian(w,transmission,total_phase,fano_phase,w0,delta_0,delta_c):
     '''
-    
-    return transmission*np.exp(1j*phase*np.pi) - 2*delta_c/(1j*(w0-w)*lambda_to_omega+(delta_0+delta_c))
+    delta_0, delta_c is in 2pi*MHz or 1e6/s
+    '''
+    return np.exp(1j*total_phase*np.pi)*(transmission*np.exp(1j*fano_phase*np.pi) - 2*delta_c/(-1j*(w0-w)*lambda_to_omega+(delta_0+delta_c)))
      
     
 @njit
@@ -376,7 +378,7 @@ def Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c,scale='log'):
 
     Modified formula (9.19), p.253 by Gorodetsky
     w is wavelength
-    delta_0, delta_c is in 1e6/s or MHz*2pi
+    delta_0, delta_c is in 2pi*MHz or 1e6/s
     '''
     
     return 10*np.log10(np.abs(transmission*np.exp(1j*phase*np.pi) - 2*delta_c/(1j*(w0-w)*lambda_to_omega+(delta_0+delta_c)))**2) 
@@ -392,13 +394,10 @@ if __name__ == "__main__":
     import pickle
     import matplotlib.pyplot as plt
     os.chdir('..')
-    f='ProcessedData\\2.pkl'
+    
+    f='ProcessedData\\dump_data_resaved.SNAP'
     with open(f,'rb') as file:
-        spectrum=pickle.load(file)
-    plt.plot(spectrum[:,0],spectrum[:,1])
-    [popt, pcov, waves, Fano_lorenzian]=get_Fano_fit(spectrum[:,0],spectrum[:,1],peak_wavelength=1552.165)
-    plt.plot(waves,Fano_lorenzian,color='g')
-    print(popt)
-    plt.figure()
-    plt.plot(spectrum[:,0],10**(spectrum[:,1]/10))
+        Snap=pickle.load(file)
+    
+    Temp=Snap.extract_ERV(find_widths=False)    
     

@@ -1,6 +1,6 @@
 
 
-__date__='2022.04.01'
+__date__='2022.07.04'
 
 import os
 import numpy as np
@@ -32,6 +32,8 @@ class Spectral_processor(QObject):
         self.is_remove_background_out_of_contact=False
         self.file_naming_style='new'
         self.type_of_output_data='SNAP'
+        self.R_0=62.5
+        self.refractive_index=1.45
         
 
     skip_Header=3
@@ -317,6 +319,8 @@ class Spectral_processor(QObject):
             SNAP.transmission=SignalArray
             SNAP.axis_key=self.axis_to_plot_along
             SNAP.lambda_0=min(MainWavelengths)
+            SNAP.R_0=self.R_0
+            SNAP.refractive_index=self.refractive_index
             f=open(self.processedData_dir_path+f_name,'wb')
             pickle.dump(SNAP,f)
             f.close()
@@ -328,6 +332,8 @@ class Spectral_processor(QObject):
             D['Positions']=np.array(Positions)
             D['Wavelengths']=MainWavelengths
             D['Signal']=SignalArray
+            D['R_0']=self.R_0
+            D['refractive_index']=self.refractive_index
             from datetime import datetime
             D['date']=datetime.today().strftime('%Y.%m.%d')
         

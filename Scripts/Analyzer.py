@@ -4,7 +4,7 @@
 
 
 """
-__date__='2022.06.03'
+__date__='2022.07.04'
 
 import os
 import sys
@@ -56,6 +56,7 @@ class Analyzer(QObject):
             self.quantum_numbers_fitter_polarizations='both'
             
             self.SNAP=None
+
             
             self.type_of_SNAP_file='SNAP'
             
@@ -115,6 +116,16 @@ class Analyzer(QObject):
                     
                     SNAP_object.lambda_0=np.min(wavelengths)
                     SNAP_object.positions=Positions
+                    try:
+                        SNAP_object.R_0=D['R_0']
+                    except KeyError:
+                        print('No radius indicated')
+                        SNAP_object.R_0=62.5
+                    try:
+                        SNAP_object.refractive_index=D['refractive_index']
+                    except KeyError:
+                        print('No refractive index indicated')
+                        SNAP_object.refractive_index=1.45
                     self.SNAP=SNAP_object
             else:
                 print('SNAP file not chosen')
@@ -155,6 +166,8 @@ class Analyzer(QObject):
                 D['Signal']=self.SNAP.transmission
                 from datetime import datetime
                 D['date']=self.SNAP.date
+                D['R_0']=self.SNAP.R_0
+                D['refractive_index']=self.SNAP.refractive_index
                 print('spectrogram saved as ' +NewFileName)
                 with open(NewFileName,'wb') as f:
                     pickle.dump(D,f)
@@ -495,7 +508,7 @@ class Analyzer(QObject):
             path,FileName = os.path.split(self.spectrogram_file_path)
             NewFileName=path+'\\'+FileName.split('.')[-2]+'_ERV.pkl'
             with open(NewFileName,'wb') as f:
-                ERV_params={'positions':positions,'peak_wavelengths':peak_wavelengths,'ERVs':ERV,'resonance_parameters':resonance_parameters,'fitting_parameters':self.get_parameters()}
+                ERV_params={'R_0':self.SNAP.R_0, 'refractive_index':self.SNAP.refractive_index,'positions':positions,'peak_wavelengths':peak_wavelengths,'ERVs':ERV,'resonance_parameters':resonance_parameters,'fitting_parameters':self.get_parameters()}
                 pickle.dump(ERV_params, f)
             
             
@@ -519,6 +532,7 @@ class Analyzer(QObject):
         
         def plot_ERV_params(self,params_dict:dict,find_widths=True):
             positions=params_dict['positions']
+            ERVs=params_dict['ERVs']
             peak_wavelengths=params_dict['peak_wavelengths']
             number_of_peaks_to_search=np.shape(peak_wavelengths)[1]
             resonance_parameters_array=params_dict['resonance_parameters']
@@ -529,6 +543,14 @@ class Analyzer(QObject):
             plt.xlabel('Distance, $\mu$m')
             plt.ylabel('Cut-off wavelength, nm')
             plt.title('Cut-off wavelength')
+            plt.tight_layout()
+            
+            plt.figure()
+            for i in range(0,number_of_peaks_to_search):
+                plt.plot(positions,ERVs[:,i])
+            plt.xlabel('Distance, $\mu$m')
+            plt.ylabel('Effective radius variation, nm')
+            plt.title('Effective radius variation')
             plt.tight_layout()
   
             plt.figure()
@@ -575,6 +597,8 @@ class Analyzer(QObject):
             plt.ylabel('$\delta_0$, MHz',color='red')
             plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
+            
+            print('R_0={},n={}'.format(params_dict['R_0'],params_dict['refractive_index']))
         
         
         def plot_ERV_from_file(self,file_name):

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>298</width>
-    <height>346</height>
+    <width>273</width>
+    <height>362</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,6 +33,47 @@
        <widget class="QLabel" name="label_9">
         <property name="text">
          <string>Plot along axis</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="0">
+       <widget class="QComboBox" name="comboBox_type_of_input_data">
+        <item>
+         <property name="text">
+          <string>pkl</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>txt</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QCheckBox" name="checkBox_isInterpolation">
+        <property name="text">
+         <string>Interpolation</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QCheckBox" name="checkBox_is_remove_background_out_of_contact">
+        <property name="text">
+         <string>Out _of_contact data</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QCheckBox" name="checkBox_isAveraging">
+        <property name="toolTip">
+         <string>Straightforward averaging of all spectra at the point</string>
+        </property>
+        <property name="text">
+         <string>Averaging</string>
         </property>
        </widget>
       </item>
@@ -77,33 +118,6 @@
         </item>
        </widget>
       </item>
-      <item row="5" column="0">
-       <widget class="QCheckBox" name="checkBox_isAveraging">
-        <property name="toolTip">
-         <string>Straightforward averaging of all spectra at the point</string>
-        </property>
-        <property name="text">
-         <string>Averaging</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0">
-       <widget class="QCheckBox" name="checkBox_isInterpolation">
-        <property name="text">
-         <string>Interpolation</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="0">
-       <widget class="QCheckBox" name="checkBox_is_remove_background_out_of_contact">
-        <property name="text">
-         <string>Out _of_contact data</string>
-        </property>
-       </widget>
-      </item>
       <item row="10" column="0">
        <widget class="QLabel" name="label_folder_to_process_files_3">
         <property name="text">
@@ -138,24 +152,50 @@
         </item>
        </widget>
       </item>
-      <item row="11" column="0">
-       <widget class="QComboBox" name="comboBox_type_of_input_data">
-        <item>
-         <property name="text">
-          <string>pkl</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>txt</string>
-         </property>
-        </item>
+      <item row="14" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Radius of the cavity, micron</string>
+        </property>
        </widget>
       </item>
       <item row="12" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
          <string>Type of output data</string>
+        </property>
+       </widget>
+      </item>
+      <item row="16" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Refractive index</string>
+        </property>
+       </widget>
+      </item>
+      <item row="15" column="0">
+       <widget class="QLineEdit" name="lineEdit_R_cavity">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>62.5</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="17" column="0">
+       <widget class="QLineEdit" name="lineEdit_refractive_index">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>1.45</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
