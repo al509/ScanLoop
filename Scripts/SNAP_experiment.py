@@ -5,8 +5,8 @@ Created on Fri Sep 25 16:30:03 2020
 @author: Ilya Vatnik
 matplotlib 3.4.2 is needed! 
 """
-__version__='10'
-__date__='2022.07.04'
+__version__='10.1'
+__date__='2022.07.07'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -157,6 +157,8 @@ class SNAP():
                     elif len(peak_indexes)<number_of_peaks_to_search:
                         print(number_of_peaks_to_search-len(peak_indexes))
                         peak_indexes=np.hstack((peak_indexes,np.nan*np.zeros(number_of_peaks_to_search-len(peak_indexes))))
+                else:
+                    print('no peaks found at start position')
             
                 peak_indexes=np.sort(peak_indexes) ##sort in wavelength decreasing
                 window_indexes=[]

@@ -1,11 +1,11 @@
 
-__version__='20.3.13'
-__date__='2022.07.04'
+__version__='20.3.14'
+__date__='2022.07.07'
 
 
 import sys
 from packaging import version
-from conda import __version__ as condaVersion
+# from conda import __version__ as condaVersion
 from PyQt5 import QtWidgets
 from Windows.MainWindow import MainWindow
 
