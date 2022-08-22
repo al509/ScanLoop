@@ -398,7 +398,7 @@ if __name__=='__main__':
     import pickle
     with open(filename,'rb') as f:
         Temp=pickle.load(f)
-    fitter=Fitter(Temp[:,0],Temp[:,1],0.8,100,p_guess_array=[3],polarization='single',dispersion=False)
+    fitter=Fitter(Temp[:,0],Temp[:,1],0.8,100,p_guess_array=[3],polarization='single',dispersion=True)
     fitter.run()
     fitter.plot_results()
 
