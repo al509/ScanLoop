@@ -1,5 +1,7 @@
 
-
+'''
+Making single SNAP object (or complex matrix Jones-based SNAP object) from the bunch of the files 
+'''
 __date__='2022.07.04'
 
 import os

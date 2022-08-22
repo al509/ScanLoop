@@ -5,8 +5,8 @@ Created on Fri Sep 25 16:30:03 2020
 @author: Ilya Vatnik
 matplotlib 3.4.2 is needed! 
 """
-__version__='10.1'
-__date__='2022.07.07'
+__version__='11'
+__date__='2022.08.22'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -30,16 +30,24 @@ class SNAP():
                  positions=None,
                  wavelengths=None,
                  transmission=None,
-                 R_0=62.5):
+                 R_0=62.5,
+                 jones_matrixes_used=False):
         
         self.R_0=R_0 # in microns!
         self.refractive_index=1.45
         self.wavelengths=wavelengths
-        self.transmission=transmission
+        if jones_matrixes_used is False:
+            self.transmission=transmission
+            self.jones_matrixes=None
+            self.jones_matrixes_used=False
+        else:
+            self.transmission=None
+            self.jones_matrixes_used=True
         self.positions=None # whole three dimensions, in microns!
         self.axes_dict={'X':0,'Y':1,'Z':2,'W':3,'p':4}
         self.transmission_scale='log'
         self.axis_key='Z'
+        
         
         self.mode_wavelengths=None
         

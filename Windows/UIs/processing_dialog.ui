@@ -45,6 +45,11 @@
         </item>
         <item>
          <property name="text">
+          <string>Luna bin</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
           <string>txt</string>
          </property>
         </item>
