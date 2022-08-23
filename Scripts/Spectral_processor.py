@@ -2,7 +2,7 @@
 '''
 Making single SNAP object (or complex matrix Jones-based SNAP object) from the bunch of the files 
 '''
-__date__='2022.07.04'
+__date__='2022.08.22'
 
 import os
 import numpy as np
@@ -13,8 +13,10 @@ from PyQt5.QtCore import QObject
 import pickle
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
+    # import Scripts.OVA_signals as OVA_signals
 except ModuleNotFoundError:
     import SNAP_experiment
+    # import OVA_signals
 
 
 class Spectral_processor(QObject):
@@ -188,10 +190,11 @@ class Spectral_processor(QObject):
         ContactFileList=[]
         if '.gitignore' in AllFilesList:AllFilesList.remove('.gitignore')
         for file in AllFilesList:
-            if 'out_of_contact' in file and self.is_remove_background_out_of_contact:
-                OutOfContactFileList.append(file)
-            elif 'out_of_contact' not in file :
-                ContactFileList.append(file)
+            if self.type_of_input_data in file:
+                if 'out_of_contact' in file and self.is_remove_background_out_of_contact:
+                    OutOfContactFileList.append(file)
+                elif 'out_of_contact' not in file:
+                    ContactFileList.append(file)
         self.define_file_naming_style(ContactFileList[0])
         """
         group files at each point
@@ -208,6 +211,9 @@ class Spectral_processor(QObject):
             Wavelengths = pickle.load(open(self.source_dir_path +ContactFileList[0], "rb"))[:,0]
         elif self.type_of_input_data=='txt':
             Wavelengths=np.genfromtxt(self.source_dir_path +ContactFileList[0],skip_header=self.skip_Header)[:,0]
+        elif self.type_of_input_data=='bin':
+            OVA_signal = OVA_signals.load_OVA_spectrum(self.source_dir_path +ContactFileList[0])
+            Wavelengths=OVA_signal.fetch_xaxis()
             
         if self.isInterpolation:
             MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(self.source_dir_path +ContactFileList[0])
@@ -231,6 +237,7 @@ class Spectral_processor(QObject):
 
         """
         Process files at each group
+        Separate approaches for Luna files and standard pkl files.
         """
         for ii,FileNameListAtPoint in enumerate(StructuredFileList):
             NumberOfArraysToAverage=len(FileNameListAtPoint)

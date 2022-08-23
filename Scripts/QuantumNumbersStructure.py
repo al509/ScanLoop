@@ -6,31 +6,38 @@
 #See formula A3 for lambda_m_p
 ########
 
-__version__='3.4'
-__date__='2022.07.07'
+__version__='3.6'
+__date__='2022.07.19'
 
  
 import numpy as np
 from scipy import special
 from scipy import optimize
 import matplotlib.pyplot as plt
-from scipy.signal import find_peaks
+from scipy.signal import find_peaks 
 import scipy.optimize as sciopt
 from scipy.fftpack import rfft, irfft, fftfreq
 
 c=299792458 # m/s
+thermal_optical_responce=1.25e9 # Hz/Celcium, detuning of the effective_ra
+T_0=20   
 
 Sellmeier_coeffs={
-    'SiO2':[0.6961663,0.4079426,0.8974794,0.0684043,0.1162414,9.896161],
+    'SiO2':[0.6961663,0.4079426,0.8974794,0.0684043,0.1162414,9.896161], # at 20 Celcium degree
     'MgF2':[0.48755108,0.39875031,2.3120353, 0.04338408, 0.09461442, 23.793604]}
 
-def ref_ind(w,medium): # refractive index for quarzt versus wavelength, w in nm
+    
+thermal_responses={# thermal optical coefficient, linear expansion coefficient
+        
+    'SiO2':[8.6*1e-6,0.55*1e-6]   }
+
+def ref_ind(w,medium,T): # refractive index for quarzt versus wavelength, w in nm
+ 
     w=w*1e-3
     t=1
-    medium
     for i in range(0,3):
        t+=Sellmeier_coeffs[medium][i]*w**2/(w**2-Sellmeier_coeffs[medium][i+3]**2) 
-    return np.sqrt(t)
+    return np.sqrt(t)*(1+(T-T_0)*thermal_responses[medium][0])
 
 
 
@@ -46,25 +53,30 @@ def T(m,p):
         + (a**3+10)/1400*(m/2)**(-1)-a*(479*a**3-40)/504000*(m/2)**(-5/3)-a**2*(20231*a**3+55100)/129360000*(m/2)**(-7/3)
     return T
 
-def lambda_m_p_simplified(m,p,polarization,n,R,dispersion=False,medium='SiO2'): #Using T. Hamidfar et al., “Suppl. Localization of light in an optical microcapillary induced by a droplet,” Optica, vol. 5, no. 4, p. 382, 2018.
+def lambda_m_p_simplified(m,p,polarization,n,R_0,dispersion=False,medium='SiO2',temperature=20): #Using T. Hamidfar et al., “Suppl. Localization of light in an optical microcapillary induced by a droplet,” Optica, vol. 5, no. 4, p. 382, 2018.
+    
+    R_T= R_0*(1+thermal_responses[medium][1]*(temperature-T_0))    
     if not dispersion:    
         if polarization=='TE':
             temp=( 1 + airy_zero(p)*(2*m**2)**(-1/3)+ n/(m*(n**2-1)**0.5))
         elif polarization=='TM':
             temp=( 1 + airy_zero(p)*(2*m**2)**(-1/3) + 1/n/(m*(n**2-1)**(0.5)) )
-        return 2*np.pi*n*R/m*temp
+        
+        return 2*np.pi*n*R_T/m*temp
     else:
         if polarization=='TE':
-            res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium)*R/m*( 1 + airy_zero(p)*(2*m**2)**(-1/3)+ ref_ind(x,medium)/(m*(ref_ind(x,medium)**2-1)**0.5)),1550)
+            res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium,temperature)*R_T/m*( 1 + airy_zero(p)*(2*m**2)**(-1/3)+ ref_ind(x,medium,temperature)/(m*(ref_ind(x,medium,temperature)**2-1)**0.5)),1550)
             return res.x[0]
         elif polarization=='TM':
-            res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium)*R/m*( 1 + airy_zero(p)*(2*m**2)**(-1/3) + 1/ref_ind(x,medium)/(m*(ref_ind(x,medium)**2-1)**(0.5))),1550)
+            res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium,temperature)*R_T/m*( 1 + airy_zero(p)*(2*m**2)**(-1/3) + 1/ref_ind(x,medium,temperature)/(m*(ref_ind(x,medium,temperature)**2-1)**(0.5))),1550)
             return res.x[0]
             
         
 
 
-def lambda_m_p_cylinder(m,p,polarization,n,R,dispersion=False,medium='SiO2',simplified=False): # following formula A3 from Demchenko and Gorodetsky
+def lambda_m_p_cylinder(m,p,polarization,n,R_0,dispersion=False,medium='SiO2',simplified=False, temperature=20): # following formula A3 from Demchenko and Gorodetsky
+    
+    R_T= R_0*(1+thermal_responses[medium][1]*(temperature-T_0))    
     if not simplified:
         if not dispersion:
             if polarization=='TE':
@@ -73,24 +85,24 @@ def lambda_m_p_cylinder(m,p,polarization,n,R,dispersion=False,medium='SiO2',simp
                 P=1/n**2
             temp=T(m,p)-n*P/np.sqrt(n**2-1)+airy_zero(p)*(3-2*P**2)*P*n**3*(m/2)**(-2/3)/6/(n**2-1)**(3/2) \
                  - n**2*P*(P-1)*(P**2*n**2+P*n**2-1)*(m/2)**(-1)/4/(n**2-1)**2
-            return 2*np.pi*n*R/temp
+            return 2*np.pi*n*R_T/temp
         elif dispersion:
             if polarization=='TE':
-                res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium)*R/(T(m,p)-ref_ind(x,medium)/np.sqrt(ref_ind(x,medium)**2-1)+
-                                                                    airy_zero(p)*(3-2)*ref_ind(x,medium)**3*(m/2)**(-2/3)/6/(ref_ind(x,medium)**2-1)**(3/2)-
+                res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium,temperature)*R_T/(T(m,p)-ref_ind(x,medium,temperature)/np.sqrt(ref_ind(x,medium,temperature)**2-1)+
+                                                                    airy_zero(p)*(3-2)*ref_ind(x,medium,temperature)**3*(m/2)**(-2/3)/6/(ref_ind(x,medium,temperature)**2-1)**(3/2)-
                                                                     -0),2000)
                 # print(res.success)
                 return res.x[0]
             elif polarization=='TM':
-                res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium)*R/(T(m,p)-1/ref_ind(x,medium)/np.sqrt(ref_ind(x,medium)**2-1)+
-                                                                    airy_zero(p)*(3-2*ref_ind(x,medium)**(-4))*ref_ind(x,medium)*(m/2)**(-2/3)/6/(ref_ind(x,medium)**2-1)**(3/2) \
-                 - 1*(1/ref_ind(x,medium)**2-1)*(1/ref_ind(x,medium)**2)*(m/2)**(-1)/4/(ref_ind(x,medium)**2-1)**2),1550)
+                res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium,temperature)*R_T/(T(m,p)-1/ref_ind(x,medium,temperature)/np.sqrt(ref_ind(x,medium,temperature)**2-1)+
+                                                                    airy_zero(p)*(3-2*ref_ind(x,medium,temperature)**(-4))*ref_ind(x,medium,temperature)*(m/2)**(-2/3)/6/(ref_ind(x,medium,temperature)**2-1)**(3/2) \
+                 - 1*(1/ref_ind(x,medium,temperature)**2-1)*(1/ref_ind(x,medium,temperature)**2)*(m/2)**(-1)/4/(ref_ind(x,medium,temperature)**2-1)**2),1550)
                 # print(res.success)
                 return res.x[0]
     else:
-        return lambda_m_p_simplified(medium,m,p,polarization,n,R)
+        return lambda_m_p_simplified(medium,m,p,polarization,n,R_0,dispersion,medium,simplified, temperature)
                 
-def lambda_m_p_spheroid(m,p,polarization,n,a,b,dispersion=False,medium='SiO2',simplified=False): # following formula (15),(17) from Demchenko and Gorodetsky
+def lambda_m_p_spheroid(m,p,polarization,n,a,b,dispersion=False,medium='SiO2',simplified=False,temperature=20): # following formula (15),(17) from Demchenko and Gorodetsky
      if not dispersion:
          if polarization=='TE':
              P=1
@@ -125,7 +137,7 @@ class Resonances():
     dispersion=False
     
     def __init__(self,wave_min,wave_max,n,R,p_max=3,
-                 material_dispersion=True,shape='cylinder',medium='SiO2', simplified=False):
+                 material_dispersion=True,shape='cylinder',medium='SiO2', simplified=False,temperature=20):
         m0=np.floor(2*np.pi*n*R/wave_max)
         self.medium=medium
         self.pmax=p_max
@@ -261,7 +273,7 @@ class Fitter():
     def __init__(self,
                  wavelengths,signal,peak_depth,peak_distance,wave_min=None,wave_max=None,
                  p_guess_array=None,dispersion=True,simplified=False,polarization='both',
-                 FFT_filter=False, type_of_optimizer='bruteforce' ):
+                 FFT_filter=False, type_of_optimizer='bruteforce', temperature=20 ):
         
         p_guess_max=5
         
@@ -286,6 +298,7 @@ class Fitter():
         self.polarizations=polarization
         self.material_dispersion=dispersion
         self.type_of_optimizer=type_of_optimizer
+        self.temperature=temperature
         
         self.cost_best=1e3
         self.n_best,self.R_best,self.p_best,self.th_resonances=None,None,None,None
@@ -314,7 +327,7 @@ class Fitter():
                 self.n_best=res['x'][0]
                 self.R_best=res['x'][1]
                 self.p_best=p
-        self.th_resonances=Resonances(self.wave_min,self.wave_max,self.n_best,self.R_best,self.p_best,self.material_dispersion)
+        self.th_resonances=Resonances(self.wave_min,self.wave_max,self.n_best,self.R_best,self.p_best,self.material_dispersion,temperature=self.temperature)
                 
         
 
@@ -326,7 +339,7 @@ class Fitter():
         
         n,R=param
         # (p_max)=p
-        resonances=Resonances(self.wave_min,self.wave_max,n,R,p_max,self.material_dispersion)
+        resonances=Resonances(self.wave_min,self.wave_max,n,R,p_max,self.material_dispersion,temperature=self.temperature)
         
         if self.polarizations=='both':
             if resonances.N_of_resonances['Total']>0:
@@ -398,7 +411,7 @@ if __name__=='__main__':
     import pickle
     with open(filename,'rb') as f:
         Temp=pickle.load(f)
-    fitter=Fitter(Temp[:,0],Temp[:,1],0.8,100,p_guess_array=[3],polarization='single',dispersion=True)
+    fitter=Fitter(Temp[:,0],Temp[:,1],0.8,100,p_guess_array=[3],polarization='single',dispersion=True, temperature=25)
     fitter.run()
     fitter.plot_results()
 
