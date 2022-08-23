@@ -170,7 +170,7 @@ class Ui_Dialog(object):
         self.lineEdit_quantum_numbers_fitter_p_max.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.lineEdit_quantum_numbers_fitter_p_max.setObjectName("lineEdit_quantum_numbers_fitter_p_max")
         self.label_36 = QtWidgets.QLabel(self.groupBox_12)
-        self.label_36.setGeometry(QtCore.QRect(20, 20, 41, 21))
+        self.label_36.setGeometry(QtCore.QRect(10, 20, 41, 21))
         self.label_36.setWordWrap(True)
         self.label_36.setObjectName("label_36")
         self.checkBox_quantum_numbers_fitter_dispersion = QtWidgets.QCheckBox(self.groupBox_12)
@@ -200,6 +200,14 @@ class Ui_Dialog(object):
         self.comboBox_quantum_numbers_fitter_type_of_optimizer.setObjectName("comboBox_quantum_numbers_fitter_type_of_optimizer")
         self.comboBox_quantum_numbers_fitter_type_of_optimizer.addItem("")
         self.comboBox_quantum_numbers_fitter_type_of_optimizer.addItem("")
+        self.label_42 = QtWidgets.QLabel(self.groupBox_12)
+        self.label_42.setGeometry(QtCore.QRect(10, 50, 61, 21))
+        self.label_42.setWordWrap(True)
+        self.label_42.setObjectName("label_42")
+        self.lineEdit_temperature = QtWidgets.QLineEdit(self.groupBox_12)
+        self.lineEdit_temperature.setGeometry(QtCore.QRect(80, 50, 61, 21))
+        self.lineEdit_temperature.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_temperature.setObjectName("lineEdit_temperature")
 
         self.retranslateUi(Dialog)
         self.buttonBox.accepted.connect(Dialog.accept)
@@ -260,6 +268,8 @@ class Ui_Dialog(object):
         self.label_38.setText(_translate("Dialog", "<html><head/><body><p>Type of optimizer</p></body></html>"))
         self.comboBox_quantum_numbers_fitter_type_of_optimizer.setItemText(0, _translate("Dialog", "bruteforce"))
         self.comboBox_quantum_numbers_fitter_type_of_optimizer.setItemText(1, _translate("Dialog", "Nelder-Mead"))
+        self.label_42.setText(_translate("Dialog", "<html><head/><body><p>Temperature</p></body></html>"))
+        self.lineEdit_temperature.setText(_translate("Dialog", "20"))
 
 
 if __name__ == "__main__":

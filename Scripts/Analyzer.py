@@ -54,6 +54,8 @@ class Analyzer(QObject):
             self.quantum_numbers_fitter_dispersion=False
             self.quantum_numbers_fitter_p_max=3
             self.quantum_numbers_fitter_polarizations='both'
+
+            self.temperature = 20            
             
             self.SNAP=None
 
@@ -629,7 +631,8 @@ class Analyzer(QObject):
                                                   wave_min=None,wave_max=None,p_guess_array=[self.quantum_numbers_fitter_p_max],
                                                   dispersion=self.quantum_numbers_fitter_dispersion,
                                                   polarization=self.quantum_numbers_fitter_polarizations,
-                                                  type_of_optimizer=self.quantum_numbers_fitter_type_of_optimizer)
+                                                  type_of_optimizer=self.quantum_numbers_fitter_type_of_optimizer,
+                                                  temperature= self.temperature)
             axes.plot(fitter.exp_resonances,fitter.signal[fitter.resonances_indexes],'.')
             self.single_spectrum_figure.canvas.draw()
             # plt.show(block=False)
@@ -638,6 +641,18 @@ class Analyzer(QObject):
             print('quantum numbers found')
                     
             resonances,labels=fitter.th_resonances.create_unstructured_list(self.quantum_numbers_fitter_polarizations)
+            
+            '''
+            Запись в файл переменной resonances
+            '''
+            filename = open('..\\polarizations3.pkl', 'wb')
+            pickle.dump(labels, filename)
+            filename.close()
+            
+            filename = open('..\\waves3.pkl', 'wb')
+            pickle.dump(resonances, filename)
+            filename.close()
+            
             y_min,y_max=axes.get_ylim()
             for i,wave in enumerate(resonances):
                 if labels[i].split(',')[0]=='TM':
