@@ -418,7 +418,7 @@ class Analyzer(QObject):
         def plot_slice(self,position):
             '''
             plot slice using SNAP object parameters
-            '''
+            '''    
             self.slice_position=position
             if self.SNAP.transmission is None:
                 self.load_data()
