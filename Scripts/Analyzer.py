@@ -641,15 +641,14 @@ class Analyzer(QObject):
             print('quantum numbers found')
                     
             resonances,labels=fitter.th_resonances.create_unstructured_list(self.quantum_numbers_fitter_polarizations)
-            
             '''
-            Запись в файл переменной resonances
+            Запись в файл для дальнейшего пользования
             '''
-            filename = open('..\\polarizations3.pkl', 'wb')
+            filename = open('..\\polarizations2.pkl', 'wb')
             pickle.dump(labels, filename)
             filename.close()
             
-            filename = open('..\\waves3.pkl', 'wb')
+            filename = open('..\\waves2.pkl', 'wb')
             pickle.dump(resonances, filename)
             filename.close()
             

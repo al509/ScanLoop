@@ -18,9 +18,12 @@ from scipy.signal import find_peaks
 import scipy.optimize as sciopt
 from scipy.fftpack import rfft, irfft, fftfreq
 
-c=299792458 # m/s
-thermal_optical_responce=1.25e9 # Hz/Celcium, detuning of the effective_ra
-T_0=20   
+R_MIN = 61e3  #  В нанометрах (?) / 61.8e3
+R_MAX = 64e3  #  В нанометрах (?) / 63.2e3
+
+c = 299792458  #  m/s
+thermal_optical_responce = 1.25e9  #  Hz/Celcium, detuning of the effective_ra
+T_0 = 20   #  В градусах цельсия
 
 Sellmeier_coeffs={
     'SiO2':[0.6961663,0.4079426,0.8974794,0.0684043,0.1162414,9.896161], # at 20 Celcium degree
@@ -28,8 +31,9 @@ Sellmeier_coeffs={
 
     
 thermal_responses={# thermal optical coefficient, linear expansion coefficient
-        
     'SiO2':[8.6*1e-6,0.55*1e-6]   }
+
+REFRACTION = 1.4445
 
 def ref_ind(w,medium,T): # refractive index for quarzt versus wavelength, w in nm
  
@@ -157,7 +161,7 @@ class Resonances():
                 m=int(np.floor(m0*( 1 + airy_zero(p)*(2*m0**2)**(-1/3)+ n/(m0*(n**2-1)**0.5))))-4
             else:
                 m=int(np.floor(m0*( 1 + airy_zero(p)*(2*m0**2)**(-1/3)+ 1/n/(m0*(n**2-1)**0.5))))-4
-            wave=lambda_m_p(m,p,Pol,n,R,self.material_dispersion,self.medium,simplified=self.simplified)
+            wave=lambda_m_p(m, p, Pol, n, R, self.material_dispersion, self.medium, simplified=self.simplified, temperature=temperature)
             
             while wave>wave_min and p<self.pmax+1: 
                 resonance_temp_list=[]
@@ -169,7 +173,7 @@ class Resonances():
                         self.N_of_resonances[Pol]+=1
                         self.N_of_resonances['Total']+=1
                     m+=1
-                    wave=lambda_m_p(m,p,Pol,n,R,self.material_dispersion,self.medium,simplified=self.simplified)
+                    wave=lambda_m_p(m, p, Pol, n, R, self.material_dispersion, self.medium, simplified=self.simplified, temperature=temperature)
                 
                 Temp=np.column_stack((np.array(resonance_temp_list),np.array(resonance_m_list)))
                 self.structure[Pol].append(Temp)
@@ -178,7 +182,7 @@ class Resonances():
                     m=np.floor(m0*( 1 + airy_zero(p)*(2*m0**2)**(-1/3)+ n/(m0*(n**2-1)**0.5)))-3
                 else:
                     m=np.floor(m0*( 1 + airy_zero(p)*(2*m0**2)**(-1/3)+ 1/n/(m0*(n**2-1)**0.5)))-3
-                wave=lambda_m_p(m,p,Pol,n,R,self.material_dispersion,self.medium,simplified=self.simplified)
+                wave=lambda_m_p(m, p, Pol, n, R, self.material_dispersion, self.medium, simplified=self.simplified, temperature=temperature)
         
                 
     def create_unstructured_list(self,Polarizations_to_account):  
@@ -286,7 +290,6 @@ class Fitter():
         else:
             self.wave_max=max(wavelengths)
         
-        
         index_min=np.argmin(abs(wavelengths-self.wave_min))
         index_max=np.argmin(abs(wavelengths-self.wave_max))
         self.wavelengths=wavelengths[index_min:index_max]
@@ -314,7 +317,7 @@ class Fitter():
                 res=sciopt.minimize(self.cost_function,((1.4445,62.5e3)),bounds=((1.443,1.4447),(62e3,63e3)),
                             args=p,method='Nelder-Mead',options={'maxiter':1000},tol=1e-11)
             elif self.type_of_optimizer=='bruteforce':
-                res=bruteforce_optimizer(self.cost_function,args=(p,1.4445),R_bounds=(61.8e3,63.2e3),R_step=2)
+                res=bruteforce_optimizer(self.cost_function, args=(p, REFRACTION), R_bounds=(R_MIN, R_MAX), R_step=2)
                 
             # res=sciopt.least_squares(func_to_minimize,((1.43,62.5e3)),bounds=((1.4,1.5),(62e3,63e3)),
             #                 args=(Wavelength_min,Wavelength_max,Resonances_exp,p),xtol=1e-10,ftol=1e-10)
@@ -333,30 +336,29 @@ class Fitter():
 
                 
     def cost_function(self,param,p_max): # try one and another polarization
-        def measure(exp,theory):
-            closest_indexes=closest_argmin(exp,theory)
-            return sum((exp-theory[closest_indexes])**2)
+        def measure(exp, theory, resonances_amount):
+            closest_indexes=closest_argmin(exp, theory)
+            return sum((exp-theory[closest_indexes])**2)/resonances_amount
         
         n,R=param
         # (p_max)=p
         resonances=Resonances(self.wave_min,self.wave_max,n,R,p_max,self.material_dispersion,temperature=self.temperature)
-        
         if self.polarizations=='both':
             if resonances.N_of_resonances['Total']>0:
                 th_resonances,labels=resonances.create_unstructured_list('both')
-                return measure(self.exp_resonances,th_resonances)
+                return measure(self.exp_resonances, th_resonances, len(self.exp_resonances))
             else:
                 return 1e3
             
         elif self.polarizations=='single':
             if resonances.N_of_resonances['TE']>0:
                 th_resonances,labels=resonances.create_unstructured_list('TE')
-                cost_TE=measure(self.exp_resonances,th_resonances)
+                cost_TE=measure(self.exp_resonances, th_resonances, len(self.exp_resonances))
             else:
                 cost_TE=1e3
             if resonances.N_of_resonances['TM']>0:
                 th_resonances,labels=resonances.create_unstructured_list('TM')
-                cost_TM=measure(self.exp_resonances,th_resonances)
+                cost_TM=measure(self.exp_resonances, th_resonances, len(self.exp_resonances))
             else:
                 cost_TM=1e3
             return min([cost_TE,cost_TM])    
@@ -390,29 +392,25 @@ def bruteforce_optimizer(f,args,R_bounds,R_step):
     return {'x':(n,R_best),'fun':cost_best}
         
             
-if __name__=='__main__': 
-    
-    # print(lambda_m_p(m=354,p=1,polarization='TM',n=1.445,R=62.5e3,dispersion=True))
-    # wave_min=900
-    # wave_max=2500
+if __name__=='__main__':
+    #print(lambda_m_p(m=354,p=1,polarization='TM',n=1.445,R=62.5e3,dispersion=True))
+    wave_min=1540
+    # wave_max=1545
     # n=1.446
     # R=62.5e3
     # p_max=2
     # medium='SiO2'
     # shape='cylinder'
     # material_dispersion=True
-    # resonances=Resonances(wave_min,wave_max,n,R,p_max,material_dispersion,shape,medium)
-    # resonances.plot_int_dispersion(polarization='TM',p=1)
-
-
-    #%%
+    # resonances=Resonances(wave_min,wave_max,n,R,p_max,material_dispersion,shape,medium, temperature=22)
+    # figure = plt.figure()
+    # resonances.plot_all(-3,3,'both')
+    #resonances.plot_int_dispersion(polarization='TM',p=1)
     
-    filename="F:\!Projects\!SNAP system\Modifications\Wire heating\dump_data_at_-2600.0.pkl"
-    import pickle
-    with open(filename,'rb') as f:
-        Temp=pickle.load(f)
-    fitter=Fitter(Temp[:,0],Temp[:,1],0.8,100,p_guess_array=[3],polarization='single',dispersion=True, temperature=25)
-    fitter.run()
-    fitter.plot_results()
-
-
+    # #filename="F:\!Projects\!SNAP system\Modifications\Wire heating\dump_data_at_-2600.0.pkl"
+    # #import pickle
+    # #with open(filename,'rb') as f:
+    # #    Temp=pickle.load(f)
+    # #fitter=Fitter(Temp[:,0],Temp[:,1],0.8,100,p_guess_array=[3],polarization='single',dispersion=True, temperature=25)
+    # fitter.run()
+    # fitter.plot_results()
