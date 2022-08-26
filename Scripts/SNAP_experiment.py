@@ -5,8 +5,10 @@ Created on Fri Sep 25 16:30:03 2020
 @author: Ilya Vatnik
 matplotlib 3.4.2 is needed! 
 """
-__version__='11'
-__date__='2022.08.22'
+
+
+__version__='11.1'
+__date__='2022.08.26'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,6 +21,8 @@ import scipy.signal
 from  scipy.ndimage import center_of_mass
 from scipy.fftpack import rfft, irfft, fftfreq
 import scipy.optimize
+import scipy.linalg as la
+
 from numba import njit
 # from mpl_toolkits.mplot3d import Axes3D
 
@@ -26,32 +30,40 @@ lambda_to_nu=125e3 #MHz/nm
 lambda_to_omega=lambda_to_nu*2*np.pi 
 
 class SNAP():
+    '''
+    Object to store  a spectrogram of a microresonator. 
+    May comprise a complex Jones matrix data measured by Luna
+    '''
     def __init__(self,
                  positions=None,
                  wavelengths=None,
-                 transmission=None,
+                 signal=None,
                  R_0=62.5,
                  jones_matrixes_used=False):
         
         self.R_0=R_0 # in microns!
         self.refractive_index=1.45
         self.wavelengths=wavelengths
-        if jones_matrixes_used is False:
-            self.transmission=transmission
-            self.jones_matrixes=None
-            self.jones_matrixes_used=False
-        else:
-            self.transmission=None
-            self.jones_matrixes_used=True
         self.positions=None # whole three dimensions, in microns!
+        
+        if jones_matrixes_used is False:
+            self.signal=signal
+            self.jones_matrixes_array=None
+            self.jones_matrixes_used=False
+            self.type_of_signal=None
+        else:
+            self.signal=None
+            self.jones_matrixes_used=True
+            self.type_of_signal=None
+        
         self.axes_dict={'X':0,'Y':1,'Z':2,'W':3,'p':4}
-        self.transmission_scale='log'
+        self.signal_scale='log'
         self.axis_key='Z'
         
         
         self.mode_wavelengths=None
         
-        if transmission is not None:
+        if signal is not None:
             self.lambda_0=np.min(wavelengths)
         else:
             self.lambda_0=None
@@ -60,14 +72,14 @@ class SNAP():
         self.date='_'
 
         
-
+    
     
     def remove_nans(self):
         indexes_of_nan=list()
     
     def convert_to_lin_transmission(self):
-        self.transmission_scale='lin'
-        self.transmission=10**((self.transmission-np.max(self.transmission))/10)
+        self.signal_scale='lin'
+        self.signal=10**((self.signal-np.max(self.signal))/10)
     
     def load_ERV_estimation(self,file_name):
         A=np.loadtxt(file_name)
@@ -83,7 +95,7 @@ class SNAP():
         return x_ERV,ERV,lambda_0
 
     def find_modes(self,prominence_factor=2):
-        T_shrinked=np.nanmean(abs(self.transmission-np.nanmean(self.transmission,axis=0)),axis=1)
+        T_shrinked=np.nanmean(abs(self.signal-np.nanmean(self.signal,axis=0)),axis=1)
         mode_indexes,_=scipy.signal.find_peaks(T_shrinked,prominence=prominence_factor*bn.nanstd(T_shrinked))
         mode_wavelengths=np.sort(self.wavelengths[mode_indexes])
         mode_wavelengths=np.array([x for x in mode_wavelengths if x>self.lambda_0])
@@ -97,7 +109,7 @@ class SNAP():
         if self.mode_wavelengths is None:
             self.find_modes()
         ind=np.where(self.wavelengths==np.max(self.mode_wavelengths))[0][0]
-        t_f=np.sum(self.transmission[ind-2:ind+2,:],axis=0)
+        t_f=np.sum(self.signal[ind-2:ind+2,:],axis=0)
         return (np.sum(t_f*x)/np.sum(t_f))
     
     
@@ -109,15 +121,85 @@ class SNAP():
             f_array[Indexes] = 0
 #            f_array[] = 0
             return irfft(f_array)
-        for ii,spectrum in enumerate(np.transpose(self.transmission)):
-            self.transmission[:,ii]=FFTFilter(spectrum)
+        for ii,spectrum in enumerate(np.transpose(self.signal)):
+            self.signal[:,ii]=FFTFilter(spectrum)
     
 
-      
-
     
-    
+    def switch_signal_type(self,signal_type):
+        if self.jones_matrixes_used:    
+            if signal_type=='insertion losses':
+                self.type_of_signal='insertion losses'
+                self.signal=self.get_IL()
+            elif signal_type=='chromatic dispersion':
+                self.type_of_signal='chromatic dispersion'
+                self.signal=self.get_chromatic_dispersion()
+            elif signal_type=='first polarization':
+                self.type_of_signal='first polarization'
+                self.signal,_=self.get_min_max_losses()
+            elif signal_type=='second polarization':
+                self.type_of_signal='second polarization'
+                _,self.signal=self.get_min_max_losses()
+                
+                
+    def get_IL(self):
+        '''
+        insertion losses, in dB
+        '''
+        signal=np.zeros((len(self.wavelengths),np.shape(self.positions)[0]))
+        for ii in range(self.jones_matrixes_array.shape[1]): 
+            vector=self.jones_matrixes_array[:,ii,:,:]
+            vector=np.absolute(vector)**2/2
+            temp=np.sum(vector,axis=(1,2))
+            signal[:,ii]=10*np.log10(temp)
+        return signal
+            
+            
+    def get_group_delay(self):
+        '''
+        group delay, in ps
+        '''
+        delta_lambda=self.wavelengths[1]-self.wavelengths[0] # in nm
+        delta_nu=3e8/delta_lambda # in ns
+        signal=np.zeros((len(self.wavelengths),np.shape(self.positions)[0]))
+        for ii in range(self.jones_matrixes_array.shape[1]): 
+            vector=self.jones_matrixes_array[:,ii,:,:]
+            temp=np.angle(vector[1:,0,0]*vector[:-1,0,0].conj()+vector[1:,1,0]*vector[:-1,1,0].conj()+
+                          vector[1:,0,1]*vector[:-1,0,1].conj()+vector[1:,1,1]*vector[:-1,1,1].conj())
+            temp[np.where(temp<0)]+=np.pi*2
+            temp2=np.concatenate(([np.nanmean(temp)],temp))/(2*np.pi*delta_nu)*1e3     
+            signal[:,ii]=temp2
+        return signal
 
+    def get_chromatic_dispersion(self):
+        delta_lambda=self.wavelengths[1]-self.wavelengths[0]
+        signal=self.get_group_delay() # put group delay to signal
+        temp=signal[1:,:]-signal[:-1,:]
+        signal[1:,:]=temp
+        signal[0,:]=temp.mean(0)
+        signal=signal/delta_lambda
+        return signal
+    
+    def get_min_max_losses(self):
+        '''
+        losses in two principal polarizations
+        '''
+        signal1=np.zeros((len(self.wavelengths),np.shape(self.positions)[0]))
+        signal2=np.zeros((len(self.wavelengths),np.shape(self.positions)[0]))
+        for ii in range(self.jones_matrixes_array.shape[1]): 
+            print(ii)
+            vector=self.jones_matrixes_array[:,ii,:,:]  
+            diag_1=np.zeros(len(self.wavelengths))
+            diag_2=np.zeros(len(self.wavelengths))
+            for jj in range(len(self.wavelengths)):
+                m=vector[jj,:,:]
+                _,[l1,l2],_=la.svd(np.dot(m.conj().T,m))
+                diag_1[jj]=abs(l1)
+                diag_2[jj]=abs(l2)
+            signal1[:,ii]=diag_1
+            signal2[:,ii]=diag_2
+        
+        return 10*np.log10(signal1),10*np.log10(signal2)
 
     # @numba.njit
     def extract_ERV(self,number_of_peaks_to_search=1,min_peak_level=1,min_peak_distance=10000,min_wave=0,max_wave=1e4,find_widths=True,
@@ -137,7 +219,7 @@ class SNAP():
         
                
         
-        NumberOfWavelength,Number_of_positions = self.transmission.shape
+        NumberOfWavelength,Number_of_positions = self.signal.shape
         WavelengthArray=self.wavelengths
         x=self.positions[:,self.axes_dict[self.axis_key]]
         number_of_spectral_points=len(WavelengthArray)
@@ -147,7 +229,7 @@ class SNAP():
         
         resonance_parameters_array=np.empty((Number_of_positions,number_of_peaks_to_search,8))
         resonance_parameters_array.fill(np.nan)       
-        temp_signal=abs(self.transmission-np.nanmean(self.transmission))
+        temp_signal=abs(self.signal-np.nanmean(self.signal))
         
         for Zind,Z in enumerate(range(0,Number_of_positions)):
         # for Zind,Z in enumerate(range(Number_of_positions-1,-1,-1)):
@@ -217,7 +299,7 @@ class SNAP():
             if find_widths:
                 for ii,peak_wavelength in enumerate(PeakWavelengthArray[Z]):
                     if not np.isnan(peak_wavelength):
-                        [non_res_transmission,Fano_phase,res_wavelength,depth,linewidth,delta_c,delta_0,N_points_for_fitting]=find_width(WavelengthArray, self.transmission[:,Z], 
+                        [non_res_transmission,Fano_phase,res_wavelength,depth,linewidth,delta_c,delta_0,N_points_for_fitting]=find_width(WavelengthArray, self.signal[:,Z], 
                                                                                                                           peak_wavelength,N_points_for_fitting,iterate_different_N_points,max_N_points_for_fitting,
                                                                                                                           iterating_cost_function_type)
                                                                                                                        
@@ -393,6 +475,13 @@ def Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c,scale='log'):
     
     return 10*np.log10(np.abs(transmission*np.exp(1j*phase*np.pi) - 2*delta_c/(1j*(w0-w)*lambda_to_omega+(delta_0+delta_c)))**2) 
 
+def list_of_matrixes_to_array(jones_matrixes):
+    data=np.zeros((len(jones_matrixes),4),dtype = 'complex_')
+    for ii,m in enumerate(jones_matrixes):
+        data[ii]=[m[0,0],m[0,1],m[1,0],m[1,1]]
+    return data
+
+
 if __name__ == "__main__":
     '''
     testing and debug
@@ -405,9 +494,9 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     os.chdir('..')
     
-    f='ProcessedData\\dump_data_resaved.SNAP'
+    f='Processed_spectrogram.cSNAP'
     with open(f,'rb') as file:
-        Snap=pickle.load(file)
-    
-    Temp=Snap.extract_ERV(find_widths=False)    
+        S=pickle.load(file)
+    list_of_matrixes_to_array(S.jones_matrixes)
+    # Temp=Snap.extract_ERV(find_widths=False)    
     

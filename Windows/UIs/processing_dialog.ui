@@ -152,6 +152,11 @@
         </item>
         <item>
          <property name="text">
+          <string>cSNAP</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
           <string>pkl3d</string>
          </property>
         </item>

@@ -2,9 +2,10 @@
 '''
 Making single SNAP object (or complex matrix Jones-based SNAP object) from the bunch of the files 
 '''
-__date__='2022.08.22'
+__version__='2.1'
+__date__='2022.08.26'
 
-import os
+import os,sys
 import numpy as np
 import matplotlib.pyplot as plt
 import time
@@ -13,11 +14,13 @@ from PyQt5.QtCore import QObject
 import pickle
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
-    # import Scripts.OVA_signals as OVA_signals
-except ModuleNotFoundError:
-    import SNAP_experiment
-    # import OVA_signals
-
+    import Scripts.OVA_signals as OVA_signals
+except ModuleNotFoundError as E:
+    print(E)
+    os.chdir('..')
+    import Scripts.SNAP_experiment as SNAP_experiment
+    import Scripts.OVA_signals as OVA_signals
+sys.modules['SNAP_experiment'] = SNAP_experiment
 
 class Spectral_processor(QObject):
     
@@ -35,7 +38,7 @@ class Spectral_processor(QObject):
         self.type_of_input_data='pkl'
         self.is_remove_background_out_of_contact=False
         self.file_naming_style='new'
-        self.type_of_output_data='SNAP'
+        self.type_of_output_data='сSNAP'
         self.R_0=62.5
         self.refractive_index=1.45
         
@@ -83,6 +86,7 @@ class Spectral_processor(QObject):
             a=s.find(' ')
             s=s[0:a]
             return float(s)
+        
         if self.type_of_input_data=='txt':
             with open(file, "rb") as f:
                 min_wavelength = extract_wavelength_from_line(f.readline())        # Read the first line.
@@ -92,9 +96,14 @@ class Spectral_processor(QObject):
                 max_wavelength = extract_wavelength_from_line(f.readline())         # Read last line.
             f.close()
             return min_wavelength,max_wavelength
-        else:
+        elif self.type_of_input_data=='pkl':
             Data=pickle.load(open(file,"rb"))
             return Data[0,0],Data[-1,0]
+        
+        elif self.type_of_input_data=='bin':
+            OVA_signal = OVA_signals.load_OVA_spectrum(file)
+            Wavelengths=OVA_signal.fetch_xaxis()[0]
+            return Wavelengths[0],Wavelengths[-1]
 
     def get_position_from_file_name(self,string,axis): # extract postitions of the contact from the file name
         if self.file_naming_style=='old':
@@ -120,7 +129,7 @@ class Spectral_processor(QObject):
                     a=0
                 return a
 
-    def Create2DListOfFiles(self,FileList,axis='X'):  
+    def Create2DListOfFiles(self,InputFileList,axis='X'):  
         '''
         Find all files which acqured at the same point
         
@@ -129,6 +138,7 @@ class Spectral_processor(QObject):
         
         NewFileList=[]
         Positions=[]
+        FileList=InputFileList.copy()
         ## if Files are named with X position then Using new
         if self.file_naming_style=='old':
             while FileList:
@@ -143,7 +153,8 @@ class Spectral_processor(QObject):
         ## if Files are named with X position then Using new
             while FileList:
                 Name=FileList[0]
-                s=axis+'='+str(self.get_position_from_file_name(Name,axis=axis))+'_'
+                s=axis+'='+self.find_between(Name,axis+'=','_')
+                # s=axis+'='+str(self.get_position_from_file_name(Name,axis=axis))+'_'
                  #s=s[2] # take signature of the position,  etc
                 Temp=[T for T in FileList if s in T]  # take all 'signature' + 'i' instances
                 NewFileList.append(Temp)
@@ -190,20 +201,23 @@ class Spectral_processor(QObject):
         ContactFileList=[]
         if '.gitignore' in AllFilesList:AllFilesList.remove('.gitignore')
         for file in AllFilesList:
-            if self.type_of_input_data in file:
+           if self.type_of_input_data in file:
                 if 'out_of_contact' in file and self.is_remove_background_out_of_contact:
                     OutOfContactFileList.append(file)
                 elif 'out_of_contact' not in file:
                     ContactFileList.append(file)
+                    
+
+        
         self.define_file_naming_style(ContactFileList[0])
         """
         group files at each point
         """
         ContactFileList=sorted(ContactFileList,key=lambda s:self.get_position_from_file_name(s,axis=self.axis_to_plot_along))
+        print(ContactFileList)
         StructuredFileList,Positions=self.Create2DListOfFiles(ContactFileList,axis=self.axis_to_plot_along)
         NumberOfPointsZ=len(StructuredFileList)
         #Data = np.loadtxt(DirName+ '\\Signal' + '\\' +FileList[0])
-        print(self.source_dir_path+ ContactFileList[0])
         """
         Create main wavelength array
         """
@@ -213,7 +227,7 @@ class Spectral_processor(QObject):
             Wavelengths=np.genfromtxt(self.source_dir_path +ContactFileList[0],skip_header=self.skip_Header)[:,0]
         elif self.type_of_input_data=='bin':
             OVA_signal = OVA_signals.load_OVA_spectrum(self.source_dir_path +ContactFileList[0])
-            Wavelengths=OVA_signal.fetch_xaxis()
+            Wavelengths=OVA_signal.fetch_xaxis()[0]
             
         if self.isInterpolation:
             MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(self.source_dir_path +ContactFileList[0])
@@ -239,11 +253,16 @@ class Spectral_processor(QObject):
         Process files at each group
         Separate approaches for Luna files and standard pkl files.
         """
+        if self.type_of_output_data == 'cSNAP' : 
+            if self.type_of_input_data=='bin':
+                jones_matrixes_array=np.zeros((NumberOfWavelengthPoints,NumberOfPointsZ,2,2),dtype='complex_')
+            else:
+                print('Error. input files should be processed as bin files to derive complex SNAP data')
         for ii,FileNameListAtPoint in enumerate(StructuredFileList):
             NumberOfArraysToAverage=len(FileNameListAtPoint)
             SmallSignalArray=np.zeros((NumberOfWavelengthPoints,NumberOfArraysToAverage))
             ShiftIndexesMatrix=np.zeros((NumberOfArraysToAverage,NumberOfArraysToAverage))
-            print(FileNameListAtPoint[0])
+            print(ii,FileNameListAtPoint)
             
             if self.out_of_contact_data:
                 for file in OutOfContactFileList:
@@ -268,19 +287,33 @@ class Spectral_processor(QObject):
                 try:
                     if self.type_of_input_data=='pkl':
                         Data = pickle.load(open(self.source_dir_path +FileName, "rb"))
+                        signal=Data[:,1]
+                        wavelengths=Data[:,0]
                     elif self.type_of_input_data=='txt':
                         Data = np.genfromtxt(self.source_dir_path +FileName,skip_header=self.skip_Header)
+                        signal=Data[:,1]
+                        wavelengths=Data[:,0]
+                    elif self.type_of_input_data=='bin':
+                            OVA_signal = OVA_signals.load_OVA_spectrum(self.source_dir_path +FileName)
+                            signal=OVA_signal.IL()
+                            wavelengths=OVA_signal.fetch_xaxis()[0]
+                            
+
+                            
+                            
+                            
                 except UnicodeDecodeError:
                     print('Error while getting data from file {}'.format(FileName))
                 if self.isInterpolation:
-                    SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(Data[:,1],Data[:,0],MainWavelengths)-OutOfContactSignal
+                    SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(signal,wavelengths,MainWavelengths)-OutOfContactSignal
                 else:
-                    SmallSignalArray[:,jj]=Data[:,1]
+                    SmallSignalArray[:,jj]=signal
           
-            SignalLog=np.zeros(NumberOfWavelengthPoints)
-            MeanLevel=np.mean(SmallSignalArray)
-            ShiftArray=np.zeros(NumberOfArraysToAverage)
+
             if self.isAveraging or self.isShifting:
+                SignalLog=np.zeros(NumberOfWavelengthPoints)
+                MeanLevel=np.mean(SmallSignalArray)
+                ShiftArray=np.zeros(NumberOfArraysToAverage)
                 if self.isShifting:
                     """
                     Apply cross-correlation for more accurate absolute wavelength determination
@@ -307,11 +340,14 @@ class Spectral_processor(QObject):
                     Temp=np.ones(NumberOfWavelengthPoints)*MeanLevel
                     Temp[int(AccuracyOfWavelength/WavelengthStep)+int(ShiftArray[0]):-int(AccuracyOfWavelength/WavelengthStep)+int(ShiftArray[0])]=SmallSignalArray[int(AccuracyOfWavelength/WavelengthStep):-int(AccuracyOfWavelength/WavelengthStep),0]
                     SignalArray[:,ii]=Temp
+                    
             else:
                 """
                     If self.isShifting and self.isAveraging are OFF, just take the first spectrum from the bundle correpsonding to a measuring point
                 """
                 SignalArray[:,ii]=SmallSignalArray[:,0]
+                if self.type_of_output_data == 'cSNAP': 
+                    jones_matrixes_array[:,ii,:,:]=np.array(OVA_signal.jones_matrixes)
 
         if self.axis_to_plot_along=='W':
             f_name='Processed_spectra_VS_wavelength.'+self.type_of_output_data     
@@ -320,12 +356,18 @@ class Spectral_processor(QObject):
         else:
             f_name='Processed_spectrogram.'+self.type_of_output_data         
         from datetime import datetime
-        if self.type_of_output_data=='SNAP':
-            SNAP=SNAP_experiment.SNAP()
+       
+        if self.type_of_output_data in ['cSNAP','SNAP']:
+            if self.type_of_output_data=='cSNAP':
+                SNAP=SNAP_experiment.SNAP(jones_matrixes_used=True)
+                SNAP.jones_matrixes_array=jones_matrixes_array
+            else:
+                SNAP=SNAP_experiment.SNAP(jones_matrixes_used=False)
             SNAP.date=datetime.today().strftime('%Y.%m.%d')
             SNAP.positions=np.array(Positions)
             SNAP.wavelengths=MainWavelengths
-            SNAP.transmission=SignalArray
+            SNAP.signal=SignalArray
+            SNAP.type_of_signal='insertion losses'
             SNAP.axis_key=self.axis_to_plot_along
             SNAP.lambda_0=min(MainWavelengths)
             SNAP.R_0=self.R_0
@@ -333,6 +375,8 @@ class Spectral_processor(QObject):
             f=open(self.processedData_dir_path+f_name,'wb')
             pickle.dump(SNAP,f)
             f.close()
+                  
+
         elif  self.type_of_output_data=='pkl3d':
             f=open(self.processedData_dir_path+f_name,'wb')
             D={}
@@ -342,6 +386,7 @@ class Spectral_processor(QObject):
             D['Wavelengths']=MainWavelengths
             D['Signal']=SignalArray
             D['R_0']=self.R_0
+            D['type_of_signal']='insertion losses'
             D['refractive_index']=self.refractive_index
             from datetime import datetime
             D['date']=datetime.today().strftime('%Y.%m.%d')
@@ -349,7 +394,7 @@ class Spectral_processor(QObject):
             pickle.dump(D,f)
             f.close()
 
-        if self.file_naming_style=='old': # legacy code
+        if self.file_naming_style=='old': # legacy code, to save in txt format
             plt.figure()
             X_0=0
             X_max=self.StepSize*NumberOfPointsZ
@@ -390,10 +435,15 @@ class Spectral_processor(QObject):
         print('Time used =', time2-time1 ,' s')
 
 if __name__ == "__main__":
-    os.chdir('..')
+    # os.chdir('..')
     path= os.getcwd()
     # path='G:\!Projects\!SNAP system\Bending\2022.02.18 Luna meas'
     p=Spectral_processor(path)
-    p.plot_sample_shape()
+    p.type_of_input_data='bin'
+    p.isInterpolation=False
+    p.axis_to_plot_along='Y'
+    p.type_of_output_data='cSNAP'
+    p.source_dir_path=path+'\\SpectralBinData\\'
+    p.run()
 # 
     # p.run()

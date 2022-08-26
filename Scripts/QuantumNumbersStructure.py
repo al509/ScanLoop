@@ -392,27 +392,27 @@ def bruteforce_optimizer(f,args,R_bounds,R_step):
             
 if __name__=='__main__': 
     
-    # print(lambda_m_p(m=354,p=1,polarization='TM',n=1.445,R=62.5e3,dispersion=True))
-    # wave_min=900
-    # wave_max=2500
-    # n=1.446
-    # R=62.5e3
-    # p_max=2
-    # medium='SiO2'
-    # shape='cylinder'
-    # material_dispersion=True
-    # resonances=Resonances(wave_min,wave_max,n,R,p_max,material_dispersion,shape,medium)
-    # resonances.plot_int_dispersion(polarization='TM',p=1)
+    # print(lambda_m_p_cylinder(m=354,p=1,polarization='TM',n=1.445,R=62.5e3,dispersion=True))
+    wave_min=1550
+    wave_max=1555
+    n=1.446
+    R=62.5e3
+    p_max=2
+    medium='SiO2'
+    shape='cylinder'
+    material_dispersion=True
+    resonances=Resonances(wave_min,wave_max,n,R,p_max,material_dispersion,shape,medium)
+    resonances.plot_int_dispersion(polarization='TM',p=2)
 
 
     #%%
     
-    filename="F:\!Projects\!SNAP system\Modifications\Wire heating\dump_data_at_-2600.0.pkl"
-    import pickle
-    with open(filename,'rb') as f:
-        Temp=pickle.load(f)
-    fitter=Fitter(Temp[:,0],Temp[:,1],0.8,100,p_guess_array=[3],polarization='single',dispersion=True, temperature=25)
-    fitter.run()
-    fitter.plot_results()
+    # filename="F:\!Projects\!SNAP system\Modifications\Wire heating\dump_data_at_-2600.0.pkl"
+    # import pickle
+    # with open(filename,'rb') as f:
+    #     Temp=pickle.load(f)
+    # fitter=Fitter(Temp[:,0],Temp[:,1],0.8,100,p_guess_array=[3],polarization='single',dispersion=True, temperature=25)
+    # fitter.run()
+    # fitter.plot_results()
 
 

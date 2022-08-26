@@ -4,7 +4,8 @@
 
 
 """
-__date__='2022.07.04'
+__version__='2.1'
+__date__='2022.08.24'
 
 import os
 import sys
@@ -17,7 +18,8 @@ from scipy.signal import find_peaks
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
     import Scripts.QuantumNumbersStructure as QuantumNumbersStructure
-except ModuleNotFoundError:
+except ModuleNotFoundError as E:
+    print(E)
     import SNAP_experiment 
     import QuantumNumbersStructure
 import json
@@ -34,20 +36,27 @@ class Analyzer(QObject):
             self.spectrogram_file_path=spectrogram_file_path
             self.plotting_parameters_file_path=os.path.dirname(sys.argv[0])+'\\plotting_parameters.txt'
             self.single_spectrum_figure=None
+            
+            self.type_of_spectrogram='insertion losses'
             self.figure_spectrogram=None
+            
             self.number_of_peaks_to_search=1
             self.min_peak_level=1
             self.min_peak_distance=10
             self.min_wave=1500
             self.max_wave=1600
+            
             self.slice_position=0
+            
             self.find_widths=False
             self.indicate_ERV_on_spectrogram=True
             self.plot_results_separately=False
+            
             self.N_points_for_fitting=0
             self.iterate_different_N_points=False
             self.iterating_cost_function_type='linewidth'
             self.max_N_points_for_fitting=100
+            
             self.FFTFilter_low_freq_edge=0.00001
             self.FFTFilter_high_freq_edge=0.01
             
@@ -85,48 +94,60 @@ class Analyzer(QObject):
                 self.spectrogram_file_path=file_path
             if self.spectrogram_file_path is not None:    
                 f=open(self.spectrogram_file_path,'rb')
-                D=(pickle.load(f))
+                loaded_object=(pickle.load(f))
                 f.close()
-                if isinstance(D,SNAP_experiment.SNAP):
+                if isinstance(loaded_object,SNAP_experiment.SNAP):
                     print('loading SNAP data for analyzer from ',self.spectrogram_file_path)
-                    self.SNAP=D
+                    self.SNAP=loaded_object
+                    if not hasattr(self.SNAP, 'type_of_signal'):
+                        self.SNAP.type_of_signal='insertion losses'
+                        self.SNAP.jones_matrix_used=False
+                        self.SNAP.signal=self.SNAP.transmission
+                    print('File has been loaded to SNAP object')
                 else:
                     print('loading old style SNAP data for analyzer from ',self.spectrogram_file_path)
                     SNAP_object=SNAP_experiment.SNAP()
-                    SNAP_object.axis_key=D['axis']
-                    Positions=np.array(D['Positions'])
-                    wavelengths,exp_data=D['Wavelengths'],D['Signal']
+                    SNAP_object.axis_key=loaded_object['axis']
+                    Positions=np.array(loaded_object['Positions'])
+                    wavelengths,exp_data=loaded_object['Wavelengths'],loaded_object['Signal']
+                    
                 
                     try:
-                        scale=D['spatial_scale']
+                        scale=loaded_object['spatial_scale']
                         if scale=='microns':
                             pass
                     except KeyError:
                             print('Spatial scale is defined as steps 2.5 um each')
                             Positions[:,0:3]=Positions[:,0:3]*2.5
                     try:
-                        SNAP_object.date=D['date']
+                        SNAP_object.date=loaded_object['date']
                     except KeyError:
                         print('No date indicated')
                         SNAP_object.date='_'
                     
     
                     SNAP_object.wavelengths=wavelengths
-                    SNAP_object.transmission=exp_data
+                    SNAP_object.signal=exp_data
                     
                     SNAP_object.lambda_0=np.min(wavelengths)
                     SNAP_object.positions=Positions
                     try:
-                        SNAP_object.R_0=D['R_0']
+                        SNAP_object.type_of_signal=loaded_object['type_of_signal']
+                    except KeyError:
+                        print('No type of signal indicated')
+                        SNAP_object.type_of_signal='insertion losses'
+                    try:
+                        SNAP_object.R_0=loaded_object['R_0']
                     except KeyError:
                         print('No radius indicated')
                         SNAP_object.R_0=62.5
                     try:
-                        SNAP_object.refractive_index=D['refractive_index']
+                        SNAP_object.refractive_index=loaded_object['refractive_index']
                     except KeyError:
                         print('No refractive index indicated')
                         SNAP_object.refractive_index=1.45
                     self.SNAP=SNAP_object
+                    print('File has been loaded to SNAP object')
             else:
                 print('SNAP file not chosen')
                 
@@ -146,16 +167,25 @@ class Analyzer(QObject):
                 i_w_max=-1
             import copy
             path,FileName = os.path.split(self.spectrogram_file_path)
-            if output_file_type=='SNAP':
-                NewFileName=path+'\\'+FileName.split('.')[-2]+'_resaved.SNAP'
+            
+            if output_file_type in ['SNAP','cSNAP']:
                 new_SNAP=copy.deepcopy(self.SNAP)
                 new_SNAP.positions=self.SNAP.positions[i_x_min:i_x_max,:]
                 new_SNAP.wavelengths=self.SNAP.wavelengths[i_w_min:i_w_max]
-                new_SNAP.transmission=self.SNAP.transmission[i_w_min:i_w_max,i_x_min:i_x_max]
+                new_SNAP.signal=self.SNAP.signal[i_w_min:i_w_max,i_x_min:i_x_max]
+                if output_file_type=='SNAP':
+                    NewFileName=path+'\\'+FileName.split('.')[-2]+'_resaved.SNAP'
+                    new_SNAP.jones_matrixes_used=False
+                    new_SNAP.jones_matrixes_array=None
+                else:
+                    NewFileName=path+'\\'+FileName.split('.')[-2]+'_resaved.cSNAP'
+                    new_SNAP.jones_matrixes_used=True
+                    new_SNAP.jones_matrixes_array=self.SNAP.jones_matrixes_array[i_w_min:i_w_max,i_x_min:i_x_max,:,:]
                 f=open(NewFileName,'wb')
                 pickle.dump(new_SNAP,f)
                 f.close()
                 print('Data resaved to {}'.format(NewFileName))
+                
             elif output_file_type=='pkl3d':
                 NewFileName=path+'\\'+FileName.split('.')[-2]+'_resaved.pkl3d'
                 D={}
@@ -163,14 +193,15 @@ class Analyzer(QObject):
                 D['spatial_scale']='microns'
                 D['Positions']=self.SNAP.positions
                 D['Wavelengths']=self.SNAP.wavelengths
-                D['Signal']=self.SNAP.transmission
+                D['Signal']=self.SNAP.signal
+                D['type_of_signal']=self.SNAP.type_of_signal
                 from datetime import datetime
                 D['date']=self.SNAP.date
                 D['R_0']=self.SNAP.R_0
                 D['refractive_index']=self.SNAP.refractive_index
-                print('spectrogram saved as ' +NewFileName)
                 with open(NewFileName,'wb') as f:
                     pickle.dump(D,f)
+                print('spectrogram saved as ' +NewFileName)
 
    
                         
@@ -188,7 +219,7 @@ class Analyzer(QObject):
         #     new_SNAP=copy.deepcopy(self.SNAP)
         #     new_SNAP.positions=self.SNAP.positions[i_x_min:i_x_max,:]
         #     new_SNAP.wavelengths=self.SNAP.wavelengths[i_w_min:i_w_max]
-        #     new_SNAP.transmission=self.SNAP.transmission[i_w_min:i_w_max,i_x_min:i_x_max]
+        #     new_SNAP.signal=self.SNAP.signal[i_w_min:i_w_max,i_x_min:i_x_max]
         #     f=open(NewFileName,'wb')
         #     pickle.dump(new_SNAP,f)
         #     f.close()
@@ -299,9 +330,17 @@ class Analyzer(QObject):
             
             with open(self.plotting_parameters_file_path,'r') as f:
                 p=json.load(f)
-
+            
+            if self.SNAP.type_of_signal!=self.type_of_spectrogram:
+                if self.SNAP.jones_matrixes_used:
+                    self.SNAP.switch_signal_type(self.type_of_spectrogram)
+                else:
+                    print('Error. No complex data in SNAP object to derive {}. Only {} is available'.format(self.type_of_spectrogram, self.SNAP.type_of_signal))
+                    return 
+            
             w_0=np.mean(self.SNAP.wavelengths)
             x=self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]
+            
             def _convert_ax_Wavelength_to_Radius(ax_Wavelengths):
                 """
                 Update second axis according with first axis.
@@ -332,10 +371,10 @@ class Analyzer(QObject):
             
             ax_Wavelengths = fig.subplots()
             try:
-                im = ax_Wavelengths.pcolorfast(x,self.SNAP.wavelengths,self.SNAP.transmission,50,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
+                im = ax_Wavelengths.pcolorfast(x,self.SNAP.wavelengths,self.SNAP.signal,50,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
             except:
                 print("pcolorfast does not work. Using contourf instead")
-                im = ax_Wavelengths.contourf(x,self.SNAP.wavelengths,self.SNAP.transmission,50,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
+                im = ax_Wavelengths.contourf(x,self.SNAP.wavelengths,self.SNAP.signal,50,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
             if p['ERV_axis']:
                 ax_Radius = ax_Wavelengths.secondary_yaxis('right', functions=(_forward,_backward))
                 # ax_Wavelengths.callbacks.connect("ylim_changed", _convert_ax_Wavelength_to_Radius)
@@ -356,26 +395,30 @@ class Analyzer(QObject):
                     clb=fig.colorbar(im,ax=ax_Wavelengths,pad=p['colorbar_pad'])
     
             if p['language']=='eng':
-                if self.SNAP.axis_key=='W':
-                    ax_Wavelengths.set_xlabel('Wavelength, nm')    
-                elif self.SNAP.axis_key=='p':
-                    ax_Wavelengths.set_xlabel('Position, number')   
-                else:
-                    ax_Wavelengths.set_xlabel(r'Position, $\mu$m')
-                ax_Wavelengths.set_ylabel('Wavelength, nm')
                 try:
-                    ax_Radius.set_ylabel('$\Delta r_{eff}$, nm')
-                except: pass
-                if self.SNAP.transmission_scale=='log':
-                    if p['colorbar_title_position']=='right':
-                        clb.ax.set_ylabel('dB',rotation= p['colorbar_title_rotation'],labelpad=5)
+                    if self.SNAP.axis_key=='W':
+                        ax_Wavelengths.set_xlabel('Wavelength, nm')    
+                    elif self.SNAP.axis_key=='p':
+                        ax_Wavelengths.set_xlabel('Position, number')   
                     else:
-                        clb.ax.set_title('dB',labelpad=5)
-                if p['title']:
-                    plt.title('experiment')
-                try:
-                    ax_steps.set_xlabel('Position, steps')
-                except: pass 
+                        ax_Wavelengths.set_xlabel(r'Position, $\mu$m')
+                    ax_Wavelengths.set_ylabel('Wavelength, nm')
+                    try:
+                        ax_Radius.set_ylabel('$\Delta r_{eff}$, nm')
+                    except: pass
+                    if self.SNAP.signal_scale=='log':
+                        if p['colorbar_title_position']=='right':
+                            clb.ax.set_ylabel('dB',rotation= p['colorbar_title_rotation'],labelpad=5)
+                        else:
+                            clb.ax.set_title('dB',labelpad=5)
+                    if p['title']:
+                        plt.title('experiment')
+                    try:
+                        ax_steps.set_xlabel('Position, steps')
+                    except: pass 
+                except Exception as E:
+                    print(E)
+                    
             
             elif p['language']=='ru':
                 if self.SNAP.axis_key=='W':
@@ -388,16 +431,19 @@ class Analyzer(QObject):
                 try:
                     ax_Radius.set_ylabel('$\Delta r_{eff}$, нм')
                 except: pass
-                if self.SNAP.transmission_scale=='log':
-                    if p['colorbar_title_position']=='right':
-                        clb.ax.set_ylabel('дБ',rotation= p['colorbar_title_rotation'])
-                    else:
-                        clb.ax.set_title('дБ')
-                if p['title']:
-                    plt.title('эксперимент')
                 try:
-                    ax_steps.set_xlabel('Расстояние, шаги')
-                except: pass 
+                    if self.SNAP.signal_scale=='log':
+                        if p['colorbar_title_position']=='right':
+                            clb.ax.set_ylabel('дБ',rotation= p['colorbar_title_rotation'])
+                        else:
+                            clb.ax.set_title('дБ')
+                    if p['title']:
+                        plt.title('эксперимент')
+                    try:
+                        ax_steps.set_xlabel('Расстояние, шаги')
+                    except: pass 
+                except Exception as E:
+                    print(E)
             fig.tight_layout()
             self.figure_spectrogram=fig
             
@@ -418,7 +464,7 @@ class Analyzer(QObject):
             plot slice using SNAP object parameters
             '''
             self.slice_position=position
-            if self.SNAP.transmission is None:
+            if self.SNAP.signal is None:
                 self.load_data()
             with open(self.plotting_parameters_file_path,'r') as f:
                 p=json.load(f)
@@ -432,7 +478,7 @@ class Analyzer(QObject):
             ax.grid(which='minor', linestyle=':', linewidth='0.1', color='black')
             x=self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]
             index=np.argmin(abs(position-x))
-            plt.plot(self.SNAP.wavelengths,self.SNAP.transmission[:,index])
+            plt.plot(self.SNAP.wavelengths,self.SNAP.signal[:,index])
             
             if p['language']=='eng':
                 plt.xlabel('Wavelength, nm')
@@ -665,7 +711,7 @@ if __name__ == "__main__":
     #%%
     a=Analyzer()
     os.chdir('..')
-    a.load_data('ProcessedData\\Processed_spectrogram_resaved.pkl3d')
+    a.load_data('ProcessedData\\Processed_spectrogram.cSNAP')
     a.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
     
     # analyzer.plot_spectrogram()
@@ -678,7 +724,7 @@ if __name__ == "__main__":
     # analyzer.set_parameters(Dicts['Analyzer'])
     a.find_widths=True
     a.plot_results_separately=True
-    a.extract_ERV()
+    a.plot_spectrogram()
     
     # analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\test.laserdata'
     # analyzer.plot_single_spectrum_from_file()

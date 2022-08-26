@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1183</width>
-    <height>789</height>
+    <width>1065</width>
+    <height>640</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1163</width>
-         <height>728</height>
+         <width>1045</width>
+         <height>579</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -322,7 +322,7 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
@@ -330,7 +330,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>575</height>
+             <height>426</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1386,7 +1386,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>575</height>
+             <height>426</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1702,9 +1702,9 @@
             <widget class="QPushButton" name="pushButton_analyzer_choose_plotting_param_file">
              <property name="geometry">
               <rect>
-               <x>140</x>
-               <y>21</y>
-               <width>131</width>
+               <x>10</x>
+               <y>50</y>
+               <width>111</width>
                <height>23</height>
               </rect>
              </property>
@@ -1776,6 +1776,11 @@
              <item>
               <property name="text">
                <string>SNAP</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>cSNAP</string>
               </property>
              </item>
              <item>
@@ -1940,8 +1945,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>575</height>
+             <width>283</width>
+             <height>500</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2478,7 +2483,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1183</width>
+     <width>1065</width>
      <height>21</height>
     </rect>
    </property>
