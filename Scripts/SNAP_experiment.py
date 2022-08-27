@@ -7,8 +7,8 @@ matplotlib 3.4.2 is needed!
 """
 
 
-__version__='11.1'
-__date__='2022.08.26'
+__version__='11.3'
+__date__='2022.08.27'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -193,9 +193,15 @@ class SNAP():
             diag_2=np.zeros(len(self.wavelengths))
             for jj in range(len(self.wavelengths)):
                 m=vector[jj,:,:]
-                _,[l1,l2],_=la.svd(np.dot(m.conj().T,m))
-                diag_1[jj]=abs(l1)
-                diag_2[jj]=abs(l2)
+                # _,[l1,l2],_=la.svd(np.dot(m.conj().T,m))
+                
+                # _,[l1,l2],_=la.svd(m)
+                
+                l1,l2=la.eigvals(m)
+                # l1,l2=la.eigvals(np.dot(m.conj().T,m))
+                
+                diag_1[jj]=abs(l1)**2/2
+                diag_2[jj]=abs(l2)**2/2
             signal1[:,ii]=diag_1
             signal2[:,ii]=diag_2
         
@@ -321,6 +327,42 @@ class SNAP():
    
         
         return x,np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
+    
+    
+def extract_taper_jones_matrixes(jones_matrixes,out_of_contact_jones_matrixes):
+    '''
+    Parameters
+    ----------
+    jones_matrixes : N,2,2 complex array
+        J_M Jones matrixes of the spectrum measured in contact
+    out_of_contact_jones_matrixes : N,2,2 complex array
+        J_0 Jones matrixes of the spectrum measured out of contact from the cavity
+
+
+    Use two Luna object In and OUT of contact with the microcavity
+    Let us suppose that Jones matrixes for input part of the taper and output part of the tapers are I and O correspondingly. Then: 
+        J_M= O*J_R*I 
+        and J_0=O*I
+        
+        J_0^(-1) J_M=I^(-1) J_R I = I^* J_R I
+        
+        We know that diag(I^*  J_R I)==diag(J_R), so diag(J_R)=diag(J_0^(-1) J_M)
+        
+        
+    Returns
+    -------
+    diag(J_R) N,2,2 complex array of Jones matrixes without taper impact
+
+    '''
+    
+    extracted_m=np.zeros(np.shape(jones_matrixes),dtype='complex_')
+    for ii,m_in in enumerate(jones_matrixes):
+        m_out=out_of_contact_jones_matrixes[ii,:,:]
+        [l1,l2]=la.eigvals(np.dot(la.inv(m_out),m_in))
+        extracted_m[ii,0,0]=l1
+        extracted_m[ii,1,1]=l2
+    return extracted_m
+
 
 # @njit
 def find_width(waves,signal,peak_wavelength,N_points_for_fitting=0,iterate_different_N_points=False,max_N_points_for_fitting=100,iterating_cost_function_type='linewidth'):
@@ -475,13 +517,6 @@ def Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c,scale='log'):
     
     return 10*np.log10(np.abs(transmission*np.exp(1j*phase*np.pi) - 2*delta_c/(1j*(w0-w)*lambda_to_omega+(delta_0+delta_c)))**2) 
 
-def list_of_matrixes_to_array(jones_matrixes):
-    data=np.zeros((len(jones_matrixes),4),dtype = 'complex_')
-    for ii,m in enumerate(jones_matrixes):
-        data[ii]=[m[0,0],m[0,1],m[1,0],m[1,1]]
-    return data
-
-
 if __name__ == "__main__":
     '''
     testing and debug
@@ -494,9 +529,13 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     os.chdir('..')
     
-    f='Processed_spectrogram.cSNAP'
+    f='1.cSNAP'
     with open(f,'rb') as file:
         S=pickle.load(file)
-    list_of_matrixes_to_array(S.jones_matrixes)
-    # Temp=Snap.extract_ERV(find_widths=False)    
+        # Temp=Snap.extract_ERV(find_widths=False)    
     
+    S.switch_signal_type('first polarization')
+    plt.figure(1)
+    plt.plot(S.wavelengths,S.signal[:,3])
+    S.switch_signal_type('second polarization')
+    plt.plot(S.wavelengths,S.signal[:,3])

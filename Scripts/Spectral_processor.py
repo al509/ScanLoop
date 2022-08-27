@@ -2,8 +2,8 @@
 '''
 Making single SNAP object (or complex matrix Jones-based SNAP object) from the bunch of the files 
 '''
-__version__='2.1'
-__date__='2022.08.26'
+__version__='2.2'
+__date__='2022.08.27'
 
 import os,sys
 import numpy as np
@@ -18,8 +18,8 @@ try:
 except ModuleNotFoundError as E:
     print(E)
     os.chdir('..')
-    import Scripts.SNAP_experiment as SNAP_experiment
-    import Scripts.OVA_signals as OVA_signals
+    # import Scripts.SNAP_experiment as SNAP_experiment
+    # import Scripts.OVA_signals as OVA_signals
 sys.modules['SNAP_experiment'] = SNAP_experiment
 
 class Spectral_processor(QObject):
@@ -29,16 +29,15 @@ class Spectral_processor(QObject):
         QObject.__init__(self)
         self.processedData_dir_path=path_to_main+'\\ProcessedData\\'
         self.source_dir_path=path_to_main+'\\SpectralData\\'
-        self.out_of_contact_data=False
-        self.StepSize=30 # um, Step in Z direction
-        self.isAveraging=False
+        self.use_out_of_contact_data=False  # do we use spectra measured out of contact with microcavity to extract those
+        self.StepSize=30 # um, Step in Z direction, legacy code
+        self.isAveraging=False 
         self.isShifting=False
         self.isInterpolation=True
         self.axis_to_plot_along='Z'
         self.type_of_input_data='pkl'
-        self.is_remove_background_out_of_contact=False
-        self.file_naming_style='new'
-        self.type_of_output_data='сSNAP'
+        self.file_naming_style='new' # legacy 
+        self.type_of_output_data='SNAP'
         self.R_0=62.5
         self.refractive_index=1.45
         
@@ -200,21 +199,27 @@ class Spectral_processor(QObject):
         OutOfContactFileList=[]
         ContactFileList=[]
         if '.gitignore' in AllFilesList:AllFilesList.remove('.gitignore')
+        '''
+        Create list of files with spectra in contact 
+        and list of files with spectra out of contact (if any)
+        '''
         for file in AllFilesList:
            if self.type_of_input_data in file:
-                if 'out_of_contact' in file and self.is_remove_background_out_of_contact:
+                if 'out_of_contact' in file and self.use_out_of_contact_data:
                     OutOfContactFileList.append(file)
                 elif 'out_of_contact' not in file:
                     ContactFileList.append(file)
                     
 
-        
+        '''
+        legacy code
+        Check if there are old measurements
+        '''
         self.define_file_naming_style(ContactFileList[0])
         """
-        group files at each point
+        group files at each point along microcavity
         """
         ContactFileList=sorted(ContactFileList,key=lambda s:self.get_position_from_file_name(s,axis=self.axis_to_plot_along))
-        print(ContactFileList)
         StructuredFileList,Positions=self.Create2DListOfFiles(ContactFileList,axis=self.axis_to_plot_along)
         NumberOfPointsZ=len(StructuredFileList)
         #Data = np.loadtxt(DirName+ '\\Signal' + '\\' +FileList[0])
@@ -229,6 +234,9 @@ class Spectral_processor(QObject):
             OVA_signal = OVA_signals.load_OVA_spectrum(self.source_dir_path +ContactFileList[0])
             Wavelengths=OVA_signal.fetch_xaxis()[0]
             
+        """
+        interpolate a spectrum toward the unite wavelength grid  (Apex OSA, for instance, may change wavelength grid from a scan to scan)
+        """
         if self.isInterpolation:
             MinWavelength,MaxWavelength=self.get_min_max_wavelengths_from_file(self.source_dir_path +ContactFileList[0])
             WavelengthStep=np.max(np.diff(Wavelengths))
@@ -248,41 +256,56 @@ class Spectral_processor(QObject):
         NumberOfWavelengthPoints=len(MainWavelengths)
         SignalArray=np.zeros((NumberOfWavelengthPoints,NumberOfPointsZ))
         
+        """
+        Separate approaches for outputs with and without jones matrixes
+        """    
 
-        """
-        Process files at each group
-        Separate approaches for Luna files and standard pkl files.
-        """
         if self.type_of_output_data == 'cSNAP' : 
             if self.type_of_input_data=='bin':
                 jones_matrixes_array=np.zeros((NumberOfWavelengthPoints,NumberOfPointsZ,2,2),dtype='complex_')
             else:
-                print('Error. input files should be processed as bin files to derive complex SNAP data')
+                print('Error. input files should be processed as bin files to derive complex SNAP data.Please choose another output data type')
+                return
+
+        """
+        Process files at each group
+        Separate approaches for outputs with and without jones matrixes
+        """
+
         for ii,FileNameListAtPoint in enumerate(StructuredFileList):
             NumberOfArraysToAverage=len(FileNameListAtPoint)
             SmallSignalArray=np.zeros((NumberOfWavelengthPoints,NumberOfArraysToAverage))
             ShiftIndexesMatrix=np.zeros((NumberOfArraysToAverage,NumberOfArraysToAverage))
             print(ii,FileNameListAtPoint)
             
-            if self.out_of_contact_data:
+            """
+            
+            """
+            if self.use_out_of_contact_data:
                 for file in OutOfContactFileList:
                     OutOfContactFileName=''
-                    if self.axis_to_plot_along+'='+str(Positions[ii][self.number_of_axis[self.axis_to_plot_along]]) in file:
+                    if self.axis_to_plot_along+'='+self.find_between(FileNameListAtPoint[0],self.axis_to_plot_along+'=','_') in file:
+                    # if self.axis_to_plot_along+'='+str(Positions[ii][self.number_of_axis[self.axis_to_plot_along]]) in file:
                         OutOfContactFileName=file
                         break
-                # OutOfContactFileName='Sp_out_of_contact_X'+FileNameListAtPoint[0].split('_X')[1]
                 try:
-                    OutOfContactData=pickle.load(open(self.source_dir_path +OutOfContactFileName, "rb"))
-                    if self.isInterpolation:
-                        OutOfContactSignal=self.InterpolateInDesiredPoint(OutOfContactData[:,1],OutOfContactData[:,0],MainWavelengths)
-                    else:
-                        OutOfContactSignal=OutOfContactData[:,1]
+                    if self.type_of_input_data!='bin':
+                        with open(self.source_dir_path +OutOfContactFileName,'rb') as f:
+                            OutOfContactData=pickle.load(f)
+                    
+                        if self.isInterpolation:
+                            OutOfContactSignal=self.InterpolateInDesiredPoint(OutOfContactData[:,1],OutOfContactData[:,0],MainWavelengths)
+                        else:
+                            OutOfContactSignal=OutOfContactData[:,1]
+                    elif self.type_of_input_data == 'bin' :
+                        OVA_signal_out_of_contact = OVA_signals.load_OVA_spectrum(self.source_dir_path +OutOfContactFileName)
+                        jones_matrixes_out_of_contact=np.array(OVA_signal_out_of_contact.jones_matrixes)  
                 except:
                     OutOfContactSignal=np.zeros((1,NumberOfWavelengthPoints))
                     print('out of contact file {} is not found'.format(OutOfContactFileName))
-            else:
-                OutOfContactSignal=np.zeros((1,NumberOfWavelengthPoints))
- 
+
+       
+       
             for jj, FileName in enumerate(FileNameListAtPoint):
                 try:
                     if self.type_of_input_data=='pkl':
@@ -295,21 +318,31 @@ class Spectral_processor(QObject):
                         wavelengths=Data[:,0]
                     elif self.type_of_input_data=='bin':
                             OVA_signal = OVA_signals.load_OVA_spectrum(self.source_dir_path +FileName)
-                            signal=OVA_signal.IL()
+                            jones_matrixes=np.array(OVA_signal.jones_matrixes)
                             wavelengths=OVA_signal.fetch_xaxis()[0]
-                            
-
-                            
-                            
-                            
+                            if self.use_out_of_contact_data:
+                                jones_matrixes=SNAP_experiment.extract_taper_jones_matrixes(jones_matrixes,jones_matrixes_out_of_contact)
+                                signal=(abs(jones_matrixes[:,0,0])**2+abs(jones_matrixes[:,0,0])**2)/2
+                            else:
+                                signal=OVA_signal.IL()
+                                
+                                
                 except UnicodeDecodeError:
                     print('Error while getting data from file {}'.format(FileName))
                 if self.isInterpolation:
-                    SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(signal,wavelengths,MainWavelengths)-OutOfContactSignal
+                    SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(signal,wavelengths,MainWavelengths)
                 else:
                     SmallSignalArray[:,jj]=signal
-          
+                if self.use_out_of_contact_data and self.type_of_input_data!='bin':
+                    SmallSignalArray[:,jj]-=OutOfContactSignal
 
+          
+            '''
+            Averaging spectra measured at the same point
+            OR
+            Calculate cross correlation between spectra measured at the same point
+            do no work with 'bin' Luna data (for the sake of speed)
+            '''
             if self.isAveraging or self.isShifting:
                 SignalLog=np.zeros(NumberOfWavelengthPoints)
                 MeanLevel=np.mean(SmallSignalArray)
@@ -347,7 +380,7 @@ class Spectral_processor(QObject):
                 """
                 SignalArray[:,ii]=SmallSignalArray[:,0]
                 if self.type_of_output_data == 'cSNAP': 
-                    jones_matrixes_array[:,ii,:,:]=np.array(OVA_signal.jones_matrixes)
+                    jones_matrixes_array[:,ii,:,:]=jones_matrixes
 
         if self.axis_to_plot_along=='W':
             f_name='Processed_spectra_VS_wavelength.'+self.type_of_output_data     
@@ -436,14 +469,16 @@ class Spectral_processor(QObject):
 
 if __name__ == "__main__":
     # os.chdir('..')
-    path= os.getcwd()
-    # path='G:\!Projects\!SNAP system\Bending\2022.02.18 Luna meas'
+    # path= os.getcwd()
+    path='C:\\Users\\t-vatniki\\Desktop\\SpectralData'
     p=Spectral_processor(path)
-    p.type_of_input_data='bin'
+    p.type_of_input_data='pkl'
     p.isInterpolation=False
-    p.axis_to_plot_along='Y'
-    p.type_of_output_data='cSNAP'
-    p.source_dir_path=path+'\\SpectralBinData\\'
+    p.axis_to_plot_along='Z'
+    p.type_of_output_data='SNAP'
+    p.source_dir_path=path+'\\'
+    p.processedData_dir_path=path+'\\'
+    p.use_out_of_contact_data=True
     p.run()
 # 
     # p.run()
