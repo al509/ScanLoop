@@ -18,32 +18,50 @@ from scipy.signal import find_peaks
 import scipy.optimize as sciopt
 from scipy.fftpack import rfft, irfft, fftfreq
 
-R_MIN = 61e3  #  В нанометрах (?) / 61.8e3
-R_MAX = 64e3  #  В нанометрах (?) / 63.2e3
+R_MIN = 61.8e3  #  В нанометрах (?) / Предыдущее значение 61e3
+R_MAX = 63.2e3  #  В нанометрах (?) / Предыдущее значение 64e3
 
 c = 299792458  #  m/s
 thermal_optical_responce = 1.25e9  #  Hz/Celcium, detuning of the effective_ra
 T_0 = 20   #  В градусах цельсия
 
 Sellmeier_coeffs={
-    'SiO2':[0.6961663,0.4079426,0.8974794,0.0684043,0.1162414,9.896161], # at 20 Celcium degree
-    'MgF2':[0.48755108,0.39875031,2.3120353, 0.04338408, 0.09461442, 23.793604]}
+    'SiO2':[0.6961663, 0.4079426, 0.8974794, 0.0684043, 0.1162414, 9.896161], # at 20 Celcium degree, коеффициенты C1-C2 в микрометрах (0.0684043, 0.1162414, 9.896161)
+    'MgF2':[0.48755108, 0.39875031, 2.3120353, 0.04338408, 0.09461442, 23.793604]}
 
-    
 thermal_responses={# thermal optical coefficient, linear expansion coefficient
-    'SiO2':[8.6*1e-6,0.55*1e-6]   }
+    'SiO2':[8.6*1e-6,0.55*1e-6]}
 
 REFRACTION = 1.4445
 
-def ref_ind(w,medium,T): # refractive index for quarzt versus wavelength, w in nm
- 
-    w=w*1e-3
-    t=1
+
+def SellmeierCoefficientsCalculating(material, T):
+    T = T + 273
+    sellmeier_coeffs = []
+    if material == 'SiO2':
+        sellmeier_coeffs.append(1.10127 + T*(-4.94251E-5) + (T**2)*(5.27414E-7) +
+        (T**3)*(-1.597E-9) + (T**4)*(1.75949E-12))
+        sellmeier_coeffs.append(1.78752E-05 + T*(4.76391E-5) + (T**2)*(-4.49019E-7) +
+        (T**3)*(1.44546E-9) + (T**4)*(-1.57223E-12))
+        sellmeier_coeffs.append(7.93552E-01 + T*(-1.27815E-3) + (T**2)*(1.84595E-5) +
+        (T**3)*(-9.20275E-8) + (T**4)*(1.48829E-10))
+        sellmeier_coeffs.append(-8.906E-2 + T*(9.08730E-6) + (T**2)*(-6.53638E-8) +
+        (T**3)*(7.77072E-11) + (T**4)*(6.84605E-14))
+        sellmeier_coeffs.append(2.97562E-01 + T*(-8.59578E-4) + (T**2)*(6.59069E-6) +
+        (T**3)*(-1.09482E-8) + (T**4)*(7.85145E-13))
+        sellmeier_coeffs.append(9.34454 + T*(-7.09788E-3) + (T**2)*(1.01968E-4) +
+        (T**3)*(-5.0766E-7) + (T**4)*(8.21348E-10))
+    else:
+        pass
+    return sellmeier_coeffs
+
+
+def RefInd(w, medium, T, sellmeier_coeffs): # refractive index for quarzt versus wavelength, w in nm
+    w = w * 1e-3
+    t = 1
     for i in range(0,3):
-       t+=Sellmeier_coeffs[medium][i]*w**2/(w**2-Sellmeier_coeffs[medium][i+3]**2) 
+       t += sellmeier_coeffs[i]*w**2/(w**2-sellmeier_coeffs[i+3]**2)
     return np.sqrt(t)*(1+(T-T_0)*thermal_responses[medium][0])
-
-
 
 
 def airy_zero(p):
@@ -51,15 +69,18 @@ def airy_zero(p):
        -7.944133587120853123138,-9.022650853340980380158,-10.0401743415580859306,-11.00852430373326289324]
     return t[p-1]
 
+
 def T(m,p):
     a=airy_zero(p)
     T = m-a*(m/2)**(1/3)+3/20*a**2*(m/2)**(-1/3) \
         + (a**3+10)/1400*(m/2)**(-1)-a*(479*a**3-40)/504000*(m/2)**(-5/3)-a**2*(20231*a**3+55100)/129360000*(m/2)**(-7/3)
     return T
 
-def lambda_m_p_simplified(m,p,polarization,n,R_0,dispersion=False,medium='SiO2',temperature=20): #Using T. Hamidfar et al., “Suppl. Localization of light in an optical microcapillary induced by a droplet,” Optica, vol. 5, no. 4, p. 382, 2018.
-    
-    R_T= R_0*(1+thermal_responses[medium][1]*(temperature-T_0))    
+
+def lambda_m_p_simplified(m, p, polarization, n, R_0, dispersion = False,
+                          medium = 'SiO2', temperature = 20): #Using T. Hamidfar et al., “Suppl. Localization of light in an optical microcapillary induced by a droplet,” Optica, vol. 5, no. 4, p. 382, 2018.
+    R_T= R_0*(1+thermal_responses[medium][1]*(temperature-T_0))
+    sellmeier_coeffs = SellmeierCoefficientsCalculating(medium, temperature)
     if not dispersion:    
         if polarization=='TE':
             temp=( 1 + airy_zero(p)*(2*m**2)**(-1/3)+ n/(m*(n**2-1)**0.5))
@@ -69,18 +90,17 @@ def lambda_m_p_simplified(m,p,polarization,n,R_0,dispersion=False,medium='SiO2',
         return 2*np.pi*n*R_T/m*temp
     else:
         if polarization=='TE':
-            res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium,temperature)*R_T/m*( 1 + airy_zero(p)*(2*m**2)**(-1/3)+ ref_ind(x,medium,temperature)/(m*(ref_ind(x,medium,temperature)**2-1)**0.5)),1550)
+            res=optimize.root(lambda x: x-2*np.pi*RefInd(x, medium, temperature, sellmeier_coeffs)*R_T/m*( 1 + airy_zero(p)*(2*m**2)**(-1/3)+ RefInd(x, medium, temperature, sellmeier_coeffs)/(m*(RefInd(x, medium, temperature, sellmeier_coeffs)**2-1)**0.5)),1550)
             return res.x[0]
         elif polarization=='TM':
-            res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium,temperature)*R_T/m*( 1 + airy_zero(p)*(2*m**2)**(-1/3) + 1/ref_ind(x,medium,temperature)/(m*(ref_ind(x,medium,temperature)**2-1)**(0.5))),1550)
+            res=optimize.root(lambda x: x-2*np.pi*RefInd(x, medium, temperature, sellmeier_coeffs)*R_T/m*( 1 + airy_zero(p)*(2*m**2)**(-1/3) + 1/RefInd(x, medium, temperature, sellmeier_coeffs)/(m*(RefInd(x, medium, temperature, sellmeier_coeffs)**2-1)**(0.5))),1550)
             return res.x[0]
-            
-        
 
 
-def lambda_m_p_cylinder(m,p,polarization,n,R_0,dispersion=False,medium='SiO2',simplified=False, temperature=20): # following formula A3 from Demchenko and Gorodetsky
-    
-    R_T= R_0*(1+thermal_responses[medium][1]*(temperature-T_0))    
+def lambda_m_p_cylinder(m, p, polarization, n, R_0, dispersion = False,
+                        medium = 'SiO2', simplified=False, temperature = 20): # following formula A3 from Demchenko and Gorodetsky
+    R_T= R_0*(1+thermal_responses[medium][1]*(temperature-T_0))
+    sellmeier_coeffs = SellmeierCoefficientsCalculating(medium, temperature)
     if not simplified:
         if not dispersion:
             if polarization=='TE':
@@ -92,21 +112,23 @@ def lambda_m_p_cylinder(m,p,polarization,n,R_0,dispersion=False,medium='SiO2',si
             return 2*np.pi*n*R_T/temp
         elif dispersion:
             if polarization=='TE':
-                res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium,temperature)*R_T/(T(m,p)-ref_ind(x,medium,temperature)/np.sqrt(ref_ind(x,medium,temperature)**2-1)+
-                                                                    airy_zero(p)*(3-2)*ref_ind(x,medium,temperature)**3*(m/2)**(-2/3)/6/(ref_ind(x,medium,temperature)**2-1)**(3/2)-
+                res=optimize.root(lambda x: x-2*np.pi*RefInd(x, medium, temperature, sellmeier_coeffs)*R_T/(T(m,p)-RefInd(x, medium, temperature, sellmeier_coeffs)/np.sqrt(RefInd(x, medium, temperature, sellmeier_coeffs)**2-1)+
+                                                                    airy_zero(p)*(3-2)*RefInd(x, medium, temperature, sellmeier_coeffs)**3*(m/2)**(-2/3)/6/(RefInd(x, medium, temperature, sellmeier_coeffs)**2-1)**(3/2)-
                                                                     -0),2000)
                 # print(res.success)
                 return res.x[0]
             elif polarization=='TM':
-                res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium,temperature)*R_T/(T(m,p)-1/ref_ind(x,medium,temperature)/np.sqrt(ref_ind(x,medium,temperature)**2-1)+
-                                                                    airy_zero(p)*(3-2*ref_ind(x,medium,temperature)**(-4))*ref_ind(x,medium,temperature)*(m/2)**(-2/3)/6/(ref_ind(x,medium,temperature)**2-1)**(3/2) \
-                 - 1*(1/ref_ind(x,medium,temperature)**2-1)*(1/ref_ind(x,medium,temperature)**2)*(m/2)**(-1)/4/(ref_ind(x,medium,temperature)**2-1)**2),1550)
+                res=optimize.root(lambda x: x-2*np.pi*RefInd(x, medium, temperature, sellmeier_coeffs)*R_T/(T(m,p)-1/RefInd(x, medium, temperature, sellmeier_coeffs)/np.sqrt(RefInd(x, medium, temperature, sellmeier_coeffs)**2-1)+
+                                                                    airy_zero(p)*(3-2*RefInd(x, medium, temperature, sellmeier_coeffs)**(-4))*RefInd(x, medium, temperature, sellmeier_coeffs)*(m/2)**(-2/3)/6/(RefInd(x, medium, temperature, sellmeier_coeffs)**2-1)**(3/2) \
+                 - 1*(1/RefInd(x, medium, temperature, sellmeier_coeffs)**2-1)*(1/RefInd(x, medium, temperature, sellmeier_coeffs)**2)*(m/2)**(-1)/4/(RefInd(x, medium, temperature, sellmeier_coeffs)**2-1)**2),1550)
                 # print(res.success)
                 return res.x[0]
     else:
         return lambda_m_p_simplified(medium,m,p,polarization,n,R_0,dispersion,medium,simplified, temperature)
-                
-def lambda_m_p_spheroid(m,p,polarization,n,a,b,dispersion=False,medium='SiO2',simplified=False,temperature=20): # following formula (15),(17) from Demchenko and Gorodetsky
+
+           
+def lambda_m_p_spheroid(m, p, polarization, n, a, b, dispersion = False,
+                        medium = 'SiO2', simplified = False, temperature = 20): # following formula (15),(17) from Demchenko and Gorodetsky
      if not dispersion:
          if polarization=='TE':
              P=1
@@ -118,15 +140,15 @@ def lambda_m_p_spheroid(m,p,polarization,n,a,b,dispersion=False,medium='SiO2',si
          return 2*np.pi*n*R/temp
      elif dispersion:
          if polarization=='TE':
-             res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium)*R/(T(m,p)-ref_ind(x,medium)/np.sqrt(ref_ind(x,medium)**2-1)+
-                                                                 airy_zero(p)*(3-2)*ref_ind(x,medium)**3*(m/2)**(-2/3)/6/(ref_ind(x,medium)**2-1)**(3/2)-
+             res=optimize.root(lambda x: x-2*np.pi*RefInd(x,medium)*R/(T(m,p)-RefInd(x,medium)/np.sqrt(RefInd(x,medium)**2-1)+
+                                                                 airy_zero(p)*(3-2)*RefInd(x,medium)**3*(m/2)**(-2/3)/6/(RefInd(x,medium)**2-1)**(3/2)-
                                                                  -0),2000)
              # print(res.success)
              return res.x[0]
          elif polarization=='TM':
-             res=optimize.root(lambda x: x-2*np.pi*ref_ind(x,medium)*R/(T(m,p)-1/ref_ind(x,medium)/np.sqrt(ref_ind(x,medium)**2-1)+
-                                                                 airy_zero(p)*(3-2*ref_ind(x,medium)**(-4))*ref_ind(x,medium)*(m/2)**(-2/3)/6/(ref_ind(x,medium)**2-1)**(3/2) \
-              - 1*(1/ref_ind(x,medium)**2-1)*(1/ref_ind(x,medium)**2)*(m/2)**(-1)/4/(ref_ind(x,medium)**2-1)**2),1550)
+             res=optimize.root(lambda x: x-2*np.pi*RefInd(x,medium)*R/(T(m,p)-1/RefInd(x,medium)/np.sqrt(RefInd(x,medium)**2-1)+
+                                                                 airy_zero(p)*(3-2*RefInd(x,medium)**(-4))*RefInd(x,medium)*(m/2)**(-2/3)/6/(RefInd(x,medium)**2-1)**(3/2) \
+              - 1*(1/RefInd(x,medium)**2-1)*(1/RefInd(x,medium)**2)*(m/2)**(-1)/4/(RefInd(x,medium)**2-1)**2),1550)
              # print(res.success)
              return res.x[0]
 
@@ -137,9 +159,8 @@ class Resonances():
     ### {Polarization_dict-> list(p_number)-> np.array(m number)}
     
     colormap = plt.cm.gist_ncar #nipy_spectral, Set1,Paired   
-    pmax=3
-    dispersion=False
-    
+    pmax = 3
+    # dispersion=False
     def __init__(self,wave_min,wave_max,n,R,p_max=3,
                  material_dispersion=True,shape='cylinder',medium='SiO2', simplified=False,temperature=20):
         m0=np.floor(2*np.pi*n*R/wave_max)
@@ -210,7 +231,7 @@ class Resonances():
     #     return np.max(np.diff(res))
     
     def plot_all(self,y_min,y_max,Polarizations_to_account):
-#        plt.gca().set_color_cycle([colormap(i) for i in np.linspace(0, 0.9, num_plots)])
+        # plt.gca().set_color_cycle([colormap(i) for i in np.linspace(0, 0.9, num_plots)])
         resonances,labels=self.create_unstructured_list(Polarizations_to_account)
         for i,wave in enumerate(resonances):
             if labels[i].split(',')[0]=='TM':
@@ -245,10 +266,6 @@ class Resonances():
         plt.ylabel('Dispersion $D_{int}$, MHz')
         plt.tight_layout()
             
-            
-        
-        
-            
      
      
 def closest_argmin(A, B): # from https://stackoverflow.com/questions/45349561/find-nearest-indices-for-one-array-against-all-values-in-another-array-python
@@ -269,15 +286,16 @@ def FFTFilter(y_array):
     f_array = rfft(y_array)
     Indexes=[i for  i,w  in enumerate(W) if all([abs(w)>FilterLowFreqEdge,abs(w)<FilterHighFreqEdge])]
     f_array[Indexes] = 0
-#        f_array[] = 0
+    # f_array[] = 0
     return irfft(f_array)
-     
+
+
 class Fitter():
     
     def __init__(self,
                  wavelengths,signal,peak_depth,peak_distance,wave_min=None,wave_max=None,
                  p_guess_array=None,dispersion=True,simplified=False,polarization='both',
-                 FFT_filter=False, type_of_optimizer='bruteforce', temperature=20 ):
+                 FFT_filter=False, type_of_optimizer='bruteforce', temperature=20):
         
         p_guess_max=5
         
@@ -394,17 +412,18 @@ def bruteforce_optimizer(f,args,R_bounds,R_step):
             
 if __name__=='__main__':
     #print(lambda_m_p(m=354,p=1,polarization='TM',n=1.445,R=62.5e3,dispersion=True))
-    wave_min=1540
+    # wave_min=1540
     # wave_max=1545
     # n=1.446
-    # R=62.5e3
+    # R=800e3
     # p_max=2
     # medium='SiO2'
     # shape='cylinder'
     # material_dispersion=True
-    # resonances=Resonances(wave_min,wave_max,n,R,p_max,material_dispersion,shape,medium, temperature=22)
-    # figure = plt.figure()
-    # resonances.plot_all(-3,3,'both')
+    # resonances=Resonances(wave_min, wave_max, n, R, p_max, material_dispersion,shape,medium, temperature=22)
+    #figure = plt.figure()
+    #resonances.plot_all(-3, 3, 'both')
+    print(SellmeierCoefficientsCalculating('SiO2', 293))
     #resonances.plot_int_dispersion(polarization='TM',p=1)
     
     # #filename="F:\!Projects\!SNAP system\Modifications\Wire heating\dump_data_at_-2600.0.pkl"
