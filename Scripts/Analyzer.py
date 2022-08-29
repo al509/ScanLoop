@@ -57,8 +57,14 @@ class Analyzer(QObject):
 
             self.temperature = 20            
             
-            self.SNAP=None
-
+            self.SNAP=None          
+            
+            self.cost_function_figure=plt.figure()
+            self.cost_function_ax = self.cost_function_figure.add_subplot(1, 1, 1)
+            self.cost_function_ax.grid()
+            self.cost_function_ax.set_title('Radius dependent cost function', fontsize=14)
+            self.cost_function_ax.set_xlabel('Radius, $\mu m$', fontsize=14)
+            self.cost_function_ax.set_ylabel('Cost function', fontsize=14)
             
             self.type_of_SNAP_file='SNAP'
             
@@ -627,8 +633,8 @@ class Analyzer(QObject):
             if all(np.isnan(signal)):
                 print('Error. Signal is NAN only')
                 return
-            fitter=QuantumNumbersStructure.Fitter(waves,signal,self.min_peak_level,self.min_peak_distance,
-                                                  wave_min=None,wave_max=None,p_guess_array=[self.quantum_numbers_fitter_p_max],
+            fitter=QuantumNumbersStructure.Fitter(waves, signal, self.min_peak_level, self.min_peak_distance,
+                                                  wave_min=None, wave_max=None, p_guess_array=[self.quantum_numbers_fitter_p_max],
                                                   dispersion=self.quantum_numbers_fitter_dispersion,
                                                   polarization=self.quantum_numbers_fitter_polarizations,
                                                   type_of_optimizer=self.quantum_numbers_fitter_type_of_optimizer,
@@ -637,7 +643,7 @@ class Analyzer(QObject):
             self.single_spectrum_figure.canvas.draw()
             # plt.show(block=False)
             print('start finding quantum numbers...')
-            fitter.run()
+            fitter.run(self.cost_function_figure, self.cost_function_ax)
             print('quantum numbers found')
                     
             resonances,labels=fitter.th_resonances.create_unstructured_list(self.quantum_numbers_fitter_polarizations)
