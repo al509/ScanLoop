@@ -408,7 +408,7 @@ class Spectral_processor(QObject):
             f=open(self.processedData_dir_path+f_name,'wb')
             pickle.dump(SNAP,f)
             f.close()
-                  
+            print('Spectrogram saved as SNAP object to {}'.format(self.processedData_dir_path+f_name))                 
 
         elif  self.type_of_output_data=='pkl3d':
             f=open(self.processedData_dir_path+f_name,'wb')
@@ -426,6 +426,7 @@ class Spectral_processor(QObject):
         
             pickle.dump(D,f)
             f.close()
+            print('Spectrogram saved as pkl3d file to {}'.format(self.processedData_dir_path+f_name))
 
         if self.file_naming_style=='old': # legacy code, to save in txt format
             plt.figure()

@@ -330,13 +330,15 @@ class Analyzer(QObject):
             
             with open(self.plotting_parameters_file_path,'r') as f:
                 p=json.load(f)
-            
-            if self.SNAP.type_of_signal!=self.type_of_spectrogram:
-                if self.SNAP.jones_matrixes_used:
-                    self.SNAP.switch_signal_type(self.type_of_spectrogram)
-                else:
-                    print('Error. No complex data in SNAP object to derive {}. Only {} is available'.format(self.type_of_spectrogram, self.SNAP.type_of_signal))
-                    return 
+            try:
+                if self.SNAP.type_of_signal!=self.type_of_spectrogram:
+                    if self.SNAP.jones_matrixes_used:
+                        self.SNAP.switch_signal_type(self.type_of_spectrogram)
+                    else:
+                        print('Error. No complex data in SNAP object to derive {}. Only {} is available'.format(self.type_of_spectrogram, self.SNAP.type_of_signal))
+                        return 
+            except AttributeError as E:
+                print(E)
             
             w_0=np.mean(self.SNAP.wavelengths)
             x=self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]
