@@ -27,43 +27,38 @@ lambda_to_omega=lambda_to_nu*2*np.pi
 
 class SNAP():
     def __init__(self,
-                 positions=None,
-                 wavelengths=None,
-                 transmission=None,
-                 R_0=62.5,
-                 jones_matrixes_used=False):
+                 positions = None,
+                 wavelengths = None,
+                 transmission = None,
+                 R_0 = 62.5,
+                 jones_matrixes_used = False):
         
-        self.R_0=R_0 # in microns!
-        self.refractive_index=1.45
-        self.wavelengths=wavelengths
+        self.R_0 = R_0 # in microns!
+        self.refractive_index = 1.45
+        self.wavelengths = wavelengths
         if jones_matrixes_used is False:
-            self.transmission=transmission
-            self.jones_matrixes=None
-            self.jones_matrixes_used=False
+            self.transmission = transmission
+            self.jones_matrixes = None
+            self.jones_matrixes_used = False
         else:
-            self.transmission=None
-            self.jones_matrixes_used=True
-        self.positions=None # whole three dimensions, in microns!
-        self.axes_dict={'X':0,'Y':1,'Z':2,'W':3,'p':4}
-        self.transmission_scale='log'
-        self.axis_key='Z'
+            self.transmission = None
+            self.jones_matrixes_used = True
+        self.positions = None # whole three dimensions, in microns!
+        self.axes_dict = {'X':0,'Y':1, 'Z':2, 'W':3, 'p':4}
+        self.transmission_scale = 'log'
+        self.axis_key = 'Z'
         
         
-        self.mode_wavelengths=None
+        self.mode_wavelengths = None
         
         if transmission is not None:
-            self.lambda_0=np.min(wavelengths)
+            self.lambda_0 = np.min(wavelengths)
         else:
-            self.lambda_0=None
+            self.lambda_0 = None
             
-        self.fig_spectrogram=None
-        self.date='_'
+        self.fig_spectrogram = None
+        self.date = '_'
 
-        
-
-    
-    def remove_nans(self):
-        indexes_of_nan=list()
     
     def convert_to_lin_transmission(self):
         self.transmission_scale='lin'
@@ -120,8 +115,11 @@ class SNAP():
 
 
     # @numba.njit
-    def extract_ERV(self,number_of_peaks_to_search=1,min_peak_level=1,min_peak_distance=10000,min_wave=0,max_wave=1e4,find_widths=True,
-                    N_points_for_fitting=100,iterate_different_N_points=False,max_N_points_for_fitting=100,iterating_cost_function_type='linewidth',window_width=0.1):
+    def extract_ERV(self, number_of_peaks_to_search=1, min_peak_level=1,
+                    min_peak_distance=10000, min_wave=0, max_wave=1e4,
+                    find_widths=True, N_points_for_fitting=100,
+                    iterate_different_N_points=False, max_N_points_for_fitting=100,
+                    iterating_cost_function_type='linewidth', window_width=0.1):
         '''
         analyze 2D spectrogram
         return position of several first (higher-wavelegth) main resonances. Number of resonances is defined by number_of_peaks_to_search
@@ -135,29 +133,29 @@ class SNAP():
         iterate_different_N_points - whether to check different N_points_for_fitting in each fitting process
         '''
         
-               
+        NumberOfWavelength, Number_of_positions = self.transmission.shape
+        WavelengthArray = self.wavelengths
+        x = self.positions[:, self.axes_dict[self.axis_key]]
         
-        NumberOfWavelength,Number_of_positions = self.transmission.shape
-        WavelengthArray=self.wavelengths
-        x=self.positions[:,self.axes_dict[self.axis_key]]
-        number_of_spectral_points=len(WavelengthArray)
-        
-        PeakWavelengthArray=np.empty((Number_of_positions,number_of_peaks_to_search))
+        PeakWavelengthArray = np.empty((Number_of_positions, number_of_peaks_to_search))
         PeakWavelengthArray.fill(np.nan)
         
-        resonance_parameters_array=np.empty((Number_of_positions,number_of_peaks_to_search,8))
+        resonance_parameters_array = np.empty((Number_of_positions, number_of_peaks_to_search, 8))
         resonance_parameters_array.fill(np.nan)       
-        temp_signal=abs(self.transmission-np.nanmean(self.transmission))
+        temp_signal = abs(self.transmission-np.nanmean(self.transmission))
         
-        for Zind,Z in enumerate(range(0,Number_of_positions)):
-        # for Zind,Z in enumerate(range(Number_of_positions-1,-1,-1)):
+        for Zind, Z in enumerate(range(0, Number_of_positions)):
             if Zind==0:
-                peak_indexes,_=scipy.signal.find_peaks(temp_signal[:,Z],height=min_peak_level,distance=min_peak_distance)
-                peak_indexes=peak_indexes.astype('float')
-                peak_indexes=np.extract((WavelengthArray[peak_indexes.astype('int')]>min_wave) & (WavelengthArray[peak_indexes.astype('int')]<max_wave),peak_indexes)
-            
-                # peak_indexes=-np.sort(-peak_indexes) ##sort in wavelength decreasing
-                peak_indexes=peak_indexes[np.argsort(temp_signal[peak_indexes.astype('int'),0])] ##sort in resonanse dip
+                peak_indexes, _ = scipy.signal.find_peaks(temp_signal[:, Z],
+                                                          height=min_peak_level,
+                                                          distance=min_peak_distance)
+                # print(f'Zind = {Zind}; Peaks is {WavelengthArray[peak_indexes]}')
+                peak_indexes = peak_indexes.astype('float')
+                
+                peak_indexes = np.extract((WavelengthArray[peak_indexes.astype('int')]>min_wave) & (WavelengthArray[peak_indexes.astype('int')]<max_wave),
+                                          peak_indexes)
+                
+                peak_indexes = peak_indexes[np.argsort(temp_signal[peak_indexes.astype('int'),0])] ##sort in resonanse dip
             
                 if len(peak_indexes)>0:
                     if len(peak_indexes)>=number_of_peaks_to_search:
@@ -181,14 +179,11 @@ class SNAP():
                         else:
                             ind_max=-1
                     window_indexes.append([ind_min,ind_max])
-                        
-                    
-                
-                
+
             elif Zind!= 0:
                 previous_peak_indexes = np.copy(peak_indexes) # Создаю массив с индексами предыдущих пиков
-                for i,p in enumerate(peak_indexes):
-                    print('Z={},p={}'.format(Z,p))
+                for i, p in enumerate(peak_indexes):
+                    #print(f'Z = {Z}, p={p}')
                     try:
                         if i>0:
                             ind_min=int(peak_indexes[i]-(peak_indexes[i]-peak_indexes[i-1])*window_width)
@@ -201,18 +196,18 @@ class SNAP():
                         window_indexes[i]=[ind_min,ind_max]
                     except:
                         pass
-                    temp_peak_indexes,_=scipy.signal.find_peaks(temp_signal[window_indexes[i][0]:window_indexes[i][1],Z],height=min_peak_level,distance=min_peak_distance)
+                    temp_peak_indexes, _ = scipy.signal.find_peaks(temp_signal[window_indexes[i][0]:window_indexes[i][1], Z],
+                                                                   height = min_peak_level,
+                                                                   distance = min_peak_distance)
+                    # print(f'Zind = {Zind}; Peaks is {WavelengthArray[temp_peak_indexes]}')
                     if len(temp_peak_indexes)>0:
                         peak_indexes[i]=-np.sort(-temp_peak_indexes)[0]+window_indexes[i][0] ##sort in wavelength decreasing
                     else:
                         peak_indexes[i]=np.nan
 
-            
-
             for ind in range(number_of_peaks_to_search):
                 if not np.isnan(peak_indexes[ind]):
                     PeakWavelengthArray[Z,ind]=WavelengthArray[int(peak_indexes[ind])]
-            
             
             if find_widths:
                 for ii,peak_wavelength in enumerate(PeakWavelengthArray[Z]):
@@ -223,22 +218,14 @@ class SNAP():
                                                                                                                        
                         resonance_parameters_array[Z,ii]=([non_res_transmission,Fano_phase,res_wavelength,
                                                               depth,linewidth,delta_c,delta_0,N_points_for_fitting])
-                        # except:
-                        #     print('error while fitting')
+                        
         lambdas_0=np.nanmin(PeakWavelengthArray,axis=0)
-        ERV=(PeakWavelengthArray-lambdas_0)/lambdas_0*self.R_0*self.refractive_index*1e3 # in nm
-        
-        print('Analyzing finished')
-
-
-                # self.fig_spectrogram_ERV_lines.append[line]
-
+        ERV = (PeakWavelengthArray-lambdas_0)/lambdas_0*self.R_0*self.refractive_index*1e3 # in nm
         
         resonance_parameters_array=np.array(resonance_parameters_array)
-
-   
         
-        return x,np.array(PeakWavelengthArray),np.array(ERV),resonance_parameters_array
+        return x, np.array(PeakWavelengthArray), np.array(ERV), resonance_parameters_array
+
 
 # @njit
 def find_width(waves,signal,peak_wavelength,N_points_for_fitting=0,iterate_different_N_points=False,max_N_points_for_fitting=100,iterating_cost_function_type='linewidth'):

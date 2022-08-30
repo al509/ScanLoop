@@ -264,6 +264,8 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_resave_SNAP.clicked.connect(lambda : self.analyzer.resave_SNAP(self.ui.comboBox_analyzer_resave_type.currentText()))        
         self.ui.pushButton_set_analyzer_parameters.clicked.connect(self.on_pushButton_set_analyzer_parameters)
         # self.ui.pushButton_analyzer_save_as_pkl3d.clicked.connect(lambda: self.analyzer.save_as_pkl3d())
+        
+        self.ui.pushButton_analyzer_save_cropped.clicked.connect(lambda: self.analyzer.save_cropped_data())
 
 # =============================================================================
 #         Pure Photonics Tunable laser
@@ -978,6 +980,7 @@ class MainWindow(ThreadedMainWindow):
             else:
                 self.OSA.SetWavelengthResolution('Low')
 
+
     def on_TabChanged_instruments_changed(self,i):
         if i==0:
             self.painter.TypeOfData='FromOSA'
@@ -985,11 +988,11 @@ class MainWindow(ThreadedMainWindow):
             self.painter.TypeOfData='FromScope'
 
 
-
     def on_Push_Button_ProcessSpectra(self):
         self.spectral_processor.ProcessedDataFolder=self.path_to_main+'\\ProcessedData\\'
         self.spectral_processor.Source_DirName=self.path_to_main+'\\SpectralData\\'
         self.spectral_processor.run()
+
 
     def on_pushButton_ProcessTD(self):
         from Scripts.ProcessAndPlotTD import ProcessAndPlotTD
@@ -1001,8 +1004,10 @@ class MainWindow(ThreadedMainWindow):
             channel_number=self.ui.comboBox_TD_channel_to_plot.currentIndex())
         Thread.quit()
 
+
     def plotSampleShape(self,DirName,axis):
         self.spectral_processor.plot_sample_shape()
+
 
     def save_parameters_to_file(self):
         '''
@@ -1037,9 +1042,6 @@ class MainWindow(ThreadedMainWindow):
                 self.scanningProcess.set_parameters(Dicts['Scanning_position_process'])
             except KeyError:
                 pass
-
-    
-
 
 
     def choose_folder_for_spectral_processor(self):

@@ -332,20 +332,18 @@ class Fitter():
             self.p_guess_array=np.arange(1,p_guess_max)
         
     def run(self, figure, ax):
+        '''
+        Перебор по температуре и радиусам
+        
         for p in self.p_guess_array:
             if self.type_of_optimizer=='Nelder-Mead':
                 res=sciopt.minimize(self.cost_function,((1.4445,62.5e3)),bounds=((1.443,1.4447),(62e3,63e3)),
                             args=p,method='Nelder-Mead',options={'maxiter':1000},tol=1e-11)
             elif self.type_of_optimizer=='bruteforce':
                 res = bruteforce_optimizer(self.cost_function, figure, ax,
-                                         args=(p, REFRACTION),
-                                         R_bounds=(R_MIN, R_MAX), R_step=2,
-                                         T_bounds = (T_MIN, T_MAX), T_step=0.5)
-                
-            # res=sciopt.least_squares(func_to_minimize,((1.43,62.5e3)),bounds=((1.4,1.5),(62e3,63e3)),
-            #                 args=(Wavelength_min,Wavelength_max,Resonances_exp,p),xtol=1e-10,ftol=1e-10)
-            # res=sciopt.least_squares(func_to_minimize,(62.5e3),bounds=(62e3,63e3),
-                            # args=(Wavelength_min,Wavelength_max,Resonances_exp,p),xtol=1e-8,ftol=1e-8)
+                                          args=(p, REFRACTION),
+                                          R_bounds=(R_MIN, R_MAX), R_step=2,
+                                          T_bounds = (T_MIN, T_MAX), T_step=0.5)
             
             print(f'p = {res}')
             if res['fun']<self.cost_best:
@@ -357,6 +355,10 @@ class Fitter():
         self.th_resonances=Resonances(self.wave_min, self.wave_max,
                                       self.n_best, self.R_best, self.p_best,
                                       self.material_dispersion, temperature=self.T_best)
+        '''
+        self.th_resonances=Resonances(self.wave_min, self.wave_max,
+                                      REFRACTION, 62516, self.p_guess_array[0],
+                                      self.material_dispersion, temperature=18.5)
                 
         
     def cost_function(self, param, p_max): # try one and another polarization
@@ -417,9 +419,9 @@ def bruteforce_optimizer(f, figure, ax, args, R_bounds, R_step, T_bounds, T_step
     cost_best = 1e5
     R_best = None
     T_best = None
-    colors = ['gold', 'aqua', 'violet', 'lawngreen', 'gray', 'tomato',
-              'darkgreen', 'teal', 'indigo', 'crimson', 'bisque', 'deepskyblue',
-              'black', 'olive', 'rosybrown']
+    # colors = ['gold', 'aqua', 'violet', 'lawngreen', 'gray', 'tomato',
+    #           'darkgreen', 'teal', 'indigo', 'crimson', 'bisque', 'deepskyblue',
+    #           'black', 'olive', 'rosybrown']
     ind = 0
     for current_T in np.arange(T_bounds[0], T_bounds[1], T_step):
         for current_R in np.arange(R_bounds[0], R_bounds[1], R_step):
@@ -428,7 +430,7 @@ def bruteforce_optimizer(f, figure, ax, args, R_bounds, R_step, T_bounds, T_step
                 cost_best = cost
                 R_best = current_R
                 T_best = current_T
-            ax.scatter(current_R, cost, color=colors[ind], s=8)
+            # ax.scatter(current_R, cost, color=colors[ind], s=8)
             print(f'R = {current_R}, T = {current_T}, Cost = {cost}')
         ind = ind + 1
     return {'x':(n, R_best, T_best),'fun':cost_best}
@@ -437,30 +439,30 @@ def bruteforce_optimizer(f, figure, ax, args, R_bounds, R_step, T_bounds, T_step
 if __name__=='__main__':
     # print(lambda_m_p(m=354,p=1,polarization='TM',n=1.445,R=62.5e3,dispersion=True))
     wave_min = 1540
-    wave_max = 1582
-    n = REFRACTION
-    R = 62514
-    p_max = 3
-    medium='SiO2'
-    shape='cylinder'
-    material_dispersion=True
+    # wave_max = 1582
+    # n = REFRACTION
+    # R = 62514
+    # p_max = 3
+    # medium='SiO2'
+    # shape='cylinder'
+    # material_dispersion=True
     # resonances=Resonances(wave_min, wave_max, n, R, p_max, material_dispersion,shape,medium, temperature=20)
     # figure = plt.figure()
     # resonances.plot_all(-3, 3, 'both')
     # print(SellmeierCoefficientsCalculating('SiO2', 293))
     # resonances.plot_int_dispersion(polarization='TM',p=1)
     
-    single_spectrum_path = '..\\TMP_folder\\WGM_data\\Test_2_at_25.0.pkl'
-    with open(single_spectrum_path,'rb') as f:
-        print('loading data for analyzer from ',single_spectrum_path)
-        Data=(pickle.load(f))
-    single_spectrum_figure=plt.figure()
-    plt.plot(Data[:,0],Data[:,1])
-    plt.xlabel('Wavelength, nm')
-    plt.ylabel('Spectral power density, dBm')
-    plt.tight_layout()
-    resonances=Resonances(wave_min, wave_max, n, R, p_max, material_dispersion, shape, medium, temperature=24)
-    resonances.plot_all(-3, 3, 'both')
+    # single_spectrum_path = '..\\TMP_folder\\WGM_data\\Test_2_at_25.0.pkl'
+    # with open(single_spectrum_path,'rb') as f:
+    #     print('loading data for analyzer from ',single_spectrum_path)
+    #     Data=(pickle.load(f))
+    # single_spectrum_figure=plt.figure()
+    # plt.plot(Data[:,0],Data[:,1])
+    # plt.xlabel('Wavelength, nm')
+    # plt.ylabel('Spectral power density, dBm')
+    # plt.tight_layout()
+    # resonances=Resonances(wave_min, wave_max, n, R, p_max, material_dispersion, shape, medium, temperature=24)
+    # resonances.plot_all(-3, 3, 'both')
     
     # #filename="F:\!Projects\!SNAP system\Modifications\Wire heating\dump_data_at_-2600.0.pkl"
     # #import pickle
