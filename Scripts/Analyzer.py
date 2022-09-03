@@ -40,6 +40,7 @@ class Analyzer(QObject):
             self.min_peak_distance=10
             self.min_wave=1500
             self.max_wave=1600
+            self.zero_wave = 1500
             self.slice_position=0
             self.find_widths=False
             self.indicate_ERV_on_spectrogram=True
@@ -509,11 +510,16 @@ class Analyzer(QObject):
 
 
         def extract_ERV(self):
-                        # positions,peak_wavelengths, ERV, resonance_parameters=SNAP_experiment.SNAP.extract_ERV(self,
-            positions, peak_wavelengths, ERV, resonance_parameters = self.SNAP.extract_ERV(self.number_of_peaks_to_search,self.min_peak_level,
-                                                                                        self.min_peak_distance,self.min_wave,self.max_wave,
-                                                                                        self.find_widths, self.N_points_for_fitting,
-                                                                                        self.iterate_different_N_points,self.max_N_points_for_fitting,self.iterating_cost_function_type)
+            positions, peak_wavelengths, ERV, resonance_parameters = self.SNAP.extract_ERV(self.number_of_peaks_to_search,
+                                                                                           self.min_peak_level,
+                                                                                        self.min_peak_distance,
+                                                                                        self.min_wave,
+                                                                                        self.max_wave,
+                                                                                        self.zero_wave,
+                                                                                        self.find_widths,
+                                                                                        self.N_points_for_fitting,
+                                                                                        self.iterate_different_N_points,
+                                                                                        self.max_N_points_for_fitting)#,self.iterating_cost_function_type)
             path, FileName = os.path.split(self.spectrogram_file_path)
             NewFileName=path+'\\'+FileName.split('.')[-2]+'_ERV.pkl'
             with open(NewFileName,'wb') as f:
@@ -524,18 +530,18 @@ class Analyzer(QObject):
                 pickle.dump(ERV_params, f)
             
             
-            # x = self.SNAP.positions[:, self.SNAP.axes_dict[self.SNAP.axis_key]]
-            # if self.figure_spectrogram is not None and self.indicate_ERV_on_spectrogram:
-            #     if len(self.figure_spectrogram.axes[0].lines)>1:
-            #         for line in self.figure_spectrogram.axes[0].lines[1:]: line.remove()
-            #     for i in range(0,self.number_of_peaks_to_search):
-            #         self.figure_spectrogram.axes[0].plot(x,peak_wavelengths[:,i])
-            #     self.figure_spectrogram.canvas.draw()
-            # elif self.figure_spectrogram is None and self.indicate_ERV_on_spectrogram:
-            #     self.plot_spectrogram()
-            #     for i in range(0,self.number_of_peaks_to_search):
-            #         self.figure_spectrogram.axes[0].plot(x,peak_wavelengths[:,i])
-            #         line=self.figure_spectrogram.axes[0].plot(x,peak_wavelengths[:,i])
+            x = self.SNAP.positions[:, self.SNAP.axes_dict[self.SNAP.axis_key]]
+            if self.figure_spectrogram is not None and self.indicate_ERV_on_spectrogram:
+                if len(self.figure_spectrogram.axes[0].lines)>1:
+                    for line in self.figure_spectrogram.axes[0].lines[1:]: line.remove()
+                for i in range(0,self.number_of_peaks_to_search):
+                    self.figure_spectrogram.axes[0].plot(x,peak_wavelengths[:,i])
+                self.figure_spectrogram.canvas.draw()
+            elif self.figure_spectrogram is None and self.indicate_ERV_on_spectrogram:
+                self.plot_spectrogram()
+                for i in range(0,self.number_of_peaks_to_search):
+                    self.figure_spectrogram.axes[0].plot(x,peak_wavelengths[:,i])
+                    line=self.figure_spectrogram.axes[0].plot(x,peak_wavelengths[:,i])
             
             # if self.plot_results_separately:
             #     self.plot_ERV_params(ERV_params,self.find_widths)

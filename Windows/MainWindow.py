@@ -226,8 +226,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_processTDData.pressed.connect(self.on_pushButton_ProcessTD)
         self.ui.pushButton_choose_folder_to_process.clicked.connect(self.choose_folder_for_spectral_processor)
                 
-        self.ui.pushButton_process_arb_spectral_data.clicked.connect(
-            self.process_arb_spectral_data_clicked)
+        self.ui.pushButton_process_arb_spectral_data.clicked.connect(self.process_arb_spectral_data_clicked)
         self.ui.pushButton_process_arb_TD_data.clicked.connect(self.process_arb_TD_data_clicked)
         self.ui.pushButton_plotSampleShape.clicked.connect(lambda:self.spectral_processor.plot_sample_shape())
             
@@ -254,9 +253,8 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_plot_single_spectrum.clicked.connect(lambda: self.analyzer.plot_single_spectrum())
         
         
-
         self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(self.analyzer.single_spectrum_figure))
-        self.ui.pushButton_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum( self.painter.figure))
+        self.ui.pushButton_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum( self.painter.figure))  
         self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
         self.ui.pushButton_analyzer_quantum_numbers_fitter.clicked.connect(self.analyzer.run_quantum_numbers_fitter)
 
@@ -1109,7 +1107,7 @@ class MainWindow(ThreadedMainWindow):
         '''
         open dialog with analyzer parameters
         '''
-        d=self.analyzer.get_parameters()
+        d = self.analyzer.get_parameters()
         from Windows.UIs.analyzer_dialogUI import Ui_Dialog
         analyzer_dialog = QDialog()
         ui = Ui_Dialog()
