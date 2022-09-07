@@ -334,7 +334,7 @@ class Fitter():
     def run(self, figure, ax):
         '''
         Перебор по температуре и радиусам
-        
+        '''
         for p in self.p_guess_array:
             if self.type_of_optimizer=='Nelder-Mead':
                 res=sciopt.minimize(self.cost_function,((1.4445,62.5e3)),bounds=((1.443,1.4447),(62e3,63e3)),
@@ -355,10 +355,10 @@ class Fitter():
         self.th_resonances=Resonances(self.wave_min, self.wave_max,
                                       self.n_best, self.R_best, self.p_best,
                                       self.material_dispersion, temperature=self.T_best)
-        '''
-        self.th_resonances=Resonances(self.wave_min, self.wave_max,
-                                      REFRACTION, 62516, self.p_guess_array[0],
-                                      self.material_dispersion, temperature=18.5)
+        
+        # self.th_resonances=Resonances(self.wave_min, self.wave_max,
+        #                               REFRACTION, 62516, self.p_guess_array[0],
+        #                               self.material_dispersion, temperature=18.5)
                 
         
     def cost_function(self, param, p_max): # try one and another polarization
