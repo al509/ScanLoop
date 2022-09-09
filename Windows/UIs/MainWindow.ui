@@ -647,7 +647,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-99</y>
              <width>283</width>
              <height>700</height>
             </rect>
@@ -1800,6 +1800,19 @@
              </property>
              <property name="text">
               <string>as</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_analyzer_save_cropped">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>50</y>
+               <width>111</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Save cropped </string>
              </property>
             </widget>
            </widget>

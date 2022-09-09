@@ -226,8 +226,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_processTDData.pressed.connect(self.on_pushButton_ProcessTD)
         self.ui.pushButton_choose_folder_to_process.clicked.connect(self.choose_folder_for_spectral_processor)
                 
-        self.ui.pushButton_process_arb_spectral_data.clicked.connect(
-            self.process_arb_spectral_data_clicked)
+        self.ui.pushButton_process_arb_spectral_data.clicked.connect(self.process_arb_spectral_data_clicked)
         self.ui.pushButton_process_arb_TD_data.clicked.connect(self.process_arb_TD_data_clicked)
         self.ui.pushButton_plotSampleShape.clicked.connect(lambda:self.spectral_processor.plot_sample_shape())
             
@@ -254,9 +253,8 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_plot_single_spectrum.clicked.connect(lambda: self.analyzer.plot_single_spectrum())
         
         
-
         self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(self.analyzer.single_spectrum_figure))
-        self.ui.pushButton_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum( self.painter.figure))
+        self.ui.pushButton_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum( self.painter.figure))  
         self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
         self.ui.pushButton_analyzer_quantum_numbers_fitter.clicked.connect(self.analyzer.run_quantum_numbers_fitter)
 
@@ -264,6 +262,8 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_resave_SNAP.clicked.connect(lambda : self.analyzer.resave_SNAP(self.ui.comboBox_analyzer_resave_type.currentText()))        
         self.ui.pushButton_set_analyzer_parameters.clicked.connect(self.on_pushButton_set_analyzer_parameters)
         # self.ui.pushButton_analyzer_save_as_pkl3d.clicked.connect(lambda: self.analyzer.save_as_pkl3d())
+        
+        self.ui.pushButton_analyzer_save_cropped.clicked.connect(lambda: self.analyzer.save_cropped_data())
 
 # =============================================================================
 #         Pure Photonics Tunable laser
@@ -978,6 +978,7 @@ class MainWindow(ThreadedMainWindow):
             else:
                 self.OSA.SetWavelengthResolution('Low')
 
+
     def on_TabChanged_instruments_changed(self,i):
         if i==0:
             self.painter.TypeOfData='FromOSA'
@@ -985,11 +986,11 @@ class MainWindow(ThreadedMainWindow):
             self.painter.TypeOfData='FromScope'
 
 
-
     def on_Push_Button_ProcessSpectra(self):
         self.spectral_processor.ProcessedDataFolder=self.path_to_main+'\\ProcessedData\\'
         self.spectral_processor.Source_DirName=self.path_to_main+'\\SpectralData\\'
         self.spectral_processor.run()
+
 
     def on_pushButton_ProcessTD(self):
         from Scripts.ProcessAndPlotTD import ProcessAndPlotTD
@@ -1001,8 +1002,10 @@ class MainWindow(ThreadedMainWindow):
             channel_number=self.ui.comboBox_TD_channel_to_plot.currentIndex())
         Thread.quit()
 
+
     def plotSampleShape(self,DirName,axis):
         self.spectral_processor.plot_sample_shape()
+
 
     def save_parameters_to_file(self):
         '''
@@ -1037,9 +1040,6 @@ class MainWindow(ThreadedMainWindow):
                 self.scanningProcess.set_parameters(Dicts['Scanning_position_process'])
             except KeyError:
                 pass
-
-    
-
 
 
     def choose_folder_for_spectral_processor(self):
@@ -1107,7 +1107,7 @@ class MainWindow(ThreadedMainWindow):
         '''
         open dialog with analyzer parameters
         '''
-        d=self.analyzer.get_parameters()
+        d = self.analyzer.get_parameters()
         from Windows.UIs.analyzer_dialogUI import Ui_Dialog
         analyzer_dialog = QDialog()
         ui = Ui_Dialog()

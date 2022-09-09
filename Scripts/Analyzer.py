@@ -45,7 +45,11 @@ class Analyzer(QObject):
             self.min_peak_distance=10
             self.min_wave=1500
             self.max_wave=1600
+
+            self.zero_wave = 1500
+
             
+
             self.slice_position=0
             
             self.find_widths=False
@@ -63,9 +67,24 @@ class Analyzer(QObject):
             self.quantum_numbers_fitter_dispersion=False
             self.quantum_numbers_fitter_p_max=3
             self.quantum_numbers_fitter_polarizations='both'
-            
-            self.SNAP=None
 
+            self.temperature = 20            
+            
+            self.SNAP = None          
+            
+            self.cost_function_figure = None
+            self.cost_function_ax = None
+            
+            '''
+            Временно. Для постройки графика функции ошибки от радиуса и температуры
+            
+            self.cost_function_figure=plt.figure()
+            self.cost_function_ax = self.cost_function_figure.add_subplot(1, 1, 1)
+            self.cost_function_ax.grid()
+            self.cost_function_ax.set_title('Radius dependent cost function', fontsize=14)
+            self.cost_function_ax.set_xlabel('Radius, $\mu m$', fontsize=14)
+            self.cost_function_ax.set_ylabel('Cost function', fontsize=14)
+            '''
             
             self.type_of_SNAP_file='SNAP'
             
@@ -96,7 +115,9 @@ class Analyzer(QObject):
                 f=open(self.spectrogram_file_path,'rb')
                 loaded_object=(pickle.load(f))
                 f.close()
+
                 if isinstance(loaded_object,SNAP_experiment.SNAP):
+
                     print('loading SNAP data for analyzer from ',self.spectrogram_file_path)
                     self.SNAP=loaded_object
                     if not hasattr(self.SNAP, 'type_of_signal'):
@@ -105,7 +126,7 @@ class Analyzer(QObject):
                         self.SNAP.signal=self.SNAP.transmission
                     print('File has been loaded to SNAP object')
                 else:
-                    print('loading old style SNAP data for analyzer from ',self.spectrogram_file_path)
+                    print('loading old style SNAP data for analyzer from ', self.spectrogram_file_path)
                     SNAP_object=SNAP_experiment.SNAP()
                     SNAP_object.axis_key=loaded_object['axis']
                     Positions=np.array(loaded_object['Positions'])
@@ -203,7 +224,7 @@ class Analyzer(QObject):
                     pickle.dump(D,f)
                 print('spectrogram saved as ' +NewFileName)
 
-   
+<
                         
         # def save_cropped_data(self):
         #     x_lim=self.figure_spectrogram.axes[0].get_xlim() #positions
@@ -225,6 +246,7 @@ class Analyzer(QObject):
         #     f.close()
         #     print('Cropped data saved to {}'.format(NewFileName))
             
+
         def save_single_spectrum(self):
             '''
             save data that is plotted on current self.single_spectrum_figure
@@ -464,7 +486,7 @@ class Analyzer(QObject):
         def plot_slice(self,position):
             '''
             plot slice using SNAP object parameters
-            '''
+            '''    
             self.slice_position=position
             if self.SNAP.signal is None:
                 self.load_data()
@@ -540,27 +562,30 @@ class Analyzer(QObject):
                 print('Error: No peaks found')
             # plt.tight_layout()
             fig.canvas.draw_idle()
-            
 
 
-        
-            
-        
-        # def extract_ERV(self,N_peaks,min_peak_depth,distance, MinWavelength,MaxWavelength,axis_to_process='Z',plot_results_separately=False):
         def extract_ERV(self):
-                        # positions,peak_wavelengths, ERV, resonance_parameters=SNAP_experiment.SNAP.extract_ERV(self,
-            positions,peak_wavelengths, ERV, resonance_parameters=self.SNAP.extract_ERV(self.number_of_peaks_to_search,self.min_peak_level,
-                                                                                        self.min_peak_distance,self.min_wave,self.max_wave,
-                                                                                        self.find_widths, self.N_points_for_fitting,
-                                                                                        self.iterate_different_N_points,self.max_N_points_for_fitting,self.iterating_cost_function_type)
-            path,FileName = os.path.split(self.spectrogram_file_path)
+            positions, peak_wavelengths, ERV, resonance_parameters = self.SNAP.extract_ERV(self.number_of_peaks_to_search,
+                                                                                           self.min_peak_level,
+                                                                                        self.min_peak_distance,
+                                                                                        self.min_wave,
+                                                                                        self.max_wave,
+                                                                                        self.zero_wave,
+                                                                                        self.find_widths,
+                                                                                        self.N_points_for_fitting,
+                                                                                        self.iterate_different_N_points,
+                                                                                        self.max_N_points_for_fitting)#,self.iterating_cost_function_type)
+            path, FileName = os.path.split(self.spectrogram_file_path)
             NewFileName=path+'\\'+FileName.split('.')[-2]+'_ERV.pkl'
             with open(NewFileName,'wb') as f:
-                ERV_params={'R_0':self.SNAP.R_0, 'refractive_index':self.SNAP.refractive_index,'positions':positions,'peak_wavelengths':peak_wavelengths,'ERVs':ERV,'resonance_parameters':resonance_parameters,'fitting_parameters':self.get_parameters()}
+                ERV_params={'R_0':self.SNAP.R_0, 'refractive_index':self.SNAP.refractive_index,
+                            'positions':positions, 'peak_wavelengths':peak_wavelengths,
+                            'ERVs':ERV, 'resonance_parameters':resonance_parameters,
+                            'fitting_parameters':self.get_parameters()}
                 pickle.dump(ERV_params, f)
             
             
-            x=self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]
+            x = self.SNAP.positions[:, self.SNAP.axes_dict[self.SNAP.axis_key]]
             if self.figure_spectrogram is not None and self.indicate_ERV_on_spectrogram:
                 if len(self.figure_spectrogram.axes[0].lines)>1:
                     for line in self.figure_spectrogram.axes[0].lines[1:]: line.remove()
@@ -573,9 +598,8 @@ class Analyzer(QObject):
                     self.figure_spectrogram.axes[0].plot(x,peak_wavelengths[:,i])
                     line=self.figure_spectrogram.axes[0].plot(x,peak_wavelengths[:,i])
             
-            
-            if self.plot_results_separately:
-                self.plot_ERV_params(ERV_params,self.find_widths)
+            # if self.plot_results_separately:
+            #     self.plot_ERV_params(ERV_params,self.find_widths)
             
         
         def plot_ERV_params(self,params_dict:dict,find_widths=True):
@@ -646,7 +670,7 @@ class Analyzer(QObject):
             plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
             
-            print('R_0={},n={}'.format(params_dict['R_0'],params_dict['refractive_index']))
+            print(f'R_0 = {params_dict["R_0"]}, n = {params_dict["refractive_index"]}')
         
         
         def plot_ERV_from_file(self,file_name):
@@ -673,19 +697,31 @@ class Analyzer(QObject):
             if all(np.isnan(signal)):
                 print('Error. Signal is NAN only')
                 return
-            fitter=QuantumNumbersStructure.Fitter(waves,signal,self.min_peak_level,self.min_peak_distance,
-                                                  wave_min=None,wave_max=None,p_guess_array=[self.quantum_numbers_fitter_p_max],
+            fitter=QuantumNumbersStructure.Fitter(waves, signal, self.min_peak_level, self.min_peak_distance,
+                                                  wave_min=None, wave_max=None, p_guess_array=[self.quantum_numbers_fitter_p_max],
                                                   dispersion=self.quantum_numbers_fitter_dispersion,
                                                   polarization=self.quantum_numbers_fitter_polarizations,
-                                                  type_of_optimizer=self.quantum_numbers_fitter_type_of_optimizer)
+                                                  type_of_optimizer=self.quantum_numbers_fitter_type_of_optimizer,
+                                                  temperature= self.temperature)
             axes.plot(fitter.exp_resonances,fitter.signal[fitter.resonances_indexes],'.')
             self.single_spectrum_figure.canvas.draw()
-            # plt.show(block=False)
+            
             print('start finding quantum numbers...')
-            fitter.run()
+            fitter.run(self.cost_function_figure, self.cost_function_ax)
             print('quantum numbers found')
                     
-            resonances,labels=fitter.th_resonances.create_unstructured_list(self.quantum_numbers_fitter_polarizations)
+            resonances, labels = fitter.th_resonances.create_unstructured_list(self.quantum_numbers_fitter_polarizations)
+            
+            '''
+            Запись в файл для дальнейшего пользования
+            '''
+            filename = open('..\\polarizations.pkl', 'wb')
+            pickle.dump(labels, filename)
+            filename.close()
+            filename = open('..\\waves.pkl', 'wb')
+            pickle.dump(resonances, filename)
+            filename.close()
+            
             y_min,y_max=axes.get_ylim()
             for i,wave in enumerate(resonances):
                 if labels[i].split(',')[0]=='TM':
@@ -695,7 +731,6 @@ class Analyzer(QObject):
                 axes.axvline(wave,0,0.9,color=color)
                 y=y_min+(y_max-y_min)/fitter.th_resonances.pmax*float(labels[i].split(',')[2])
                 axes.annotate(labels[i],(wave,y))
-                # plt.show(block=True)
             axes.set_title('R_fitted={} nm, cost_function={}'.format(fitter.R_best,fitter.cost_best))
             self.single_spectrum_figure.canvas.draw()
             
