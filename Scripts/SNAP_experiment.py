@@ -214,7 +214,7 @@ class SNAP():
     def extract_ERV(self, number_of_peaks_to_search=1, min_peak_level=1,
                     min_peak_distance=10000, min_wave=0, max_wave=1e4, zero_wave=0,
                     find_widths=True, N_points_for_fitting=100,
-                    iterate_different_N_points=False, max_N_points_for_fitting=100):
+                    iterate_different_N_points=False, max_N_points_for_fitting=100, iterating_cost_function_type='linewidth'):
         '''
         analyze 2D spectrogram
         return position of several first (higher-wavelegth) main resonances. Number of resonances is defined by number_of_peaks_to_search
@@ -243,7 +243,7 @@ class SNAP():
     
             
         for Zind, Z in enumerate(range(0,Number_of_positions)):
-            peakind,_=scipy.signal.find_peaks(abs(self.transmission[:,Zind]-np.nanmean(self.transmission[:,Zind])),height=min_peak_level,distance=min_peak_distance)
+            peakind,_=scipy.signal.find_peaks(abs(self.signal[:,Zind]-np.nanmean(self.signal[:,Zind])),height=min_peak_level,distance=min_peak_distance)
             NewPeakind=np.extract((WavelengthArray[peakind]>min_wave) & (WavelengthArray[peakind]<max_wave),peakind)
             NewPeakind=NewPeakind[np.argsort(-WavelengthArray[NewPeakind])] ##sort in wavelength decreasing
             if len(NewPeakind)>0:
@@ -258,37 +258,39 @@ class SNAP():
                         if peak_wavelength is not np.nan:
                             index=NewPeakind[ii]
                             # try:
-                            if not iterate_different_N_points:
-                                if N_points_for_fitting==0:
-                                    fitting_parameters,_,_=get_Fano_fit(WavelengthArray, self.transmission[:,Zind],peak_wavelength)
-                                else:
-                                     i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
-                                     i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
-                                     fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Zind],peak_wavelength)
-                            else:
-                                N_points_for_fitting=10
-                                minimal_linewidth=max(WavelengthArray)-min(WavelengthArray)
-                                for N_points in np.arange(10,max_N_points_for_fitting,2):
-                                     i_min=0 if index-N_points<0 else index-N_points
-                                     i_max=number_of_spectral_points-1 if index+N_points>number_of_spectral_points-1 else index+N_points
-                                     fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Zind],peak_wavelength)
-                                     if (N_points%10==0): print('Z={},i_peak={},N_points={},linewidth={}'.format(Z,ii,N_points,fitting_parameters[3]))
-                                     if minimal_linewidth>fitting_parameters[3]:
-                                         minimal_linewidth=fitting_parameters[3]
-                                         N_points_for_fitting=N_points
+                            [non_res_transmission,Fano_phase, res_wavelength, depth,linewidth,delta_c,delta_0,N_points_for_fitting]=find_width(WavelengthArray,self.signal[:,Zind],peak_wavelength,N_points_for_fitting,iterate_different_N_points,max_N_points_for_fitting,iterating_cost_function_type)
+                            # if not iterate_different_N_points:
+                            #     if N_points_for_fitting==0:
+                            #         fitting_parameters,_,_,_=get_Fano_fit(WavelengthArray, self.signal[:,Zind],peak_wavelength)
+                            #     else:
+                            #          i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
+                            #          i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
+                            #          fitting_parameters,_,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.signal[i_min:i_max,Zind],peak_wavelength)
+                            # else:
+                            #     N_points_for_fitting=10
+                            #     minimal_linewidth=max(WavelengthArray)-min(WavelengthArray)
+                            #     for N_points in np.arange(10,max_N_points_for_fitting,2):
+                            #          i_min=0 if index-N_points<0 else index-N_points
+                            #          i_max=number_of_spectral_points-1 if index+N_points>number_of_spectral_points-1 else index+N_points
+                            #          fitting_parameters,_,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.signal[i_min:i_max,Zind],peak_wavelength)
+                            #          if (N_points%10==0): print('Z={},i_peak={},N_points={},linewidth={}'.format(Z,ii,N_points,fitting_parameters[3]))
+                            #          if minimal_linewidth>fitting_parameters[3]:
+                            #              minimal_linewidth=fitting_parameters[3]
+                            #              N_points_for_fitting=N_points
                                          
-                                i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
-                                i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
-                                fitting_parameters,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.transmission[i_min:i_max,Zind],peak_wavelength)
-                            [non_res_transmission, Fano_phase, resonance_position,linewidth,depth]=fitting_parameters
-                            delta_coupling=depth/2*lambda_to_nu #MHz/nm
-                            delta_0=(linewidth/2-depth/2)*lambda_to_nu #MHz/nm
+                            #     i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
+                            #     i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
+                            #     fitting_parameters,_,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.signal[i_min:i_max,Zind],peak_wavelength)
+                            # [non_res_transmission, Fano_phase, resonance_position,linewidth,depth]=res
+                            # delta_coupling=depth/2*lambda_to_nu #MHz/nm
+                            # delta_0=(linewidth/2-depth/2)*lambda_to_nu #MHz/nm
+                            
                             resonance_parameters_array[Zind,ii]=([non_res_transmission,Fano_phase,
-                                                                  depth,linewidth,delta_coupling,delta_0,N_points_for_fitting])
+                                                                  depth,linewidth,delta_c,delta_0,N_points_for_fitting])
         ERV = (PeakWavelengthArray-zero_wave)/zero_wave*self.R_0*self.refractive_index*1e3
-        print(f'wavelengths is\n{PeakWavelengthArray}\nAnalyzing finished')
+        print('Analyzing finished')
 
-        resonance_parameters_array=np.array(resonance_parameters_array)
+        # resonance_parameters_array=np.array(resonance_parameters_array)
         return x, np.array(PeakWavelengthArray), np.array(ERV), resonance_parameters_array
 
 
@@ -350,7 +352,7 @@ def find_width(waves,signal,peak_wavelength,N_points_for_fitting=0,iterate_diffe
              i_max=number_of_spectral_points-1 if index+N_points>number_of_spectral_points-1 else index+N_points
              fitting_parameters,_,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
              [transmission,phase,peak_wavelength,delta_0,delta_c]=fitting_parameters
-             linewidth=(delta_0+delta_c)*2/lambda_to_nu
+             linewidth=(delta_0+delta_c)*2/lambda_to_omega
              
              
              if iterating_cost_function_type=='linewidth':
@@ -494,13 +496,10 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     os.chdir('..')
     
-    f='1.cSNAP'
+    f='1.SNAP'
     with open(f,'rb') as file:
         S=pickle.load(file)
-        # Temp=Snap.extract_ERV(find_widths=False)    
-    
-    S.switch_signal_type('first polarization')
+    [x, peaks, ERV, resonance_parameters_array]=S.extract_ERV(find_widths=True)   
     plt.figure(1)
-    plt.plot(S.wavelengths,S.signal[:,3])
-    S.switch_signal_type('second polarization')
-    plt.plot(S.wavelengths,S.signal[:,3])
+    plt.plot(x,peaks)
+

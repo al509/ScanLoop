@@ -11,6 +11,7 @@ import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 import matplotlib
 from PyQt5.QtCore import QObject
 import pickle
@@ -67,8 +68,10 @@ class Analyzer(QObject):
             self.quantum_numbers_fitter_dispersion=False
             self.quantum_numbers_fitter_p_max=3
             self.quantum_numbers_fitter_polarizations='both'
+            
 
             self.temperature = 20            
+            self.quantum_numbers_fitter_vary_temperature=False
             
             self.SNAP = None          
             
@@ -574,7 +577,9 @@ class Analyzer(QObject):
                                                                                         self.find_widths,
                                                                                         self.N_points_for_fitting,
                                                                                         self.iterate_different_N_points,
-                                                                                        self.max_N_points_for_fitting)#,self.iterating_cost_function_type)
+                                                                                        self.max_N_points_for_fitting,
+                                                                                        self.iterating_cost_function_type)
+
             path, FileName = os.path.split(self.spectrogram_file_path)
             NewFileName=path+'\\'+FileName.split('.')[-2]+'_ERV.pkl'
             with open(NewFileName,'wb') as f:
@@ -598,8 +603,8 @@ class Analyzer(QObject):
                     self.figure_spectrogram.axes[0].plot(x,peak_wavelengths[:,i])
                     line=self.figure_spectrogram.axes[0].plot(x,peak_wavelengths[:,i])
             
-            # if self.plot_results_separately:
-            #     self.plot_ERV_params(ERV_params,self.find_widths)
+            if self.plot_results_separately:
+                self.plot_ERV_params(ERV_params,self.find_widths)
             
         
         def plot_ERV_params(self,params_dict:dict,find_widths=True):
@@ -658,15 +663,15 @@ class Analyzer(QObject):
             plt.figure()
             plt.title('$\delta_0$ and $\delta_c$')
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,resonance_parameters_array[:,i,5],color='blue')
+                plt.plot(positions,resonance_parameters_array[:,i,4],color='blue')
             plt.xlabel('Distance, $\mu$m')
-            plt.ylabel('$\delta_c$, MHz',color='blue')
+            plt.ylabel('$\delta_c$,  $10^6$ 1/s',color='blue')
             plt.gca().tick_params(axis='y', colors='blue')
             plt.gca().twinx()
             # plt.figure()
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,resonance_parameters_array[:,i,6], color='red')
-            plt.ylabel('$\delta_0$, MHz',color='red')
+                plt.plot(positions,resonance_parameters_array[:,i,5], color='red')
+            plt.ylabel('$\delta_0$,  $10^6$ 1/s',color='red')
             plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
             
@@ -702,7 +707,7 @@ class Analyzer(QObject):
                                                   dispersion=self.quantum_numbers_fitter_dispersion,
                                                   polarization=self.quantum_numbers_fitter_polarizations,
                                                   type_of_optimizer=self.quantum_numbers_fitter_type_of_optimizer,
-                                                  temperature= self.temperature)
+                                                  temperature= self.temperature,vary_temperature=self.quantum_numbers_fitter_vary_temperature)
             axes.plot(fitter.exp_resonances,fitter.signal[fitter.resonances_indexes],'.')
             self.single_spectrum_figure.canvas.draw()
             
@@ -712,16 +717,31 @@ class Analyzer(QObject):
                     
             resonances, labels = fitter.th_resonances.create_unstructured_list(self.quantum_numbers_fitter_polarizations)
             
+            
+            print('N_exp=%d , N_th=%d,R=%f,p_max=%d, cost_function=%f' % (len(fitter.exp_resonances),fitter.th_resonances.N_of_resonances['Total'],fitter.R_best,fitter.p_best, fitter.cost_best))
+            plt.figure()
+            if fitter.vary_temperature:
+                plt.pcolor(fitter.T_array,fitter.R_array,fitter.cost_function_array, norm=LogNorm())
+                plt.title('cost function VS R and T')
+                plt.colorbar()
+            else:
+                plt.plot(fitter.R_array,fitter.cost_function_array[:,0])
+                plt.gca().set_yscale('log')
+                plt.title('cost function VS R')
+            
             '''
             Запись в файл для дальнейшего пользования
             '''
-            filename = open('..\\polarizations.pkl', 'wb')
-            pickle.dump(labels, filename)
-            filename.close()
-            filename = open('..\\waves.pkl', 'wb')
-            pickle.dump(resonances, filename)
-            filename.close()
+            path,FileName = os.path.split(self.single_spectrum_path)
+            with open(path+'\\polarizations.pkl', 'wb') as f:
+                pickle.dump(labels, f)
+            with open(path+'\\found resonances.pkl', 'wb') as f:
+                pickle.dump(resonances, f)
+
             
+            '''
+            Plotting to the single spectrum
+            '''
             y_min,y_max=axes.get_ylim()
             for i,wave in enumerate(resonances):
                 if labels[i].split(',')[0]=='TM':
@@ -731,8 +751,11 @@ class Analyzer(QObject):
                 axes.axvline(wave,0,0.9,color=color)
                 y=y_min+(y_max-y_min)/fitter.th_resonances.pmax*float(labels[i].split(',')[2])
                 axes.annotate(labels[i],(wave,y))
-            axes.set_title('R_fitted={} nm, cost_function={}'.format(fitter.R_best,fitter.cost_best))
+            axes.set_title('R_fitted={} nm, T_best={} cost_function={}'.format(fitter.R_best,fitter.T_best,fitter.cost_best))
             self.single_spectrum_figure.canvas.draw()
+            
+
+            
             
             
                 
@@ -746,9 +769,12 @@ if __name__ == "__main__":
     
     
     #%%
-    a=Analyzer()
+    
+    
     os.chdir('..')
-    a.load_data('ProcessedData\\Processed_spectrogram.cSNAP')
+
+    a=Analyzer()
+    a.load_data('1.SNAP')
     a.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
     
     # analyzer.plot_spectrogram()
@@ -762,6 +788,7 @@ if __name__ == "__main__":
     a.find_widths=True
     a.plot_results_separately=True
     a.plot_spectrogram()
+    a.extract_ERV()
     
     # analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\test.laserdata'
     # analyzer.plot_single_spectrum_from_file()

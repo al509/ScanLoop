@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__date__='2022.05.19'
+__date__='2022.09.09'
 
 import os
 if __name__=='__main__':
@@ -263,7 +263,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_set_analyzer_parameters.clicked.connect(self.on_pushButton_set_analyzer_parameters)
         # self.ui.pushButton_analyzer_save_as_pkl3d.clicked.connect(lambda: self.analyzer.save_as_pkl3d())
         
-        self.ui.pushButton_analyzer_save_cropped.clicked.connect(lambda: self.analyzer.save_cropped_data())
+        # self.ui.pushButton_analyzer_save_cropped.clicked.connect(lambda: self.analyzer.save_cropped_data())
 
 # =============================================================================
 #         Pure Photonics Tunable laser

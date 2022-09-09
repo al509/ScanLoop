@@ -644,37 +644,10 @@ p, li { white-space: pre-wrap; }
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBox_quantum_numbers_fitter_dispersion">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>20</y>
-       <width>91</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>7</pointsize>
-      </font>
-     </property>
-     <property name="whatsThis">
-      <string comment="Plot results on new figures"/>
-     </property>
-     <property name="text">
-      <string>dispersion</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
     <widget class="QComboBox" name="comboBox_quantum_numbers_fitter_polarizations">
      <property name="geometry">
       <rect>
-       <x>370</x>
+       <x>260</x>
        <y>20</y>
        <width>69</width>
        <height>22</height>
@@ -694,7 +667,7 @@ p, li { white-space: pre-wrap; }
     <widget class="QLabel" name="label_37">
      <property name="geometry">
       <rect>
-       <x>270</x>
+       <x>170</x>
        <y>20</y>
        <width>81</width>
        <height>21</height>
@@ -710,7 +683,7 @@ p, li { white-space: pre-wrap; }
     <widget class="QLabel" name="label_38">
      <property name="geometry">
       <rect>
-       <x>250</x>
+       <x>170</x>
        <y>60</y>
        <width>101</width>
        <height>21</height>
@@ -726,7 +699,7 @@ p, li { white-space: pre-wrap; }
     <widget class="QComboBox" name="comboBox_quantum_numbers_fitter_type_of_optimizer">
      <property name="geometry">
       <rect>
-       <x>370</x>
+       <x>260</x>
        <y>60</y>
        <width>69</width>
        <height>22</height>
@@ -773,6 +746,60 @@ p, li { white-space: pre-wrap; }
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBox_quantum_numbers_fitter_dispersion">
+     <property name="geometry">
+      <rect>
+       <x>350</x>
+       <y>20</y>
+       <width>111</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>7</pointsize>
+      </font>
+     </property>
+     <property name="whatsThis">
+      <string comment="Plot results on new figures"/>
+     </property>
+     <property name="text">
+      <string>consider dispersion</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+     <property name="tristate">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBox_quantum_numbers_fitter_vary_temperature">
+     <property name="geometry">
+      <rect>
+       <x>350</x>
+       <y>60</y>
+       <width>111</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>7</pointsize>
+      </font>
+     </property>
+     <property name="whatsThis">
+      <string comment="Plot results on new figures"/>
+     </property>
+     <property name="text">
+      <string>vary temperature</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+     <property name="tristate">
+      <bool>false</bool>
      </property>
     </widget>
    </widget>

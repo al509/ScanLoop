@@ -329,8 +329,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>426</height>
+             <width>98</width>
+             <height>118</height>
             </rect>
            </property>
            <attribute name="label">
@@ -647,8 +647,8 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-99</y>
-             <width>283</width>
+             <y>0</y>
+             <width>98</width>
              <height>700</height>
             </rect>
            </property>
@@ -1385,8 +1385,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>426</height>
+             <width>98</width>
+             <height>28</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1802,19 +1802,6 @@
               <string>as</string>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton_analyzer_save_cropped">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>50</y>
-               <width>111</width>
-               <height>23</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Save cropped </string>
-             </property>
-            </widget>
            </widget>
            <widget class="QGroupBox" name="groupBox_8">
             <property name="geometry">
@@ -1958,7 +1945,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>98</width>
              <height>500</height>
             </rect>
            </property>

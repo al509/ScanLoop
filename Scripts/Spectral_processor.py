@@ -2,8 +2,8 @@
 '''
 Making single SNAP object (or complex matrix Jones-based SNAP object) from the bunch of the files 
 '''
-__version__='2.2'
-__date__='2022.08.27'
+__version__='2.3'
+__date__='2022.09.09'
 
 import os,sys
 import numpy as np
@@ -210,6 +210,8 @@ class Spectral_processor(QObject):
                 elif 'out_of_contact' not in file:
                     ContactFileList.append(file)
                     
+        if len(ContactFileList)==0:
+            print('Error. No files found with specified parameters. Please recheck')
 
         '''
         legacy code
@@ -332,9 +334,9 @@ class Spectral_processor(QObject):
                 if self.isInterpolation:
                     SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(signal,wavelengths,MainWavelengths)
                 else:
-                    SmallSignalArray[:,jj]=signal
+                    SmallSignalArray[:,jj]=np.array(signal,ndmin=1)
                 if self.use_out_of_contact_data and self.type_of_input_data!='bin':
-                    SmallSignalArray[:,jj]-=OutOfContactSignal
+                    SmallSignalArray[:,jj]-=np.array(OutOfContactSignal,ndmin=1)
 
           
             '''

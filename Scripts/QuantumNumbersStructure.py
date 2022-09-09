@@ -6,7 +6,7 @@
 #See formula A3 for lambda_m_p
 ########
 
-__version__='3.7'
+__version__='3.8'
 __date__='2022.09.09'
 
  
@@ -18,13 +18,19 @@ from scipy.signal import find_peaks
 import scipy.optimize as sciopt
 from scipy.fftpack import rfft, irfft, fftfreq
 import pickle
+from numba import jit
 
 
-R_MIN = 61.8e3  #  В нанометрах (?) / Предыдущее значение 61e3
-R_MAX = 63.2e3  #  В нанометрах (?) / Предыдущее значение 64e3
 
-T_MIN = 17  #  В градусах Цельсия
-T_MAX = 24  #  В градусах Цельсия
+
+R_MIN = 62e3  #  В нанометрах (?) / Предыдущее значение 61e3
+R_MAX = 63e3  #  В нанометрах (?) / Предыдущее значение 64e3
+R_step=3
+
+
+T_MIN = 18  #  В градусах Цельсия
+T_MAX = 25  #  В градусах Цельсия
+T_step=0.5
 
 c = 299792458  #  m/s
 thermal_optical_responce = 1.25e9  #  Hz/Celcium, detuning of the effective_ra
@@ -39,7 +45,7 @@ thermal_responses={# thermal optical coefficient, linear expansion coefficient
 
 REFRACTION = 1.4445
 
-
+@jit(nopython=True) # Set "nopython" mode for best performance, equivalent to @njit
 def SellmeierCoefficientsCalculating(material, T):
     T = T + 273
     sellmeier_coeffs = []
@@ -74,7 +80,7 @@ def airy_zero(p):
        -7.944133587120853123138,-9.022650853340980380158,-10.0401743415580859306,-11.00852430373326289324]
     return t[p-1]
 
-
+# @jit(nopython=True) # Set "nopython" mode for best performance, equivalent to @njit
 def T(m,p):
     a=airy_zero(p)
     T = m-a*(m/2)**(1/3)+3/20*a**2*(m/2)**(-1/3) \
@@ -297,7 +303,7 @@ class Fitter():
     def __init__(self,
                  wavelengths,signal,peak_depth,peak_distance,wave_min=None,wave_max=None,
                  p_guess_array=None,dispersion=True,simplified=False,polarization='both',
-                 FFT_filter=False, type_of_optimizer='bruteforce', temperature=20):
+                 FFT_filter=False, type_of_optimizer='bruteforce', temperature=20,vary_temperature=False):
         
         p_guess_max=5
         
@@ -321,7 +327,15 @@ class Fitter():
         self.polarizations=polarization
         self.material_dispersion=dispersion
         self.type_of_optimizer=type_of_optimizer
-        self.temperature=temperature
+        
+        self.vary_temperature=vary_temperature
+        
+        self.R_array=np.arange(R_MIN, R_MAX, R_step)
+        if vary_temperature:
+            self.T_array=np.arange(T_MIN,T_MAX, T_step)
+        else:
+            self.T_array=np.array(temperature,ndmin=1)
+        self.cost_function_array=None
         
         self.cost_best=1e3
         self.n_best, self.R_best, self.p_best, self.th_resonances, self.T_best = None, None, None, None, None
@@ -341,17 +355,18 @@ class Fitter():
                             args=p,method='Nelder-Mead',options={'maxiter':1000},tol=1e-11)
             elif self.type_of_optimizer=='bruteforce':
                 res = bruteforce_optimizer(self.cost_function, figure, ax,
-                                          args=(p, REFRACTION),
-                                          R_bounds=(R_MIN, R_MAX), R_step=2,
-                                          T_bounds = (T_MIN, T_MAX), T_step=0.5)
+                                          (p, REFRACTION),
+                                          self.R_array, 
+                                          self.T_array)
             
-            print(f'p = {res}')
+            # print(f'p = {res}')
             if res['fun']<self.cost_best:
                 self.cost_best = res['fun']
                 self.n_best = res['x'][0]
                 self.R_best = res['x'][1]
                 self.T_best = res['x'][2]
                 self.p_best = p
+                self.cost_function_array=res['cost_function_array']
         self.th_resonances=Resonances(self.wave_min, self.wave_max,
                                       self.n_best, self.R_best, self.p_best,
                                       self.material_dispersion, temperature=self.T_best)
@@ -414,44 +429,51 @@ def CostFunctionPlotCreation():
     return figure, ax
 '''
 
-def bruteforce_optimizer(f, figure, ax, args, R_bounds, R_step, T_bounds, T_step):
+def bruteforce_optimizer(f, figure, ax, args, R_array, T_array):
     p, n = args
     cost_best = 1e5
-    R_best = None
-    T_best = None
+    R_best = R_array[0]
+    T_best = T_array[0]
     # colors = ['gold', 'aqua', 'violet', 'lawngreen', 'gray', 'tomato',
     #           'darkgreen', 'teal', 'indigo', 'crimson', 'bisque', 'deepskyblue',
     #           'black', 'olive', 'rosybrown']
     ind = 0
-    for current_T in np.arange(T_bounds[0], T_bounds[1], T_step):
-        for current_R in np.arange(R_bounds[0], R_bounds[1], R_step):
+
+    cost_function_array=np.zeros((np.size(R_array),np.size(T_array)))
+    for jj,current_R in enumerate(R_array):
+        for ii,current_T in enumerate(T_array):
             cost = f((n, current_R, current_T), p)
+            cost_function_array[jj,ii]=cost
             if cost < cost_best:
                 cost_best = cost
                 R_best = current_R
                 T_best = current_T
+     
+                
             # ax.scatter(current_R, cost, color=colors[ind], s=8)
             print(f'R = {current_R}, T = {current_T}, Cost = {cost}')
         ind = ind + 1
-    return {'x':(n, R_best, T_best),'fun':cost_best}
+
+    return {'x':(n, R_best, T_best),'fun':cost_best,'cost_function_array':cost_function_array}
+
         
             
 
 if __name__=='__main__':
     # print(lambda_m_p(m=354,p=1,polarization='TM',n=1.445,R=62.5e3,dispersion=True))
     wave_min = 1540
-    # wave_max = 1582
-    # n = REFRACTION
-    # R = 62514
-    # p_max = 3
-    # medium='SiO2'
-    # shape='cylinder'
-    # material_dispersion=True
-    # resonances=Resonances(wave_min, wave_max, n, R, p_max, material_dispersion,shape,medium, temperature=20)
-    # figure = plt.figure()
-    # resonances.plot_all(-3, 3, 'both')
-    # print(SellmeierCoefficientsCalculating('SiO2', 293))
-    # resonances.plot_int_dispersion(polarization='TM',p=1)
+    wave_max = 1582
+    n = REFRACTION
+    R = 62514
+    p_max = 3
+    medium='SiO2'
+    shape='cylinder'
+    material_dispersion=True
+    resonances=Resonances(wave_min, wave_max, n, R, p_max, material_dispersion,shape,medium, temperature=20)
+    figure = plt.figure()
+    resonances.plot_all(-3, 3, 'both')
+    print(SellmeierCoefficientsCalculating('SiO2', 293))
+    resonances.plot_int_dispersion(polarization='TM',p=1)
     
     # single_spectrum_path = '..\\TMP_folder\\WGM_data\\Test_2_at_25.0.pkl'
     # with open(single_spectrum_path,'rb') as f:
