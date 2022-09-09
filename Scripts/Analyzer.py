@@ -4,8 +4,8 @@
 
 
 """
-__version__='2.1'
-__date__='2022.08.24'
+__version__='2.2'
+__date__='2022.09.09'
 
 import os
 import sys
@@ -224,7 +224,7 @@ class Analyzer(QObject):
                     pickle.dump(D,f)
                 print('spectrogram saved as ' +NewFileName)
 
-<
+
                         
         # def save_cropped_data(self):
         #     x_lim=self.figure_spectrogram.axes[0].get_xlim() #positions

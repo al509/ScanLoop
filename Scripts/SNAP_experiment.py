@@ -7,8 +7,8 @@ matplotlib 3.4.2 is needed!
 """
 
 
-__version__='11.3'
-__date__='2022.08.27'
+__version__='11.4'
+__date__='2022.09.09'
 
 import numpy as np
 import matplotlib.pyplot as plt
