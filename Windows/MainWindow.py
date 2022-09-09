@@ -1079,7 +1079,7 @@ class MainWindow(ThreadedMainWindow):
     
 
     def choose_file_for_analyzer(self):
-        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl *.pkl3d *.SNAP' )).split("\',")[0].split("('")[1]
+        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl *.pkl3d *.SNAP *.cSNAP' )).split("\',")[0].split("('")[1]
         if DataFilePath=='':
             print('file is not chosen or previous choice is preserved')
         self.analyzer.spectrogram_file_path=DataFilePath

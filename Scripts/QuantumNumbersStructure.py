@@ -6,8 +6,8 @@
 #See formula A3 for lambda_m_p
 ########
 
-__version__='3.6'
-__date__='2022.07.19'
+__version__='3.7'
+__date__='2022.09.09'
 
  
 import numpy as np
@@ -436,6 +436,7 @@ def bruteforce_optimizer(f, figure, ax, args, R_bounds, R_step, T_bounds, T_step
     return {'x':(n, R_best, T_best),'fun':cost_best}
         
             
+
 if __name__=='__main__':
     # print(lambda_m_p(m=354,p=1,polarization='TM',n=1.445,R=62.5e3,dispersion=True))
     wave_min = 1540
@@ -471,3 +472,13 @@ if __name__=='__main__':
     # #fitter=Fitter(Temp[:,0],Temp[:,1],0.8,100,p_guess_array=[3],polarization='single',dispersion=True, temperature=25)
     # fitter.run()
     # fitter.plot_results()
+
+    # filename="F:\!Projects\!SNAP system\Modifications\Wire heating\dump_data_at_-2600.0.pkl"
+    # import pickle
+    # with open(filename,'rb') as f:
+    #     Temp=pickle.load(f)
+    # fitter=Fitter(Temp[:,0],Temp[:,1],0.8,100,p_guess_array=[3],polarization='single',dispersion=True, temperature=25)
+    # fitter.run()
+    # fitter.plot_results()
+
+

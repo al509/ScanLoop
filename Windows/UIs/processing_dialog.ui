@@ -66,7 +66,7 @@
        </widget>
       </item>
       <item row="8" column="0">
-       <widget class="QCheckBox" name="checkBox_is_remove_background_out_of_contact">
+       <widget class="QCheckBox" name="checkBox_use_out_of_contact_data">
         <property name="text">
          <string>Out _of_contact data</string>
         </property>
@@ -148,6 +148,11 @@
         <item>
          <property name="text">
           <string>SNAP</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>cSNAP</string>
          </property>
         </item>
         <item>
