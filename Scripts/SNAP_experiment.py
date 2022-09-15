@@ -7,8 +7,8 @@ matplotlib 3.4.2 is needed!
 """
 
 
-__version__='11.4'
-__date__='2022.09.09'
+__version__='11.5'
+__date__='2022.09.15'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -294,7 +294,36 @@ class SNAP():
         return x, np.array(PeakWavelengthArray), np.array(ERV), resonance_parameters_array
 
 
+    def get_modes_parameters(self, min_peak_level=1,
+                min_peak_distance=10000, 
+                N_points_for_fitting=50,
+                iterate_different_N_points=False, max_N_points_for_fitting=100, iterating_cost_function_type='linewidth'):
+        if N_points_for_fitting!=0:
+            window=N_points_for_fitting
+        else:
+            window=50
+        mode_wavelengths=self.find_modes()
+        modes_parameters=[]
+        x_array=self.positions[:,self.axes_dict[self.axis_key]]
+
+        for central_wavelength in mode_wavelengths:
+            print("process mode at {} nm".format(central_wavelength))
+            ind_max=np.argmin(abs(self.wavelengths-central_wavelength))+window
+            ind_min=np.argmin(abs(self.wavelengths-central_wavelength))-window
+            signal=self.signal[ind_min:ind_max,:]
+            waves=self.wavelengths[ind_min:ind_max]
+            resonance_parameters_array=np.empty((len(x_array),7))
+            for jj,_ in enumerate(x_array):
+                [non_res_transmission,Fano_phase, res_wavelength, depth,linewidth,delta_c,delta_0,best_N_points_for_fitting]=find_width(waves,signal[:,jj],central_wavelength,N_points_for_fitting,iterate_different_N_points,max_N_points_for_fitting,iterating_cost_function_type)
+                resonance_parameters_array[jj,:]=[non_res_transmission,Fano_phase,
+                                                                  depth,linewidth,delta_c,delta_0,best_N_points_for_fitting]
+            D={'mode':central_wavelength,'parameters':resonance_parameters_array}
+            modes_parameters.append(D)
+        return modes_parameters
+            
+            
     
+   
 def extract_taper_jones_matrixes(jones_matrixes,out_of_contact_jones_matrixes):
     '''
     Parameters
@@ -499,7 +528,25 @@ if __name__ == "__main__":
     f='1.SNAP'
     with open(f,'rb') as file:
         S=pickle.load(file)
-    [x, peaks, ERV, resonance_parameters_array]=S.extract_ERV(find_widths=True)   
+    T=S.find_modes()
+    T2=S.get_modes_parameters(iterate_different_N_points=False)
     plt.figure(1)
-    plt.plot(x,peaks)
+    ax1=plt.gca()
+    plt.figure(2)
+    ax2=plt.gca()
+    plt.figure(3)
+    ax3=plt.gca()
+    for D in T2:
+        ax1.plot(D['parameters'][:,3],label=D['mode'])
+        ax2.plot(D['parameters'][:,4],label=D['mode'])
+        ax3.plot(D['parameters'][:,5],label=D['mode'])
+    ax1.legend()
+    ax2.legend()
+    ax3.legend()
+    ax1.set_ylabel('Linewidth, nm')
+    ax2.set_ylabel('delta_c, 1e6 1/s')
+    ax3.set_ylabel('delta_0, 1e6 1/s')
+    # [x, peaks, ERV, resonance_parameters_array]=S.extract_ERV(find_widths=True)   
+    # plt.figure(1)
+    # plt.plot(x,peaks)
 

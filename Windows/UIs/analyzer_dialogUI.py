@@ -92,7 +92,7 @@ class Ui_Dialog(object):
         self.label_33.setObjectName("label_33")
         self.lineEdit_N_points_for_fitting = QtWidgets.QLineEdit(self.groupBox_4)
         self.lineEdit_N_points_for_fitting.setEnabled(True)
-        self.lineEdit_N_points_for_fitting.setGeometry(QtCore.QRect(60, 30, 21, 21))
+        self.lineEdit_N_points_for_fitting.setGeometry(QtCore.QRect(60, 30, 41, 21))
         self.lineEdit_N_points_for_fitting.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.lineEdit_N_points_for_fitting.setObjectName("lineEdit_N_points_for_fitting")
         self.label_35 = QtWidgets.QLabel(self.groupBox_4)
