@@ -7,8 +7,8 @@ matplotlib 3.4.2 is needed!
 """
 
 
-__version__='11.5'
-__date__='2022.09.15'
+__version__='11.6'
+__date__='2022.09.19'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -257,34 +257,8 @@ class SNAP():
                     for ii,peak_wavelength in enumerate(shortWavArray):
                         if peak_wavelength is not np.nan:
                             index=NewPeakind[ii]
-                            # try:
                             [non_res_transmission,Fano_phase, res_wavelength, depth,linewidth,delta_c,delta_0,N_points_for_fitting]=find_width(WavelengthArray,self.signal[:,Zind],peak_wavelength,N_points_for_fitting,iterate_different_N_points,max_N_points_for_fitting,iterating_cost_function_type)
-                            # if not iterate_different_N_points:
-                            #     if N_points_for_fitting==0:
-                            #         fitting_parameters,_,_,_=get_Fano_fit(WavelengthArray, self.signal[:,Zind],peak_wavelength)
-                            #     else:
-                            #          i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
-                            #          i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
-                            #          fitting_parameters,_,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.signal[i_min:i_max,Zind],peak_wavelength)
-                            # else:
-                            #     N_points_for_fitting=10
-                            #     minimal_linewidth=max(WavelengthArray)-min(WavelengthArray)
-                            #     for N_points in np.arange(10,max_N_points_for_fitting,2):
-                            #          i_min=0 if index-N_points<0 else index-N_points
-                            #          i_max=number_of_spectral_points-1 if index+N_points>number_of_spectral_points-1 else index+N_points
-                            #          fitting_parameters,_,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.signal[i_min:i_max,Zind],peak_wavelength)
-                            #          if (N_points%10==0): print('Z={},i_peak={},N_points={},linewidth={}'.format(Z,ii,N_points,fitting_parameters[3]))
-                            #          if minimal_linewidth>fitting_parameters[3]:
-                            #              minimal_linewidth=fitting_parameters[3]
-                            #              N_points_for_fitting=N_points
-                                         
-                            #     i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
-                            #     i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
-                            #     fitting_parameters,_,_,_=get_Fano_fit(WavelengthArray[i_min:i_max], self.signal[i_min:i_max,Zind],peak_wavelength)
-                            # [non_res_transmission, Fano_phase, resonance_position,linewidth,depth]=res
-                            # delta_coupling=depth/2*lambda_to_nu #MHz/nm
-                            # delta_0=(linewidth/2-depth/2)*lambda_to_nu #MHz/nm
-                            
+                  
                             resonance_parameters_array[Zind,ii]=([non_res_transmission,Fano_phase,
                                                                   depth,linewidth,delta_c,delta_0,N_points_for_fitting])
         ERV = (PeakWavelengthArray-zero_wave)/zero_wave*self.R_0*self.refractive_index*1e3
@@ -422,6 +396,7 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
     return [transmission, Fano_phase, resonance_position,delta_0,delta_c], [x_fitted,y_fitted]
     
     '''
+    in_linear_scale=False
     signal_lin=10**(signal/10)
     transmission=np.mean(signal_lin)
     if peak_wavelength is None:
@@ -440,14 +415,17 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
     bounds=((0,-1,peak_wavelength_lower_bound,0,0),(1,1,peak_wavelength_higher_bound,np.inf,np.inf))
     
     try:
-        popt, pcov=scipy.optimize.curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds)
+        if in_linear_scale:
+            popt, pcov=scipy.optimize.curve_fit(linear_Fano_lorenzian,waves,signal_lin,p0=initial_guess,bounds=bounds)
+        else:
+            popt, pcov=scipy.optimize.curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds)
         return popt,pcov, waves, Fano_lorenzian(waves,*popt)
     except RuntimeError as E:
         pass
         print(E)
         return initial_guess,0,waves,Fano_lorenzian(waves,*initial_guess)
     
-    # @njit
+# @njit
 def get_complex_Fano_fit(waves,signal,peak_wavelength=None,height=None):
     '''
     fit shape, given in lin scale, with  complex Lorenzian 
@@ -498,7 +476,7 @@ def complex_Fano_lorenzian(w,transmission,total_phase,fano_phase,w0,delta_0,delt
     '''
     delta_0, delta_c is in 2pi*MHz or 1e6/s
     '''
-    return np.exp(1j*total_phase*np.pi)*(transmission*np.exp(1j*fano_phase*np.pi) - 2*delta_c/(-1j*(w0-w)*lambda_to_omega+(delta_0+delta_c)))
+    return np.exp(1j*total_phase*np.pi)*(transmission*np.exp(1j*fano_phase*np.pi) - transmission*2*delta_c/(-1j*(w0-w)*lambda_to_omega+(delta_0+delta_c)))
      
     
 @njit
@@ -511,7 +489,21 @@ def Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c,scale='log'):
     delta_0, delta_c is in 2pi*MHz or 1e6/s
     '''
     
-    return 10*np.log10(np.abs(transmission*np.exp(1j*phase*np.pi) - 2*delta_c/(1j*(w0-w)*lambda_to_omega+(delta_0+delta_c)))**2) 
+    return 10*np.log10(np.abs(transmission*np.exp(1j*phase*np.pi) - transmission*2*delta_c/(1j*(w0-w)*lambda_to_omega+(delta_0+delta_c)))**2) 
+
+    
+@njit
+def linear_Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c):
+    '''
+    return log of Fano shape
+
+    Modified formula (9.19), p.253 by Gorodetsky
+    w is wavelength
+    delta_0, delta_c is in 2pi*MHz or 1e6/s
+    '''
+    
+    return np.abs(transmission*np.exp(1j*phase*np.pi) - transmission*2*delta_c/(1j*(w0-w)*lambda_to_omega+(delta_0+delta_c)))**2
+
 
 if __name__ == "__main__":
     '''
