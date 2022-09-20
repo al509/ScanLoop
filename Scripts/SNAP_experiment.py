@@ -7,8 +7,8 @@ matplotlib 3.4.2 is needed!
 """
 
 
-__version__='11.6'
-__date__='2022.09.19'
+__version__='11.7'
+__date__='2022.09.20'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -46,6 +46,7 @@ class SNAP():
         self.refractive_index=1.45
         self.wavelengths=wavelengths
         self.positions=None # whole three dimensions, in microns!
+        
         
         if jones_matrixes_used is False:
             self.signal=signal
@@ -97,9 +98,9 @@ class SNAP():
             ERV=f(x_ERV)
         return x_ERV,ERV,lambda_0
 
-    def find_modes(self,prominence_factor=2):
+    def find_modes(self,peak_height=2,  min_peak_distance=10000):
         T_shrinked=np.nanmean(abs(self.signal-np.nanmean(self.signal,axis=0)),axis=1)
-        mode_indexes,_=scipy.signal.find_peaks(T_shrinked,prominence=prominence_factor*bn.nanstd(T_shrinked))
+        mode_indexes,_=scipy.signal.find_peaks(T_shrinked,height=peak_height,distance=min_peak_distance)
         mode_wavelengths=np.sort(self.wavelengths[mode_indexes])
         mode_wavelengths=np.array([x for x in mode_wavelengths if x>self.lambda_0])
         self.mode_wavelengths=mode_wavelengths
@@ -268,18 +269,20 @@ class SNAP():
         return x, np.array(PeakWavelengthArray), np.array(ERV), resonance_parameters_array
 
 
-    def get_modes_parameters(self, min_peak_level=1,
-                min_peak_distance=10000, 
-                N_points_for_fitting=50,
-                iterate_different_N_points=False, max_N_points_for_fitting=100, iterating_cost_function_type='linewidth'):
+    def get_modes_parameters(self, min_peak_level,
+                min_peak_distance, 
+                N_points_for_fitting,
+                iterate_different_N_points, max_N_points_for_fitting, iterating_cost_function_type):
         if N_points_for_fitting!=0:
             window=N_points_for_fitting
         else:
-            window=50
-        mode_wavelengths=self.find_modes()
+            window=len(self.wavelengths)
+        mode_wavelengths=self.find_modes(min_peak_level,min_peak_distance)
         modes_parameters=[]
         x_array=self.positions[:,self.axes_dict[self.axis_key]]
-
+        if len(mode_wavelengths)==0:
+            print('no modes found')
+            return {}
         for central_wavelength in mode_wavelengths:
             print("process mode at {} nm".format(central_wavelength))
             ind_max=np.argmin(abs(self.wavelengths-central_wavelength))+window
@@ -389,14 +392,14 @@ def find_width(waves,signal,peak_wavelength,N_points_for_fitting=0,iterate_diffe
 def get_Fano_fit(waves,signal,peak_wavelength=None):
     '''
     fit shape, given in log scale, with 
-    Lorenzian 10*np.log10(abs(transmission*np.exp(1j*phase*np.pi) - 1j*2*delta_c/(1j*(w0-w)+delta_0+delta_c))**2)  
+    Lorenzian 10*np.log10(abs(transmission*np.exp(1j*phase*np.pi) - transmission*1j*2*delta_c/(1j*(w0-w)+delta_0+delta_c))**2)  
     Gorodetsky, (9.19), p.253
     
     may use peak_wavelength
     return [transmission, Fano_phase, resonance_position,delta_0,delta_c], [x_fitted,y_fitted]
     
     '''
-    in_linear_scale=False
+    fitting_in_linear_scale=True
     signal_lin=10**(signal/10)
     transmission=np.mean(signal_lin)
     if peak_wavelength is None:
@@ -404,18 +407,32 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
         peak_wavelength_lower_bound=0
         peak_wavelength_higher_bound=np.inf
     else:
-        peak_wavelength_lower_bound=peak_wavelength-2e-3
-        peak_wavelength_higher_bound=peak_wavelength+2e-3
+        peak_wavelength_prominance=10e-3
+        peak_wavelength_lower_bound=peak_wavelength-peak_wavelength_prominance
+        peak_wavelength_higher_bound=peak_wavelength+peak_wavelength_prominance
     
-    delta_0=30 # MHz
-    delta_c=50 # MHz
+    depth=transmission-np.min(signal_lin)
+    index_of_peak=np.argmin(abs(waves-peak_wavelength))
+    temp=abs(signal_lin-(transmission-depth/2))
+    indexes=np.argsort(temp)
+    closest_indexes=np.sort(abs(indexes-index_of_peak))
+    linewidth=abs(waves[closest_indexes[0]]-waves[closest_indexes[1]])
+    A=lambda_to_omega/2*linewidth
+    '''
+    for initial guess we assume undercoupling regime and delta_c<delta_0
+    '''
+    
+    delta_0_init=2*A+np.sqrt(4-depth)
+    delta_c_init=2*A-np.sqrt(4-depth)
     phase=0.0
     
-    initial_guess=[transmission,phase,peak_wavelength,delta_0,delta_c]
-    bounds=((0,-1,peak_wavelength_lower_bound,0,0),(1,1,peak_wavelength_higher_bound,np.inf,np.inf))
+
+    
+    initial_guess=[transmission,phase,peak_wavelength,delta_0_init,delta_c_init]
+    bounds=((0,-1,peak_wavelength_lower_bound,0,0),(1,1,peak_wavelength_higher_bound,10000,10000))
     
     try:
-        if in_linear_scale:
+        if fitting_in_linear_scale:
             popt, pcov=scipy.optimize.curve_fit(linear_Fano_lorenzian,waves,signal_lin,p0=initial_guess,bounds=bounds)
         else:
             popt, pcov=scipy.optimize.curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds)
@@ -520,8 +537,9 @@ if __name__ == "__main__":
     f='1.SNAP'
     with open(f,'rb') as file:
         S=pickle.load(file)
+    #%%
     T=S.find_modes()
-    T2=S.get_modes_parameters(iterate_different_N_points=False)
+    T2=S.get_modes_parameters(min_peak_level=2,min_peak_distance=10000,N_points_for_fitting=0,iterate_different_N_points=False,iterating_cost_function_type='linewidth',max_N_points_for_fitting=100)
     plt.figure(1)
     ax1=plt.gca()
     plt.figure(2)
@@ -537,7 +555,20 @@ if __name__ == "__main__":
     ax3.legend()
     ax1.set_ylabel('Linewidth, nm')
     ax2.set_ylabel('delta_c, 1e6 1/s')
-    ax3.set_ylabel('delta_0, 1e6 1/s')
+    ax3.set_ylabel('$delta_0$, 1e6 1/s')
+    
+    
+    #%%
+    plt.figure()
+    mode_wavelengths=S.find_modes()
+    central_wave=mode_wavelengths[0]
+    waves=S.wavelengths
+    for jj in range(0,1):
+        Signal=S.signal[:,jj+3]
+        plt.plot(waves,Signal,color='blue')
+        _,_, _, fitted_signal=get_Fano_fit(waves, Signal,central_wave)
+        plt.plot(waves,fitted_signal,color='red')
+    
     # [x, peaks, ERV, resonance_parameters_array]=S.extract_ERV(find_widths=True)   
     # plt.figure(1)
     # plt.plot(x,peaks)

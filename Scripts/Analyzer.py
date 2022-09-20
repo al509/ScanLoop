@@ -607,11 +607,7 @@ class Analyzer(QObject):
             
         def get_modes_parameters(self):
             x = self.SNAP.positions[:, self.SNAP.axes_dict[self.SNAP.axis_key]]
-            modes=self.SNAP.find_modes()
-            if self.figure_spectrogram is not None:
-                for m in modes:
-                    self.figure_spectrogram.axes[0].plot(x,m*np.ones(len(x)),color='black')
-                self.figure_spectrogram.canvas.draw()
+               
             modes_parameters=self.SNAP.get_modes_parameters(self.min_peak_level,
                                            self.min_peak_distance,
                                            self.N_points_for_fitting,
@@ -620,17 +616,45 @@ class Analyzer(QObject):
                                            self.iterating_cost_function_type)
 
             
-            fix,axes=plt.subplots(3,1)
-            
-            for D in modes_parameters:
-                axes[0].plot(x,D['parameters'][:,4],label='{:.2f}'.format(D['mode']))
-                axes[1].plot(x,D['parameters'][:,5],label='{:.2f}'.format(D['mode']))
-                axes[2].plot(x,(D['parameters'][:,5]+D['parameters'][:,4])**3/D['parameters'][:,4],label='{:.2f}'.format(D['mode']))
+            fig1,axes1=plt.subplots(2,1)
+            fig2,axes2=plt.subplots(2,1)
+            if len(modes_parameters)>0:
+                for D in modes_parameters:
+                    if self.figure_spectrogram is not None:
+                        self.figure_spectrogram.axes[0].plot(x,D['mode']*np.ones(len(x)),color='black')
+                    
+                    axes1[0].plot(x,D['parameters'][:,4],'.',label='{:.2f}'.format(D['mode']))
+                    axes1[1].plot(x,D['parameters'][:,5],'.',label='{:.2f}'.format(D['mode']))
+                    mode_intensity=(D['parameters'][:,5]*D['parameters'][:,4])/(D['parameters'][:,4]+D['parameters'][:,4])**2
+                    axes2[0].plot(x,mode_intensity,'.',label='{:.2f}'.format(D['mode']))
+                    threshold=(D['parameters'][:,5]+D['parameters'][:,4])**3/D['parameters'][:,4]
+                    axes2[1].plot(x,threshold,'.',label='{:.2f}'.format(D['mode']))
+                    
+                if self.figure_spectrogram is not None:
+                    self.figure_spectrogram.canvas.draw()
+                    
+                axes1[0].set_ylim(bottom=0)
+                axes1[1].set_ylim(bottom=0)
+                axes2[0].set_ylim(bottom=0)
+                axes2[1].set_ylim(bottom=0)
                 
-            axes[0].set_ylabel('$\delta_c$, 1e6 1/s')
-            axes[1].set_ylabel('$\delta_0$, 1e6 1/s')
-            axes[2].set_ylabel('$(\delta_0+\delta_c)^{3}/ \delta_c$, 1e6 1/s')
-            axes[0].legend()
+                axes1[1].set_xlabel(r'Position, $\mu$m')
+                axes2[1].set_xlabel(r'Position, $\mu$m')
+                
+                axes1[0].set_ylabel('$\delta_c$, 1e6 1/s')
+                axes1[1].set_ylabel('$\delta_0$, 1e6 1/s')
+                axes2[0].set_ylabel(r'$\frac {delta_0*\delta_c} {(\delta_c+\delta_0)^{2}}$')
+                axes2[1].set_ylabel(r'$\frac{(\delta_0+\delta_c)^{3}}{\delta_c}$, 1e6 1/s')
+                axes1[0].legend()
+                
+                fig1.tight_layout()
+                fig2.tight_layout()
+                
+                path, FileName = os.path.split(self.spectrogram_file_path)
+                NewFileName=path+'\\'+FileName.split('.')[-2]+'_mode_parameters.pkl'
+                with open(NewFileName,'wb') as f:
+                    pickle.dump(modes_parameters, f)
+                print('mode parameters saved to ', NewFileName)
         
         def plot_ERV_params(self,params_dict:dict,find_widths=True):
             positions=params_dict['positions']
@@ -818,8 +842,8 @@ if __name__ == "__main__":
     # a.extract_ERV()
     a.iterate_different_N_points=False
     a.N_points_for_fitting=200
-    a.get_modes_parameters()
-    # analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\test.laserdata'
+    # a.get_modes_parameters()
+    analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\test.laserdata'
     # analyzer.plot_single_spectrum_from_file()
 # 
     # 

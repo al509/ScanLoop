@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__='20.3'
-__date__='2022.09.15'
+__version__='20.4'
+__date__='2022.09.20'
 
 import os
 if __name__=='__main__':
@@ -238,6 +238,15 @@ class MainWindow(ThreadedMainWindow):
 # =============================================================================
 
     def init_analyzer_interface(self):
+        '''
+        Create connection between analyzer buttons and corresponding methods
+        Note that connectiong through "lambda: " is needed otherwise matplotlib may crash as plots would be plotted in different threads
+
+        Returns
+        -------
+        None.
+
+        '''
         self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(
             self.choose_file_for_analyzer)
         self.ui.pushButton_analyzer_choose_plotting_param_file.clicked.connect(
@@ -256,7 +265,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(self.analyzer.single_spectrum_figure))
         self.ui.pushButton_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum( self.painter.figure))  
         self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
-        self.ui.pushButton_analyzer_get_modes_params.clicked.connect(self.analyzer.get_modes_parameters)
+        self.ui.pushButton_analyzer_get_modes_params.clicked.connect(lambda: self.analyzer.get_modes_parameters())
         self.ui.pushButton_analyzer_quantum_numbers_fitter.clicked.connect(self.analyzer.run_quantum_numbers_fitter)
 
         self.ui.pushButton_analyzer_save_single_spectrum.clicked.connect(self.analyzer.save_single_spectrum)        
