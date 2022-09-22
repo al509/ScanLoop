@@ -7,8 +7,8 @@ matplotlib 3.4.2 is needed!
 """
 
 
-__version__='11.7'
-__date__='2022.09.20'
+__version__='11.7.2'
+__date__='2022.09.22'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -272,12 +272,20 @@ class SNAP():
     def get_modes_parameters(self, min_peak_level,
                 min_peak_distance, 
                 N_points_for_fitting,
-                iterate_different_N_points, max_N_points_for_fitting, iterating_cost_function_type):
+                iterate_different_N_points:bool, max_N_points_for_fitting:int, iterating_cost_function_type:str):
+        
+        mode_wavelengths=self.find_modes(min_peak_level,min_peak_distance)
+        print(mode_wavelengths)
         if N_points_for_fitting!=0:
             window=N_points_for_fitting
         else:
-            window=len(self.wavelengths)
-        mode_wavelengths=self.find_modes(min_peak_level,min_peak_distance)
+            if len(mode_wavelengths)>1:
+                min_FSR_in_nm=min(np.diff(mode_wavelengths))
+                window=1.5*min_FSR_in_nm/(self.wavelengths[1]-self.wavelengths[0])
+            else:
+                window=len(self.wavelengths)
+        
+        
         modes_parameters=[]
         x_array=self.positions[:,self.axes_dict[self.axis_key]]
         if len(mode_wavelengths)==0:
@@ -285,8 +293,11 @@ class SNAP():
             return {}
         for central_wavelength in mode_wavelengths:
             print("process mode at {} nm".format(central_wavelength))
-            ind_max=np.argmin(abs(self.wavelengths-central_wavelength))+window
-            ind_min=np.argmin(abs(self.wavelengths-central_wavelength))-window
+            ind_max=np.argmin(abs(self.wavelengths-central_wavelength))+int(window//2)
+            ind_min=np.argmin(abs(self.wavelengths-central_wavelength))-int(window//2)
+            print(ind_min,ind_max)
+            if ind_min<0: ind_min=0
+            if ind_max>len(self.wavelengths): ind_max=len(self.wavelengths)
             signal=self.signal[ind_min:ind_max,:]
             waves=self.wavelengths[ind_min:ind_max]
             resonance_parameters_array=np.empty((len(x_array),7))
@@ -539,7 +550,7 @@ if __name__ == "__main__":
         S=pickle.load(file)
     #%%
     T=S.find_modes()
-    T2=S.get_modes_parameters(min_peak_level=2,min_peak_distance=10000,N_points_for_fitting=0,iterate_different_N_points=False,iterating_cost_function_type='linewidth',max_N_points_for_fitting=100)
+    T2=S.get_modes_parameters(min_peak_level=1,min_peak_distance=700,N_points_for_fitting=0,iterate_different_N_points=False,iterating_cost_function_type='linewidth',max_N_points_for_fitting=100)
     plt.figure(1)
     ax1=plt.gca()
     plt.figure(2)

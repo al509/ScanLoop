@@ -4,8 +4,8 @@
 
 
 """
-__version__='2.3'
-__date__='2022.09.15'
+__version__='2.3.2'
+__date__='2022.09.22'
 
 import os
 import sys
@@ -643,8 +643,8 @@ class Analyzer(QObject):
                 
                 axes1[0].set_ylabel('$\delta_c$, 1e6 1/s')
                 axes1[1].set_ylabel('$\delta_0$, 1e6 1/s')
-                axes2[0].set_ylabel(r'$\frac {delta_0*\delta_c} {(\delta_c+\delta_0)^{2}}$')
-                axes2[1].set_ylabel(r'$\frac{(\delta_0+\delta_c)^{3}}{\delta_c}$, 1e6 1/s')
+                axes2[0].set_ylabel(r'$\frac {\delta_0*\delta_c} {(\delta_c+\delta_0)^{2}}$')
+                axes2[1].set_ylabel(r'$\frac{(\delta_0+\delta_c)^{3}}{\delta_c}$, 1e12 $1/s^2$')
                 axes1[0].legend()
                 
                 fig1.tight_layout()
