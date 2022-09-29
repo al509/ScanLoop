@@ -4,8 +4,8 @@
 
 
 """
-__version__='2.3.2'
-__date__='2022.09.22'
+__version__='2.3.3'
+__date__='2022.09.29'
 
 import os
 import sys
@@ -626,17 +626,18 @@ class Analyzer(QObject):
                     axes1[0].plot(x,D['parameters'][:,4],'.',label='{:.2f}'.format(D['mode']))
                     axes1[1].plot(x,D['parameters'][:,5],'.',label='{:.2f}'.format(D['mode']))
                     mode_intensity=(D['parameters'][:,5]*D['parameters'][:,4])/(D['parameters'][:,4]+D['parameters'][:,4])**2
-                    axes2[0].plot(x,mode_intensity,'.',label='{:.2f}'.format(D['mode']))
+                    axes2[0].plot(x,mode_intensity,label='{:.2f}'.format(D['mode']))
                     threshold=(D['parameters'][:,5]+D['parameters'][:,4])**3/D['parameters'][:,4]
-                    axes2[1].plot(x,threshold,'.',label='{:.2f}'.format(D['mode']))
+                    axes2[1].plot(x,threshold,label='{:.2f}'.format(D['mode']))
                     
                 if self.figure_spectrogram is not None:
                     self.figure_spectrogram.canvas.draw()
                     
                 axes1[0].set_ylim(bottom=0)
                 axes1[1].set_ylim(bottom=0)
-                axes2[0].set_ylim(bottom=0)
-                axes2[1].set_ylim(bottom=0)
+                
+                axes2[0].set_yscale('log')
+                axes2[1].set_yscale('log')
                 
                 axes1[1].set_xlabel(r'Position, $\mu$m')
                 axes2[1].set_xlabel(r'Position, $\mu$m')
