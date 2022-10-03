@@ -2,8 +2,8 @@
 '''
 Making single SNAP object (or complex matrix Jones-based SNAP object) from the bunch of the files 
 '''
-__version__='2.3'
-__date__='2022.09.09'
+__version__='2.4'
+__date__='2022.10.03'
 
 import os,sys
 import numpy as np
@@ -452,10 +452,10 @@ class Spectral_processor(QObject):
         if self.file_naming_style=='new':
             plt.figure()
             Positions_at_given_axis=np.array([s[self.number_of_axis[self.axis_to_plot_along]] for s in Positions])
-#            try:
-#                plt.pcolorfast(Positions_at_given_axis,MainWavelengths,SignalArray,cmap=self.Cmap)
-#            except:
-            plt.contourf(Positions_at_given_axis,MainWavelengths,SignalArray,200,cmap=self.Cmap)
+            try:
+                plt.pcolorfast(Positions_at_given_axis,MainWavelengths,SignalArray,cmap=self.Cmap)
+            except:
+                plt.contourf(Positions_at_given_axis,MainWavelengths,SignalArray,50,cmap=self.Cmap)
 #            plt.gca().pcolorfast(Positions_at_given_axis,MainWavelengths,SignalArray)
             plt.ylabel('Wavelength, nm')
             if self.axis_to_plot_along=='W':
