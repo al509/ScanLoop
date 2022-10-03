@@ -329,8 +329,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>426</height>
+             <width>87</width>
+             <height>118</height>
             </rect>
            </property>
            <attribute name="label">
@@ -647,7 +647,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-270</y>
              <width>283</width>
              <height>700</height>
             </rect>
@@ -1349,7 +1349,7 @@
             <widget class="QLabel" name="label_scanning_final_position">
              <property name="geometry">
               <rect>
-               <x>157</x>
+               <x>150</x>
                <y>130</y>
                <width>51</width>
                <height>20</height>
@@ -1359,7 +1359,7 @@
               <string>_______</string>
              </property>
              <property name="alignment">
-              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
             <widget class="QLabel" name="label_2">
@@ -1378,6 +1378,12 @@
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
              </property>
             </widget>
+            <zorder>label_2</zorder>
+            <zorder>pushButton_scan_in_space</zorder>
+            <zorder>pushButton_set_scanning_parameters</zorder>
+            <zorder>label_scanning_index_status</zorder>
+            <zorder>label_scanning_axis</zorder>
+            <zorder>label_scanning_final_position</zorder>
            </widget>
           </widget>
           <widget class="QWidget" name="page_processing">
@@ -1385,8 +1391,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>426</height>
+             <width>100</width>
+             <height>30</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1958,7 +1964,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>83</width>
              <height>500</height>
             </rect>
            </property>

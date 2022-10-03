@@ -4,8 +4,8 @@
 
 
 """
-__version__='2.3.3'
-__date__='2022.09.29'
+__version__='2.3.4'
+__date__='2022.10.03'
 
 import os
 import sys
@@ -616,8 +616,8 @@ class Analyzer(QObject):
                                            self.iterating_cost_function_type)
 
             
-            fig1,axes1=plt.subplots(2,1)
-            fig2,axes2=plt.subplots(2,1)
+            fig1,axes1=plt.subplots(2,1,sharex=True)
+            fig2,axes2=plt.subplots(2,1,sharex=True)
             if len(modes_parameters)>0:
                 for D in modes_parameters:
                     if self.figure_spectrogram is not None:
