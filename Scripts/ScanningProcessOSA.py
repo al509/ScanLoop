@@ -6,7 +6,8 @@ Created on Tue Nov 20 19:09:12 2018
 @author: Ilya
 """
 
-__date__='2022.03.31'
+__date__='2022.10.20'
+__version__='2.0'
 
 from PyQt5.QtCore import pyqtSignal, QObject
 import numpy as np
@@ -55,7 +56,7 @@ class ScanningProcess(QObject):
         self.is_running=False  ## Variable is "True" during scanning process. Pushing on "scanning" button in main window sets is_running True and start scanning process.
     ### Another pushing on "scanning" button during the scanning proccess set is_running to "False" and interrupt the scanning process
 
-        span_for_scanning=0.05 #nm, Value of span in searching_contact function. Used if is_squeeze_span==True
+        self.span_for_scanning=0.05 #nm, Value of span in searching_contact function. Used if is_squeeze_span==True
 
         IsInContact=False # True - when taper is in contact with the sample
         
