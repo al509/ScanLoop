@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\scanning_dialog.ui'
+# Form implementation generated from reading ui file 'scanning_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -19,7 +19,7 @@ class Ui_Dialog(object):
         self.buttonBox.setObjectName("buttonBox")
         self.groupBox_Scanning = QtWidgets.QGroupBox(Dialog)
         self.groupBox_Scanning.setEnabled(True)
-        self.groupBox_Scanning.setGeometry(QtCore.QRect(10, 20, 471, 211))
+        self.groupBox_Scanning.setGeometry(QtCore.QRect(10, 20, 471, 231))
         self.groupBox_Scanning.setObjectName("groupBox_Scanning")
         self.label_4 = QtWidgets.QLabel(self.groupBox_Scanning)
         self.label_4.setGeometry(QtCore.QRect(10, 49, 64, 39))
@@ -85,7 +85,7 @@ class Ui_Dialog(object):
         self.checkBox_is_follow_peak.setObjectName("checkBox_is_follow_peak")
         self.groupBox_seeking_contact = QtWidgets.QGroupBox(self.groupBox_Scanning)
         self.groupBox_seeking_contact.setEnabled(True)
-        self.groupBox_seeking_contact.setGeometry(QtCore.QRect(270, 20, 191, 191))
+        self.groupBox_seeking_contact.setGeometry(QtCore.QRect(270, 20, 191, 201))
         self.groupBox_seeking_contact.setObjectName("groupBox_seeking_contact")
         self.label_6 = QtWidgets.QLabel(self.groupBox_seeking_contact)
         self.label_6.setGeometry(QtCore.QRect(30, 10, 71, 39))
@@ -114,12 +114,18 @@ class Ui_Dialog(object):
         self.lineEdit_max_allowed_shift.setGeometry(QtCore.QRect(120, 120, 61, 20))
         self.lineEdit_max_allowed_shift.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.lineEdit_max_allowed_shift.setObjectName("lineEdit_max_allowed_shift")
-        self.checkBox_is_squeeze_span = QtWidgets.QCheckBox(self.groupBox_seeking_contact)
-        self.checkBox_is_squeeze_span.setEnabled(True)
-        self.checkBox_is_squeeze_span.setGeometry(QtCore.QRect(20, 160, 161, 17))
-        self.checkBox_is_squeeze_span.setIconSize(QtCore.QSize(1, 1))
-        self.checkBox_is_squeeze_span.setShortcut("")
-        self.checkBox_is_squeeze_span.setObjectName("checkBox_is_squeeze_span")
+        self.checkBox_is_squeeze_span_for_seeking_contact = QtWidgets.QCheckBox(self.groupBox_seeking_contact)
+        self.checkBox_is_squeeze_span_for_seeking_contact.setEnabled(True)
+        self.checkBox_is_squeeze_span_for_seeking_contact.setGeometry(QtCore.QRect(20, 160, 161, 17))
+        self.checkBox_is_squeeze_span_for_seeking_contact.setIconSize(QtCore.QSize(1, 1))
+        self.checkBox_is_squeeze_span_for_seeking_contact.setShortcut("")
+        self.checkBox_is_squeeze_span_for_seeking_contact.setObjectName("checkBox_is_squeeze_span_for_seeking_contact")
+        self.checkBox_is_low_res_for_seeking_contact = QtWidgets.QCheckBox(self.groupBox_seeking_contact)
+        self.checkBox_is_low_res_for_seeking_contact.setEnabled(True)
+        self.checkBox_is_low_res_for_seeking_contact.setGeometry(QtCore.QRect(20, 180, 161, 17))
+        self.checkBox_is_low_res_for_seeking_contact.setIconSize(QtCore.QSize(1, 1))
+        self.checkBox_is_low_res_for_seeking_contact.setShortcut("")
+        self.checkBox_is_low_res_for_seeking_contact.setObjectName("checkBox_is_low_res_for_seeking_contact")
 
         self.retranslateUi(Dialog)
         self.buttonBox.accepted.connect(Dialog.accept)
@@ -159,8 +165,10 @@ class Ui_Dialog(object):
         self.lineEdit_level_to_detect_contact.setText(_translate("Dialog", "-35"))
         self.lineEdit_backstep.setText(_translate("Dialog", "50"))
         self.lineEdit_max_allowed_shift.setText(_translate("Dialog", "1000"))
-        self.checkBox_is_squeeze_span.setToolTip(_translate("Dialog", "Squeeze Span while search contact"))
-        self.checkBox_is_squeeze_span.setText(_translate("Dialog", "Squeeze span"))
+        self.checkBox_is_squeeze_span_for_seeking_contact.setToolTip(_translate("Dialog", "Squeeze Span while search contact"))
+        self.checkBox_is_squeeze_span_for_seeking_contact.setText(_translate("Dialog", "Squeeze span"))
+        self.checkBox_is_low_res_for_seeking_contact.setToolTip(_translate("Dialog", "Squeeze Span while search contact"))
+        self.checkBox_is_low_res_for_seeking_contact.setText(_translate("Dialog", "Use low resolution"))
 
 
 if __name__ == "__main__":
