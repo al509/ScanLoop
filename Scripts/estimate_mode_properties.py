@@ -23,18 +23,18 @@ from scipy import special
 import matplotlib.pyplot as plt 
 from numba import jit
 
-delta_c=10e6 # 2*pi*Hz
-delta_0=30e6 # 2*pi*Hz
+delta_c=100e6 # 2*pi*Hz
+delta_0=300e6 # 2*pi*Hz
 lambda_0=1550 # nm
 
 n=1.445
 
-length=700 # micron
+length=200 # micron
 R_0=62.5 #micron
-delta_theta=0.1 # s, thermal dissipation time, (11.35) from Gorodetsky, calculated numerically
+delta_theta=1/3 # s^-1, thermal dissipation time, (11.35) from Gorodetsky, calculated numerically
 
 
-P_in=1 # W
+P_in=0.05 # W
 '''
 
 '''
@@ -49,7 +49,10 @@ c=3e8 #m/sec
 n2=3.2e-20 #m**2/W
 
 
-absorption=6.65e12/4.343 * np.exp(-52.62/(lambda_0*1e-3))/1e6 # 1/m, after (10.7) Gorodetsky
+# absorption=6.65e12/4.343 * np.exp(-52.62/(lambda_0*1e-3))/1e6 # 1/m, after (10.7) Gorodetsky
+# absorption=1e-3*1e2
+absorption=5e-4*1e2 # 1/m
+
 epsilon_0=8.85e-12 # F/m
 int_psi_4_by_int_psi_2=0.7 # for gaussian distribution
 specific_heat=680 # J/kg/K
@@ -86,7 +89,7 @@ def get_cross_section():
     F_TM_Array=abs(F(Rarray,pol='TM', R=R_0))**2
     F_TE_Array=abs(F(Rarray,pol='TE',R=R_0))**2
     
-    return sum(F_TM_Array*Rarray*2*np.pi)*step/max(F_TM_Array)*1e-12 # in m**2
+    return sum(F_TM_Array*Rarray*2*np.pi)*step/max(F_TM_Array)*1e-12 # in m**2 , here we consider distributions normilized as max(I(r))=1
 
 
 cross_section=get_cross_section() # in m
@@ -97,7 +100,7 @@ F=np.sqrt(4*P_in*delta_c/(epsilon_0*n**2*volume))  #(11.21)
 field_intensity=F**2/(delta_c**2+delta_0**2) # (11.20)
 
 heat_effect=field_intensity*zeta/delta_theta/P_in
-
+temperature_shift=field_intensity*zeta/delta_theta*int_psi_4_by_int_psi_2
 omega=c/(lambda_0*1e-9)*2*np.pi
 delta=(delta_0+delta_c)*2
 
@@ -105,5 +108,6 @@ threshold=n**2*volume*delta**3/c/omega/n2/delta_c # Gorodecky (11.25)
 print('Threshold for Kerr nonlinearity={} W'.format(threshold))
 print('Q_factor={:.2e}, V={} m^3={} micron^3'.format(omega/delta,volume,volume*1e18))
 print('Mode amplitude squared={:.3e} (V/m)**2'.format(field_intensity))
+print('Thermal shift {} K '.format(temperature_shift))
 print('Averaged temperature response is {} degrees per Watt of pump'.format(heat_effect))
 
