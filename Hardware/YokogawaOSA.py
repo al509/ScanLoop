@@ -187,11 +187,11 @@ if __name__ == "__main__":
         HOST = '10.2.60.20'
         PORT = 10001
         timeout_short = 0.2
-        timeout_long = 10
+        timeout_long = 3
 #        device=Yokogawa_AQ6370_socket(HOST, PORT, timeout_long,timeout_short)
         osa=OSA_AQ6370(None,HOST, PORT, timeout_long,timeout_short)
         X,Y=osa.acquire_spectrum()
         osa.change_range(1550.1,1550.2)
         osa.close()
     except:
-        print(0)
+        print('Error')

@@ -4,8 +4,8 @@
 
 
 """
-__version__='2.3.4'
-__date__='2022.10.03'
+__version__='2.4'
+__date__='2022.11.16'
 
 import os
 import sys
@@ -396,11 +396,12 @@ class Analyzer(QObject):
             if not p['enable_offset']: plt.rcParams['axes.formatter.useoffset'] = False
             
             ax_Wavelengths = fig.subplots()
-            try:
-                im = ax_Wavelengths.pcolorfast(x,self.SNAP.wavelengths,self.SNAP.signal,50,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
-            except:
-                print("pcolorfast does not work. Using contourf instead")
-                im = ax_Wavelengths.contourf(x,self.SNAP.wavelengths,self.SNAP.signal,50,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
+            if p['use_contourf']==True:
+                levels=p['contourf_levels']
+                im = ax_Wavelengths.contourf(x,self.SNAP.wavelengths,self.SNAP.signal,cmap=p['cmap'],levels=levels,vmin=p['vmin'],vmax=p['vmax'])
+            else:
+                im = ax_Wavelengths.pcolorfast(x,self.SNAP.wavelengths,self.SNAP.signal,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
+                # im = ax_Wavelengths.imshow(x,self.SNAP.wavelengths,self.SNAP.signal,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
             if p['ERV_axis']:
                 ax_Radius = ax_Wavelengths.secondary_yaxis('right', functions=(_forward,_backward))
                 # ax_Wavelengths.callbacks.connect("ylim_changed", _convert_ax_Wavelength_to_Radius)
@@ -826,10 +827,10 @@ if __name__ == "__main__":
     os.chdir('..')
 
     a=Analyzer()
-    a.load_data('1.SNAP')
+    a.load_data('1_resaved.pkl3d')
     a.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
     
-    # analyzer.plot_spectrogram()
+    a.plot_spectrogram()
     # analyzer.plot_slice(800)
     
     # import json
@@ -837,14 +838,14 @@ if __name__ == "__main__":
     # Dicts=json.load(f)
     # f.close()
     # analyzer.set_parameters(Dicts['Analyzer'])
-    a.find_widths=True
-    a.plot_results_separately=True
-    a.plot_spectrogram()
-    # a.extract_ERV()
-    a.iterate_different_N_points=False
-    a.N_points_for_fitting=200
+    # a.find_widths=True
+    # a.plot_results_separately=True
+    # a.plot_spectrogram()
+    # # a.extract_ERV()
+    # a.iterate_different_N_points=False
+    # a.N_points_for_fitting=200
     # a.get_modes_parameters()
-    analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\test.laserdata'
+    # analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\test.laserdata'
     # analyzer.plot_single_spectrum_from_file()
 # 
     # 
