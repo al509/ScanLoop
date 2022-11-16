@@ -2,8 +2,8 @@
 '''
 Making single SNAP object (or complex matrix Jones-based SNAP object) from the bunch of the files 
 '''
-__version__='2.4'
-__date__='2022.10.03'
+__version__='2.5'
+__date__='2022.11.16'
 
 import os,sys
 import numpy as np
@@ -385,11 +385,11 @@ class Spectral_processor(QObject):
                     jones_matrixes_array[:,ii,:,:]=jones_matrixes
 
         if self.axis_to_plot_along=='W':
-            f_name='Processed_spectra_VS_wavelength.'+self.type_of_output_data     
+            self.f_name='Processed_spectra_VS_wavelength.'+self.type_of_output_data     
         elif self.axis_to_plot_along=='p':
-            f_name='Processed_spectrogram_at_spot.'+self.type_of_output_data         
+            self.f_name='Processed_spectrogram_at_spot.'+self.type_of_output_data         
         else:
-            f_name='Processed_spectrogram.'+self.type_of_output_data         
+            self.f_name='Processed_spectrogram.'+self.type_of_output_data         
         from datetime import datetime
        
         if self.type_of_output_data in ['cSNAP','SNAP']:
@@ -407,13 +407,13 @@ class Spectral_processor(QObject):
             SNAP.lambda_0=min(MainWavelengths)
             SNAP.R_0=self.R_0
             SNAP.refractive_index=self.refractive_index
-            f=open(self.processedData_dir_path+f_name,'wb')
+            f=open(self.processedData_dir_path+self.f_name,'wb')
             pickle.dump(SNAP,f)
             f.close()
-            print('Spectrogram saved as SNAP object to {}'.format(self.processedData_dir_path+f_name))                 
+            print('Spectrogram saved as SNAP object to {}'.format(self.processedData_dir_path+self.f_name))                 
 
         elif  self.type_of_output_data=='pkl3d':
-            f=open(self.processedData_dir_path+f_name,'wb')
+            f=open(self.processedData_dir_path+self.f_name,'wb')
             D={}
             D['axis']=self.axis_to_plot_along
             D['spatial_scale']='microns'
@@ -428,47 +428,48 @@ class Spectral_processor(QObject):
         
             pickle.dump(D,f)
             f.close()
-            print('Spectrogram saved as pkl3d file to {}'.format(self.processedData_dir_path+f_name))
+            print('Spectrogram saved as pkl3d file to {}'.format(self.processedData_dir_path+self.f_name))
 
         if self.file_naming_style=='old': # legacy code, to save in txt format
-            plt.figure()
+            
             X_0=0
             X_max=self.StepSize*NumberOfPointsZ
-            plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap=self.Cmap,extent=[X_0,X_max,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
-
-            plt.show()
-            plt.colorbar()
-            plt.xlabel(r'Position, steps (2.5 $\mu$m each)')
-            plt.ylabel('Wavelength, nm')
-            ax2=(plt.gca()).twiny()
-            ax2.set_xlabel(r'Distance, $\mu$m')
-            ax2.set_xlim([0,self.StepSize*NumberOfPointsZ*2.5])
-            plt.tight_layout()
-            plt.savefig(self.processedData_dir_path+'Scanned WGM spectra')
+            # plt.figure()# 
+            # plt.imshow(SignalArray, interpolation = 'bilinear',aspect='auto',cmap=self.Cmap,extent=[X_0,X_max,MainWavelengths[0],MainWavelengths[-1]],origin='lower')# vmax=0, vmin=-1)
+            # plt.show()
+            # plt.colorbar()
+            # plt.xlabel(r'Position, steps (2.5 $\mu$m each)')
+            # plt.ylabel('Wavelength, nm')
+            # ax2=(plt.gca()).twiny()
+            # ax2.set_xlabel(r'Distance, $\mu$m')
+            # ax2.set_xlim([0,self.StepSize*NumberOfPointsZ*2.5])
+            # plt.tight_layout()
+            # plt.savefig(self.processedData_dir_path+'Scanned WGM spectra')
             Positions=[np.linspace(0, self.StepSize*NumberOfPointsZ,NumberOfPointsZ),np.linspace(0, self.StepSize*NumberOfPointsZ,NumberOfPointsZ),np.linspace(0, self.StepSize*NumberOfPointsZ,NumberOfPointsZ)]
             Positions=np.transpose(Positions)
             np.savetxt(self.processedData_dir_path+'Sp_Positions.txt', Positions)
 
-        if self.file_naming_style=='new':
-            plt.figure()
-            Positions_at_given_axis=np.array([s[self.number_of_axis[self.axis_to_plot_along]] for s in Positions])
-            try:
-                plt.pcolorfast(Positions_at_given_axis,MainWavelengths,SignalArray,cmap=self.Cmap)
-            except:
-                plt.contourf(Positions_at_given_axis,MainWavelengths,SignalArray,50,cmap=self.Cmap)
-#            plt.gca().pcolorfast(Positions_at_given_axis,MainWavelengths,SignalArray)
-            plt.ylabel('Wavelength, nm')
-            if self.axis_to_plot_along=='W':
-                plt.xlabel('Wavelength,nm')
-            else:
-                plt.xlabel(r'Distance, $\mu$m')
+        # if self.file_naming_style=='new':
+            
+        #     Positions_at_given_axis=np.array([s[self.number_of_axis[self.axis_to_plot_along]] for s in Positions])
+        #     plt.figure()
+        #     try:
+        #         plt.pcolorfast(Positions_at_given_axis,MainWavelengths,SignalArray,cmap=self.Cmap)
+        #     except:
+        #         plt.contourf(Positions_at_given_axis,MainWavelengths,SignalArray,50,cmap=self.Cmap)
+        #     plt.gca().pcolorfast(Positions_at_given_axis,MainWavelengths,SignalArray)
+        #     plt.ylabel('Wavelength, nm')
+        #     if self.axis_to_plot_along=='W':
+        #         plt.xlabel('Wavelength,nm')
+        #     else:
+        #         plt.xlabel(r'Distance, $\mu$m')
 
                 
-            plt.colorbar()
-            plt.tight_layout()
-            plt.savefig(self.processedData_dir_path+'Scanned WGM spectra')
-            time2=time.time()
-        print('Time used =', time2-time1 ,' s')
+        #     plt.colorbar()
+        #     plt.tight_layout()
+        #     plt.savefig(self.processedData_dir_path+'Scanned WGM spectra')
+        #     time2=time.time()
+        # print('Time used =', time2-time1 ,' s')
 
 if __name__ == "__main__":
     # os.chdir('..')

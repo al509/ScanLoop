@@ -400,7 +400,7 @@ class Analyzer(QObject):
                 levels=p['contourf_levels']
                 im = ax_Wavelengths.contourf(x,self.SNAP.wavelengths,self.SNAP.signal,cmap=p['cmap'],levels=levels,vmin=p['vmin'],vmax=p['vmax'])
             else:
-                im = ax_Wavelengths.pcolorfast(x,self.SNAP.wavelengths,self.SNAP.signal,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
+                im = ax_Wavelengths.pcolormesh(x,self.SNAP.wavelengths,self.SNAP.signal,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
                 # im = ax_Wavelengths.imshow(x,self.SNAP.wavelengths,self.SNAP.signal,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
             if p['ERV_axis']:
                 ax_Radius = ax_Wavelengths.secondary_yaxis('right', functions=(_forward,_backward))
@@ -827,7 +827,7 @@ if __name__ == "__main__":
     os.chdir('..')
 
     a=Analyzer()
-    a.load_data('1_resaved.pkl3d')
+    a.load_data('1.pkl3d')
     a.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
     
     a.plot_spectrogram()

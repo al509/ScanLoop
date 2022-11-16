@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__='20.5'
-__date__='2022.09.29'
+__version__='20.6'
+__date__='2022.11.16'
 
 import os
 if __name__=='__main__':
@@ -997,9 +997,13 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_Push_Button_ProcessSpectra(self):
-        self.spectral_processor.ProcessedDataFolder=self.path_to_main+'\\ProcessedData\\'
-        self.spectral_processor.Source_DirName=self.path_to_main+'\\SpectralData\\'
+        self.spectral_processor.processedData_dir_path=self.path_to_main+'\\ProcessedData\\'
+        self.spectral_processor.source_dir_path=self.path_to_main+'\\SpectralData\\'
         self.spectral_processor.run()
+        self.analyzer.spectrogram_file_path= self.spectral_processor.processedData_dir_path+self.spectral_processor.f_name
+        self.ui.label_analyzer_file.setText(self.analyzer.spectrogram_file_path)
+        self.analyzer.load_data()
+        self.analyzer.plot_spectrogram()
 
 
     def on_pushButton_ProcessTD(self):
@@ -1068,6 +1072,10 @@ class MainWindow(ThreadedMainWindow):
         except ValueError:
             self.spectral_processor.StepSize=0
         self.spectral_processor.run()
+        self.analyzer.spectrogram_file_path= self.spectral_processor.processedData_dir_path+self.spectral_processor.f_name
+        self.ui.label_analyzer_file.setText(self.analyzer.spectrogram_file_path)
+        self.analyzer.load_data()
+        self.analyzer.plot_spectrogram()
             
 
     def process_arb_TD_data_clicked(self):
