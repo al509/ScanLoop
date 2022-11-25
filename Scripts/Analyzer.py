@@ -4,8 +4,8 @@
 
 
 """
-__version__='2.4'
-__date__='2022.11.16'
+__version__='2.5'
+__date__='2022.11.25'
 
 import os
 import sys
@@ -47,7 +47,7 @@ class Analyzer(QObject):
             self.min_wave=1500
             self.max_wave=1600
 
-            self.zero_wave = 1500
+            self.lambda_0_for_ERV = 1500
 
             
 
@@ -57,10 +57,10 @@ class Analyzer(QObject):
             self.indicate_ERV_on_spectrogram=True
             self.plot_results_separately=False
             
-            self.N_points_for_fitting=0
-            self.iterate_different_N_points=False
+            self.bandwidth_for_fitting=0
+            self.iterate_different_bandwidths=False
             self.iterating_cost_function_type='linewidth'
-            self.max_N_points_for_fitting=100
+            self.max_bandwidth_for_fitting=1
             
             self.FFTFilter_low_freq_edge=0.00001
             self.FFTFilter_high_freq_edge=0.01
@@ -531,8 +531,8 @@ class Analyzer(QObject):
             if all(np.isnan(signal)):
                 print('Error. Signal is NAN only')
                 return
-            
-            peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),height=self.min_peak_level , distance=self.min_peak_distance)
+            dw=(waves[-1]-waves[0])/len(waves)
+            peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),height=self.min_peak_level , distance=int(self.min_peak_distance/dw))
             if len(peakind2)>0:
                 axes.plot(waves[peakind2], signal[peakind2], '.')
                 
@@ -543,9 +543,9 @@ class Analyzer(QObject):
                 
                 
                 try:
-                    [non_res_transmission,Fano_phase,resonance_position,depth,linewidth,delta_c,delta_0,N_points_for_fitting]=SNAP_experiment.find_width(waves, signal, wavelength_main_peak,
-                                                                                                                                      self.N_points_for_fitting,self.iterate_different_N_points,
-                                                                                                                                      self.max_N_points_for_fitting,self.iterating_cost_function_type)
+                    [non_res_transmission,Fano_phase,resonance_position,depth,linewidth,delta_c,delta_0,bandwidth_for_fitting]=SNAP_experiment.find_width(waves, signal, wavelength_main_peak,
+                                                                                                                                      self.bandwidth_for_fitting,self.iterate_different_bandwidths,
+                                                                                                                                      self.max_bandwidth_for_fitting,self.iterating_cost_function_type)
                     # parameters, waves_fitted,signal_fitted=SNAP_experiment.get_Fano_fit(waves,signal,wavelength_main_peak)
                     signal_fitted=SNAP_experiment.Fano_lorenzian(waves,non_res_transmission,Fano_phase,resonance_position,delta_0,delta_c)
                 except Exception as e:
@@ -573,11 +573,11 @@ class Analyzer(QObject):
                                                                                         self.min_peak_distance,
                                                                                         self.min_wave,
                                                                                         self.max_wave,
-                                                                                        self.zero_wave,
+                                                                                        self.lambda_0_for_ERV,
                                                                                         self.find_widths,
-                                                                                        self.N_points_for_fitting,
-                                                                                        self.iterate_different_N_points,
-                                                                                        self.max_N_points_for_fitting,
+                                                                                        self.bandwidth_for_fitting,
+                                                                                        self.iterate_different_bandwidths,
+                                                                                        self.max_bandwidth_for_fitting,
                                                                                         self.iterating_cost_function_type)
 
             path, FileName = os.path.split(self.spectrogram_file_path)
@@ -611,9 +611,9 @@ class Analyzer(QObject):
                
             modes_parameters=self.SNAP.get_modes_parameters(self.min_peak_level,
                                            self.min_peak_distance,
-                                           self.N_points_for_fitting,
-                                           self.iterate_different_N_points,
-                                           self.max_N_points_for_fitting,
+                                           self.bandwidth_for_fitting,
+                                           self.iterate_different_bandwidths,
+                                           self.max_bandwidth_for_fitting,
                                            self.iterating_cost_function_type)
 
             
@@ -624,8 +624,8 @@ class Analyzer(QObject):
                     if self.figure_spectrogram is not None:
                         self.figure_spectrogram.axes[0].plot(x,D['mode']*np.ones(len(x)),color='black')
                     
-                    axes1[0].plot(x,D['parameters'][:,4],'.',label='{:.2f}'.format(D['mode']))
-                    axes1[1].plot(x,D['parameters'][:,5],'.',label='{:.2f}'.format(D['mode']))
+                    axes1[0].plot(x,D['parameters'][:,4],'-.',label='{:.2f}'.format(D['mode']))
+                    axes1[1].plot(x,D['parameters'][:,5],'-.',label='{:.2f}'.format(D['mode']))
                     mode_intensity=(D['parameters'][:,5]*D['parameters'][:,4])/(D['parameters'][:,4]+D['parameters'][:,4])**2
                     axes2[0].plot(x,mode_intensity,label='{:.2f}'.format(D['mode']))
                     threshold=(D['parameters'][:,5]+D['parameters'][:,4])**3/D['parameters'][:,4]
@@ -842,8 +842,8 @@ if __name__ == "__main__":
     # a.plot_results_separately=True
     # a.plot_spectrogram()
     # # a.extract_ERV()
-    # a.iterate_different_N_points=False
-    # a.N_points_for_fitting=200
+    # a.iterate_different_bandwidths=False
+    # a.bandwidth_for_fitting=200
     # a.get_modes_parameters()
     # analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\test.laserdata'
     # analyzer.plot_single_spectrum_from_file()

@@ -94,6 +94,7 @@ class ScanningProcess(QObject):
     def set_axes(self): # set axis depending on choice in MainWindow
         s=self.scanning_type
         self.axis_to_get_contact=s.split(', get contact along ')[1]
+        
         self.axis_to_scan=s.split(', get contact along ')[0].split('Along ')[1]
        
 

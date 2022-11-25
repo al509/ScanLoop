@@ -88,14 +88,14 @@
     <widget class="QLineEdit" name="lineEdit_min_peak_distance">
      <property name="geometry">
       <rect>
-       <x>410</x>
+       <x>395</x>
        <y>20</y>
-       <width>31</width>
+       <width>51</width>
        <height>31</height>
       </rect>
      </property>
      <property name="text">
-      <string>60</string>
+      <string>0.05</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -104,14 +104,14 @@
     <widget class="QLabel" name="label_32">
      <property name="geometry">
       <rect>
-       <x>350</x>
+       <x>340</x>
        <y>10</y>
        <width>61</width>
        <height>61</height>
       </rect>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Distance between peaks&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Distance between peaks, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -191,7 +191,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>1530</string>
+      <string>1500</string>
      </property>
     </widget>
     <widget class="QLineEdit" name="lineEdit_max_wave">
@@ -204,7 +204,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>1590</string>
+      <string>1600</string>
      </property>
     </widget>
     <widget class="QGroupBox" name="groupBox_3">
@@ -291,20 +291,20 @@
       <widget class="QLabel" name="label_33">
        <property name="geometry">
         <rect>
-         <x>30</x>
+         <x>10</x>
          <y>10</y>
-         <width>81</width>
+         <width>101</width>
          <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;N_points for fit&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;bandwidth for fit, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="wordWrap">
         <bool>true</bool>
        </property>
       </widget>
-      <widget class="QLineEdit" name="lineEdit_N_points_for_fitting">
+      <widget class="QLineEdit" name="lineEdit_bandwidth_for_fitting">
        <property name="enabled">
         <bool>true</bool>
        </property>
@@ -325,7 +325,7 @@
       </widget>
       <widget class="QLabel" name="label_35">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -336,13 +336,13 @@
         </rect>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;iterating over N_points&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;iterating over Bandwidth&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="wordWrap">
         <bool>true</bool>
        </property>
       </widget>
-      <widget class="QCheckBox" name="checkBox_iterate_different_N_points">
+      <widget class="QCheckBox" name="checkBox_iterate_different_bandwidths">
        <property name="enabled">
         <bool>true</bool>
        </property>
@@ -367,7 +367,7 @@
         <number>-5</number>
        </property>
       </widget>
-      <widget class="QLineEdit" name="lineEdit_max_N_points_for_fitting">
+      <widget class="QLineEdit" name="lineEdit_max_bandwidth_for_fitting">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -380,7 +380,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>100</string>
+        <string>1</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -391,12 +391,12 @@
         <rect>
          <x>130</x>
          <y>10</y>
-         <width>101</width>
+         <width>131</width>
          <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;max N_points for fit&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;max bandwidth for fit, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="wordWrap">
         <bool>true</bool>
@@ -901,9 +901,9 @@ p, li { white-space: pre-wrap; }
    </hints>
   </connection>
   <connection>
-   <sender>checkBox_iterate_different_N_points</sender>
+   <sender>checkBox_iterate_different_bandwidths</sender>
    <signal>clicked(bool)</signal>
-   <receiver>lineEdit_N_points_for_fitting</receiver>
+   <receiver>lineEdit_bandwidth_for_fitting</receiver>
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -917,9 +917,9 @@ p, li { white-space: pre-wrap; }
    </hints>
   </connection>
   <connection>
-   <sender>checkBox_iterate_different_N_points</sender>
+   <sender>checkBox_iterate_different_bandwidths</sender>
    <signal>clicked(bool)</signal>
-   <receiver>lineEdit_max_N_points_for_fitting</receiver>
+   <receiver>lineEdit_max_bandwidth_for_fitting</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -933,23 +933,7 @@ p, li { white-space: pre-wrap; }
    </hints>
   </connection>
   <connection>
-   <sender>checkBox_find_widths</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>groupBox_4</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>195</x>
-     <y>148</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>325</x>
-     <y>174</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>checkBox_iterate_different_N_points</sender>
+   <sender>checkBox_iterate_different_bandwidths</sender>
    <signal>clicked(bool)</signal>
    <receiver>comboBox_iterating_cost_function_type</receiver>
    <slot>setEnabled(bool)</slot>

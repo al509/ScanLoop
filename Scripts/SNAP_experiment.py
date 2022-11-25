@@ -7,8 +7,9 @@ matplotlib 3.4.2 is needed!
 """
 
 
-__version__='11.7.2'
-__date__='2022.09.22'
+
+__version__='11.8.1'
+__date__='2022.11.25'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -98,9 +99,10 @@ class SNAP():
             ERV=f(x_ERV)
         return x_ERV,ERV,lambda_0
 
-    def find_modes(self,peak_height=2,  min_peak_distance=10000):
-        T_shrinked=np.nanmean(abs(self.signal-np.nanmean(self.signal,axis=0)),axis=1)
-        mode_indexes,_=scipy.signal.find_peaks(T_shrinked,height=peak_height,distance=min_peak_distance)
+    def find_modes(self,peak_height=2,  min_peak_distance=0.05):
+        T_shrinked=np.nanmax(abs(self.signal-np.nanmean(self.signal,axis=0)),axis=1)
+        dw=(self.wavelengths[-1]-self.wavelengths[0])/len(self.wavelengths)
+        mode_indexes,_=scipy.signal.find_peaks(T_shrinked,height=peak_height,distance=int(min_peak_distance/dw))
         mode_wavelengths=np.sort(self.wavelengths[mode_indexes])
         mode_wavelengths=np.array([x for x in mode_wavelengths if x>self.lambda_0])
         self.mode_wavelengths=mode_wavelengths
@@ -213,9 +215,9 @@ class SNAP():
 
     # @numba.njit
     def extract_ERV(self, number_of_peaks_to_search=1, min_peak_level=1,
-                    min_peak_distance=10000, min_wave=0, max_wave=1e4, zero_wave=0,
-                    find_widths=True, N_points_for_fitting=100,
-                    iterate_different_N_points=False, max_N_points_for_fitting=100, iterating_cost_function_type='linewidth'):
+                    min_peak_distance=0.05, min_wave=0, max_wave=1e4, lambda_0_for_ERV=0,
+                    find_widths=True, bandwidth_for_fitting=0.1,
+                    iterate_different_bandwidths=False, max_bandwidth_for_fitting=1, iterating_cost_function_type='linewidth'):
         '''
         analyze 2D spectrogram
         return position of several first (higher-wavelegth) main resonances. Number of resonances is defined by number_of_peaks_to_search
@@ -225,14 +227,15 @@ class SNAP():
         
         uses scipy.find_peak
         
-        N_points_for_fitting - part of spectrum to be used for fitting. if 0, whole spectrum is used
-        iterate_different_N_points - whether to check different N_points_for_fitting in each fitting process
+        bandwidth_for_fitting - part of spectrum to be used for fitting, in nm. if 0, whole spectrum is used
+        iterate_different_bandwidths - whether to check different bandwidth_for_fitting in each fitting process
         '''
         
-               
+        
         
         NumberOfWavelength,Number_of_positions = self.signal.shape
         WavelengthArray=self.wavelengths
+        dw=(WavelengthArray[-1]-WavelengthArray[0])/len(WavelengthArray)
         x=self.positions[:,self.axes_dict[self.axis_key]]
         number_of_spectral_points=len(WavelengthArray)
         
@@ -241,10 +244,10 @@ class SNAP():
         PeakWavelengthArray.fill(np.nan)
 
         resonance_parameters_array.fill(np.nan)
-    
+        
             
         for Zind, Z in enumerate(range(0,Number_of_positions)):
-            peakind,_=scipy.signal.find_peaks(abs(self.signal[:,Zind]-np.nanmean(self.signal[:,Zind])),height=min_peak_level,distance=min_peak_distance)
+            peakind,_=scipy.signal.find_peaks(abs(self.signal[:,Zind]-np.nanmean(self.signal[:,Zind])),height=min_peak_level,distance=int(min_peak_distance/dw))
             NewPeakind=np.extract((WavelengthArray[peakind]>min_wave) & (WavelengthArray[peakind]<max_wave),peakind)
             NewPeakind=NewPeakind[np.argsort(-WavelengthArray[NewPeakind])] ##sort in wavelength decreasing
             if len(NewPeakind)>0:
@@ -258,11 +261,12 @@ class SNAP():
                     for ii,peak_wavelength in enumerate(shortWavArray):
                         if peak_wavelength is not np.nan:
                             index=NewPeakind[ii]
-                            [non_res_transmission,Fano_phase, res_wavelength, depth,linewidth,delta_c,delta_0,N_points_for_fitting]=find_width(WavelengthArray,self.signal[:,Zind],peak_wavelength,N_points_for_fitting,iterate_different_N_points,max_N_points_for_fitting,iterating_cost_function_type)
+                            [non_res_transmission,Fano_phase, res_wavelength, depth,linewidth,delta_c,delta_0,bandwidth_for_fitting]=find_width(
+                                WavelengthArray,self.signal[:,Zind],peak_wavelength,bandwidth_for_fitting,iterate_different_bandwidths,max_bandwidth_for_fitting,iterating_cost_function_type)
                   
                             resonance_parameters_array[Zind,ii]=([non_res_transmission,Fano_phase,
-                                                                  depth,linewidth,delta_c,delta_0,N_points_for_fitting])
-        ERV = (PeakWavelengthArray-zero_wave)/zero_wave*self.R_0*self.refractive_index*1e3
+                                                                  depth,linewidth,delta_c,delta_0,bandwidth_for_fitting])
+        ERV = (PeakWavelengthArray-lambda_0_for_ERV)/lambda_0_for_ERV*self.R_0*self.refractive_index*1e3
         print('Analyzing finished')
 
         # resonance_parameters_array=np.array(resonance_parameters_array)
@@ -271,30 +275,32 @@ class SNAP():
 
     def get_modes_parameters(self, min_peak_level,
                 min_peak_distance, 
-                N_points_for_fitting,
-                iterate_different_N_points:bool, max_N_points_for_fitting:int, iterating_cost_function_type:str):
+                bandwidth_for_fitting,
+                iterate_different_bandwidths:bool, max_bandwidth_for_fitting:int, iterating_cost_function_type:str):
         
         mode_wavelengths=self.find_modes(min_peak_level,min_peak_distance)
         print(mode_wavelengths)
-        if N_points_for_fitting!=0:
-            window=N_points_for_fitting
+        
+        if bandwidth_for_fitting!=0:
+            window=bandwidth_for_fitting
         else:
             if len(mode_wavelengths)>1:
                 min_FSR_in_nm=min(np.diff(mode_wavelengths))
-                window=1.5*min_FSR_in_nm/(self.wavelengths[1]-self.wavelengths[0])
+                window=1.5*min_FSR_in_nm
             else:
-                window=len(self.wavelengths)
+                window=self.wavelengths[-1]-self.wavelengths[0]
         
         
         modes_parameters=[]
         x_array=self.positions[:,self.axes_dict[self.axis_key]]
+        dw=(self.wavelengths[-1]-self.wavelengths[0])/len(self.wavelengths)
         if len(mode_wavelengths)==0:
             print('no modes found')
             return {}
         for central_wavelength in mode_wavelengths:
             print("process mode at {} nm".format(central_wavelength))
-            ind_max=np.argmin(abs(self.wavelengths-central_wavelength))+int(window//2)
-            ind_min=np.argmin(abs(self.wavelengths-central_wavelength))-int(window//2)
+            ind_max=np.argmin(abs(self.wavelengths-central_wavelength))+int(window/2/dw)
+            ind_min=np.argmin(abs(self.wavelengths-central_wavelength))-int(window/2/dw)
             print(ind_min,ind_max)
             if ind_min<0: ind_min=0
             if ind_max>len(self.wavelengths): ind_max=len(self.wavelengths)
@@ -302,9 +308,9 @@ class SNAP():
             waves=self.wavelengths[ind_min:ind_max]
             resonance_parameters_array=np.empty((len(x_array),7))
             for jj,_ in enumerate(x_array):
-                [non_res_transmission,Fano_phase, res_wavelength, depth,linewidth,delta_c,delta_0,best_N_points_for_fitting]=find_width(waves,signal[:,jj],central_wavelength,N_points_for_fitting,iterate_different_N_points,max_N_points_for_fitting,iterating_cost_function_type)
+                [non_res_transmission,Fano_phase, res_wavelength, depth,linewidth,delta_c,delta_0,best_bandwidth_for_fitting]=find_width(waves,signal[:,jj],central_wavelength,bandwidth_for_fitting,iterate_different_bandwidths,max_bandwidth_for_fitting,iterating_cost_function_type)
                 resonance_parameters_array[jj,:]=[non_res_transmission,Fano_phase,
-                                                                  depth,linewidth,delta_c,delta_0,best_N_points_for_fitting]
+                                                                  depth,linewidth,delta_c,delta_0,best_bandwidth_for_fitting]
             D={'mode':central_wavelength,'parameters':resonance_parameters_array}
             modes_parameters.append(D)
         return modes_parameters
@@ -349,22 +355,25 @@ def extract_taper_jones_matrixes(jones_matrixes,out_of_contact_jones_matrixes):
 
 
 # @njit
-def find_width(waves,signal,peak_wavelength,N_points_for_fitting=0,iterate_different_N_points=False,max_N_points_for_fitting=100,iterating_cost_function_type='linewidth'):
+def find_width(waves,signal,peak_wavelength,bandwidth_for_fitting=0,iterate_different_bandwidths=False,max_bandwidth_for_fitting=100,iterating_cost_function_type='linewidth'):
     index=np.argmin(np.abs(waves-peak_wavelength))
     number_of_spectral_points=np.shape(waves)[0]
-    if not iterate_different_N_points:
-        if N_points_for_fitting==0:
+    dw=(waves[-1]-waves[0])/len(waves)
+    ind_bandwidth_for_fitting=int(bandwidth_for_fitting/dw)
+    max_ind_ind_bandwidth_for_fitting=int(max_bandwidth_for_fitting/dw)
+    if not iterate_different_bandwidths:
+        if ind_bandwidth_for_fitting==0:
             fitting_parameters,_,_,_=get_Fano_fit(waves, signal,peak_wavelength)
         else:
-            i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
-            i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
+            i_min=0 if index-ind_bandwidth_for_fitting<0 else index-ind_bandwidth_for_fitting
+            i_max=number_of_spectral_points-1 if index+ind_bandwidth_for_fitting>number_of_spectral_points-1 else index+ind_bandwidth_for_fitting
             fitting_parameters,_,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
     else:
-        N_points_for_fitting=10
+        ind_bandwidth_for_fitting=10
         minimal_linewidth=np.max(waves)-np.min(waves)
         minimal_err=1000
         error=0
-        for N_points in np.arange(10,max_N_points_for_fitting,2):
+        for N_points in np.arange(10,max_ind_ind_bandwidth_for_fitting,2):
              i_min=0 if index-N_points<0 else index-N_points
              i_max=number_of_spectral_points-1 if index+N_points>number_of_spectral_points-1 else index+N_points
              fitting_parameters,_,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
@@ -375,14 +384,14 @@ def find_width(waves,signal,peak_wavelength,N_points_for_fitting=0,iterate_diffe
              if iterating_cost_function_type=='linewidth':
                  if minimal_linewidth>linewidth:
                      minimal_linewidth=linewidth
-                     N_points_for_fitting=N_points
+                     ind_bandwidth_for_fitting=N_points
              
              elif iterating_cost_function_type=='net error':
                  error = np.sum(np.abs(10**(Fano_lorenzian(waves[i_min:i_max], *fitting_parameters)/10) - 10**(signal[i_min:i_max])/10))/N_points
                  if minimal_err>error:
                      minimal_err=error
                      minimal_linewidth=linewidth
-                     N_points_for_fitting=N_points
+                     ind_bandwidth_for_fitting=N_points
              else:
                  print('wrong cost function')
                  return
@@ -390,14 +399,14 @@ def find_width(waves,signal,peak_wavelength,N_points_for_fitting=0,iterate_diffe
              
 
                  
-        i_min=0 if index-N_points_for_fitting<0 else index-N_points_for_fitting
-        i_max=number_of_spectral_points-1 if index+N_points_for_fitting>number_of_spectral_points-1 else index+N_points_for_fitting
+        i_min=0 if index-ind_bandwidth_for_fitting<0 else index-ind_bandwidth_for_fitting
+        i_max=number_of_spectral_points-1 if index+ind_bandwidth_for_fitting>number_of_spectral_points-1 else index+ind_bandwidth_for_fitting
         fitting_parameters,_,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
     [non_res_transmission, Fano_phase, res_wavelength,delta_0,delta_c]=fitting_parameters
     
     linewidth=(delta_0+delta_c)*2/lambda_to_omega
     depth=4*delta_0*delta_c/(delta_0+delta_c)**2
-    return [non_res_transmission,Fano_phase, res_wavelength, depth,linewidth,delta_c,delta_0,N_points_for_fitting]
+    return [non_res_transmission,Fano_phase, res_wavelength, depth,linewidth,delta_c,delta_0,ind_bandwidth_for_fitting*dw]
 
 # @njit
 def get_Fano_fit(waves,signal,peak_wavelength=None):
@@ -543,30 +552,18 @@ if __name__ == "__main__":
     import time
     import pickle
     import matplotlib.pyplot as plt
+    
     os.chdir('..')
+    import Scripts.SNAP_experiment
     
     f='1.SNAP'
     with open(f,'rb') as file:
         S=pickle.load(file)
     #%%
-    T=S.find_modes()
-    T2=S.get_modes_parameters(min_peak_level=1,min_peak_distance=700,N_points_for_fitting=0,iterate_different_N_points=False,iterating_cost_function_type='linewidth',max_N_points_for_fitting=100)
-    plt.figure(1)
-    ax1=plt.gca()
-    plt.figure(2)
-    ax2=plt.gca()
-    plt.figure(3)
-    ax3=plt.gca()
-    for D in T2:
-        ax1.plot(D['parameters'][:,3],label=D['mode'])
-        ax2.plot(D['parameters'][:,4],label=D['mode'])
-        ax3.plot(D['parameters'][:,5],label=D['mode'])
-    ax1.legend()
-    ax2.legend()
-    ax3.legend()
-    ax1.set_ylabel('Linewidth, nm')
-    ax2.set_ylabel('delta_c, 1e6 1/s')
-    ax3.set_ylabel('$delta_0$, 1e6 1/s')
+    T=S.find_modes(peak_height=4)
+    T2=S.get_modes_parameters(min_peak_level=5,min_peak_distance=0.05,bandwidth_for_fitting=0,iterate_different_bandwidths=False,iterating_cost_function_type='linewidth',max_bandwidth_for_fitting=100)
+    
+   
     
     
     #%%
