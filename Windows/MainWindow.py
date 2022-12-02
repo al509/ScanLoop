@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__='20.6'
-__date__='2022.11.16'
+__version__='20.6.1'
+__date__='2022.12.02'
 
 import os
 if __name__=='__main__':
@@ -426,7 +426,7 @@ class MainWindow(ThreadedMainWindow):
             print('Connected to stages')
             self.add_thread([self.stages])
             self.stages.set_zero_positions(self.logger.load_zero_position())
-            self.updatePositions()
+            self.update_indicated_positions()
             self.ui.pushButton_MovePlusX.pressed.connect(
                 lambda :self.setStageMoving('X',int(self.ui.lineEdit_StepX.text())))
             self.ui.pushButton_MoveMinusX.pressed.connect(
@@ -439,9 +439,11 @@ class MainWindow(ThreadedMainWindow):
                 lambda :self.setStageMoving('Z',int(self.ui.lineEdit_StepZ.text())))
             self.ui.pushButton_MoveMinusZ.pressed.connect(
                 lambda :self.setStageMoving('Z',-1*int(self.ui.lineEdit_StepZ.text())))
-            self.ui.pushButton_zeroingPositions.pressed.connect(self.on_pushButton_zeroingPositions)
+            self.ui.pushButton_zero_position_X.pressed.connect(self.on_pushButton_zeroingPositions('X'))
+            self.ui.pushButton_zero_position_Y.pressed.connect(self.on_pushButton_zeroingPositions('Y'))
+            self.ui.pushButton_zero_position_Z.pressed.connect(self.on_pushButton_zeroingPositions('Z'))
             self.force_stage_move[str,int].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
-            self.stages.stopped.connect(self.updatePositions)
+            self.stages.stopped.connect(self.update_indicated_positions)
             self.ui.groupBox_stand.setEnabled(True)
             self.ui.pushButton_zeroing_stages.pressed.connect(
                 self.zeroing_stages)
@@ -458,6 +460,7 @@ class MainWindow(ThreadedMainWindow):
 
         '''
         self.stages.move_home()
+        
         
         
     def connect_powermeter(self):
@@ -735,7 +738,7 @@ class MainWindow(ThreadedMainWindow):
         self.force_stage_move.emit(key,step)
 
     @pyqtSlotWExceptions("PyQt_PyObject")
-    def updatePositions(self):
+    def update_indicated_positions(self):
         X_abs=(self.stages.abs_position['X'])
         Y_abs=(self.stages.abs_position['Y'])
         Z_abs=(self.stages.abs_position['Z'])
@@ -754,14 +757,14 @@ class MainWindow(ThreadedMainWindow):
 
 
 
-    def on_pushButton_zeroingPositions(self):
+    def on_pushButton_zeroingPositions(self,key='X'):
         X_0=(self.stages.abs_position['X'])
         Y_0=(self.stages.abs_position['Y'])
         Z_0=(self.stages.abs_position['Z'])
-        self.stages.zero_position=self.stages.abs_position.copy()
+        self.stages.zero_position[key]=self.stages.abs_position[key]
         self.stages.update_relative_positions()
         self.logger.save_zero_position(X_0,Y_0,Z_0)
-        self.updatePositions()
+        self.update_indicated_positions()
 
     '''
     Interface logic
