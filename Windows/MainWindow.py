@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__='20.6.1'
-__date__='2022.12.02'
+__version__='20.6.2'
+__date__='2022.12.03'
 
 import os
 if __name__=='__main__':
@@ -482,18 +482,22 @@ class MainWindow(ThreadedMainWindow):
         except:
             print('Connection to power meter failed')
 
-    def connect_laser(self):
+    def connect_laser(self, interface='pyvisa'):
         '''
         set connection to Pure Photonics tunable laser
-
+        Using 'serial' or 'pyvisa' interface 
         Returns
         -------
         None.
 
         '''
         COMPort='COM'+self.ui.lineEdit_laser_COMport.text()
+        
         try:
-            from Hardware.PurePhotonicsLaser import Laser
+            if interface=='pyvisa':
+                from Hardware.PurePhotonicsLaser_pyvisa import Laser
+            elif interface=='serial':
+                from Hardware.PurePhotonicsLaser_serial import Laser
             self.laser=Laser(COMPort)
             self.laser.fineTuning(0)
             print('Connected to Laser')

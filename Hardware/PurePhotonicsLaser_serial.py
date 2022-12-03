@@ -1,8 +1,12 @@
+'''
+By Alexandr Nesterok
+Using serial interface
+'''
+__date__='2022.12.03'
 
-__date__='2022.04.11'
 
 import serial
-from Hardware import ITLA
+from Hardware.LaserLibs import ITLA_serial as ITLA
 import numpy as np
 
 def nmToDGHz(nm : float):
