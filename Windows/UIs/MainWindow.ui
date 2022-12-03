@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1045</width>
-         <height>579</height>
+         <width>1041</width>
+         <height>565</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -330,7 +330,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>426</height>
+             <height>388</height>
             </rect>
            </property>
            <attribute name="label">
@@ -648,7 +648,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>700</height>
             </rect>
            </property>
@@ -1219,8 +1219,8 @@
               <rect>
                <x>130</x>
                <y>110</y>
-               <width>32</width>
-               <height>20</height>
+               <width>37</width>
+               <height>22</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1417,8 +1417,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>426</height>
+             <width>98</width>
+             <height>28</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1588,7 +1588,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>600</height>
             </rect>
            </property>
@@ -1695,8 +1695,8 @@
                <rect>
                 <x>240</x>
                 <y>20</y>
-                <width>33</width>
-                <height>20</height>
+                <width>38</width>
+                <height>22</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -1990,7 +1990,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>500</height>
             </rect>
            </property>
@@ -2303,17 +2303,17 @@
              </property>
              <item>
               <property name="text">
-               <string>Dither</string>
+               <string>dither</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>Nodither</string>
+               <string>no dither</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>Whisper</string>
+               <string>whisper</string>
               </property>
              </item>
             </widget>
@@ -2529,7 +2529,7 @@
      <x>0</x>
      <y>0</y>
      <width>1065</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuTools">

@@ -482,7 +482,7 @@ class MainWindow(ThreadedMainWindow):
         except:
             print('Connection to power meter failed')
 
-    def connect_laser(self, interface='pyvisa'):
+    def connect_laser(self):
         '''
         set connection to Pure Photonics tunable laser
         Using 'serial' or 'pyvisa' interface 
@@ -491,16 +491,15 @@ class MainWindow(ThreadedMainWindow):
         None.
 
         '''
+        interface='pyvisa'
         COMPort='COM'+self.ui.lineEdit_laser_COMport.text()
-        
         try:
             if interface=='pyvisa':
-                from Hardware.PurePhotonicsLaser_pyvisa import Laser
+                from Hardware.PurePhotonicsLaser_pyvisa import Laser   
             elif interface=='serial':
                 from Hardware.PurePhotonicsLaser_serial import Laser
             self.laser=Laser(COMPort)
             self.laser.fineTuning(0)
-            print('Connected to Laser')
             self.ui.pushButton_laser_On.setEnabled(True)
             # self.ui.groupBox_laser_sweeping.setEnabled(False)
             # self.ui.groupBox_laser_scanning.setEnabled(False)
@@ -523,7 +522,8 @@ class MainWindow(ThreadedMainWindow):
             self.laser_scanning_process.S_finished.connect(
                     lambda : self.laser_scanning(False))
             self.force_laser_scanning_process.connect(self.laser_scanning_process.run)
-        except:
+        except Exception as e:
+            print(e)
             print('Connection to laser failed. Check the COM port number')
             
     
@@ -604,8 +604,8 @@ class MainWindow(ThreadedMainWindow):
         '''
         try:
             self.laser.setMode(self.ui.comboBox_laser_mode.currentText())
-        except:
-                pass
+        except Exception as e:
+            print(e)
 
     def laser_fine_tuning(self):
         '''
@@ -1274,4 +1274,8 @@ def set_widget_values(window,d:dict)->None:
          except KeyError:
              pass
          
-
+if __name__=='__main__':
+    m=MainWindow()
+    m.connect_laser()
+    # from Hardware.PurePhotonicsLaser_pyvisa import Laser
+    # l=Laser('COM12')

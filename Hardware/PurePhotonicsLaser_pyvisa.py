@@ -10,26 +10,31 @@ Using lib by Artem Kirik and pyvisa
 
 __date__='2022.12.03'
 
+if __name__=='__main__':
 
-from Hardware.LaserLibs import itla_pyvisa
+    from LaserLibs import itla_pyvisa
+else:
+    
+    from Hardware.LaserLibs import itla_pyvisa
+    
 import numpy as np
 
 def nmToHz(nm : float):
     return int(299792458 / nm * 1e9)
 
 def dnm_to_dHz(nm:float,d_nm:float):
-    return int(299792458/nm**2*d_nm*1e9)
+    return -int(299792458/nm**2*d_nm*1e9)
 
-class Laser(serial.Serial):
+class Laser():
     
     def __init__(self,COMPort):
-        if 'COM' in COMPort:
+        if type(COMPort)==str and 'COM' in COMPort:
             COMPort=int(COMPort.split('COM')[1])
-        self.itla=itla.PPCL550(COMPort)
-        
+        self.itla=itla_pyvisa.PPCL550(COMPort)
+        print('connected to laser')        
         self.maximum_tuning=200.1 # in pm
         self.tuning=0
-        self.main_wavelength=0 # in nm
+        self.main_wavelength=1550 # in nm
     
     def setOn(self):
         self.itla.on()
@@ -40,8 +45,8 @@ class Laser(serial.Serial):
         print('PPCL550 laser is off')
     
     def setPower(self,Power): # in 0.01 dB
-        self.itla.set_power(Power)
-        print('PPCL550 laser is  with power {} dBm'.format(power*0.01))
+        self.itla.set_power(int(Power))
+        print('PPCL550 laser is  with power {} dBm'.format(Power*0.01))
     
     def setMode(self, ModeKey):
         modes = {
@@ -52,21 +57,20 @@ class Laser(serial.Serial):
         error=True
         while error:
             try: 
-                if not (self.ask_value(0x32) & 8):
-                    raise ITLA_Error('can be used only when emitting')
-                error=False
-                return self.talk(1,0x90,0, modes[ModeKey])
+                self.itla.mode(ModeKey) 
+                error=False          
+                print('PPCL550 laser mode {} is set'.format(ModeKey))
             except:
                 pass
         
 
     def setWavelength(self, nm: float): # in nm, accuracy: 0.001 nm
-        freq = nmToDGHz(nm)
+        freq = nmToHz(nm)
         self.itla.set_frequency(freq)
         self.main_wavelength=nm
         return
 
-    def fineTuning(self, pm: int): # in pm, accuracy : 0.01 pm
+    def fineTuning(self, pm: float): # in pm, accuracy : 0.01 pm
         if pm<self.maximum_tuning:
             dfreq=dnm_to_dHz(self.main_wavelength, pm*1e-3)
             self.itla.set_FTFrequency(dfreq)
@@ -75,9 +79,6 @@ class Laser(serial.Serial):
             print('Tuning larger than max possible')
 
 
-      def __init__(self, port, timeout = 2000, backend = None):
-        super().__init__(port, timeout, backend)
-        self.md = self.ask_value(0x90)
     
     def state(self):
         super().state()
@@ -86,8 +87,13 @@ class Laser(serial.Serial):
 
 
 if __name__=='__main__':
-    laser=Laser('COM8')
-    del laser
+    import os
+    os.chdir('..')
+    # from LaserLibs import itla_pyvisa
+    laser=Laser(12)
+    laser.setOn()
+    laser.setMode('whisper')
+    laser.setOff()
 
 
 

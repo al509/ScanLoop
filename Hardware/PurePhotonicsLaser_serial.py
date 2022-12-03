@@ -35,9 +35,9 @@ class Laser(serial.Serial):
         return ITLA.ITLA(self, ITLA.REG_Power, Power, ITLA.WRITE)
     def setMode(self, ModeKey):
         ModeKeys={
-                'Dither':0,
-                'Nodither':1,
-                'Whisper':2}
+                'dither':0,
+                'no dither':1,
+                'whisper':2}
         Command=ModeKeys[ModeKey]
         return ITLA.ITLA(self, ITLA.REG_Mode, Command, ITLA.WRITE)
 
