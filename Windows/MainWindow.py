@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__='20.6.2'
-__date__='2022.12.03'
+__version__='20.6.3'
+__date__='2022.12.05'
 
 import os
 if __name__=='__main__':
@@ -439,9 +439,9 @@ class MainWindow(ThreadedMainWindow):
                 lambda :self.setStageMoving('Z',int(self.ui.lineEdit_StepZ.text())))
             self.ui.pushButton_MoveMinusZ.pressed.connect(
                 lambda :self.setStageMoving('Z',-1*int(self.ui.lineEdit_StepZ.text())))
-            self.ui.pushButton_zero_position_X.pressed.connect(self.on_pushButton_zeroingPositions('X'))
-            self.ui.pushButton_zero_position_Y.pressed.connect(self.on_pushButton_zeroingPositions('Y'))
-            self.ui.pushButton_zero_position_Z.pressed.connect(self.on_pushButton_zeroingPositions('Z'))
+            self.ui.pushButton_zero_position_X.pressed.connect(lambda: self.on_pushButton_zeroingPositions('X'))
+            self.ui.pushButton_zero_position_Y.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Y'))
+            self.ui.pushButton_zero_position_Z.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Z'))
             self.force_stage_move[str,int].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
             self.stages.stopped.connect(self.update_indicated_positions)
             self.ui.groupBox_stand.setEnabled(True)
