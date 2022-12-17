@@ -1,6 +1,6 @@
 
-__version__='20.3.33'
-__date__='2022.12.05'
+__version__='20.3.34'
+__date__='2022.12.18'
 
 
 import sys
@@ -16,7 +16,7 @@ def main():
         app = QtWidgets.QApplication(sys.argv)
     else:
         app = QtWidgets.QApplication.instance()
-    main_app = MainWindow(version=__version__)
+    main_app = MainWindow(version=__version__,date=__date__)
     main_app.show()
     # Uncomment only if application doesn't finish properly 
     # sys.exit(app.exec())

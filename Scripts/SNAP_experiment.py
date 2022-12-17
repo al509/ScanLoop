@@ -8,8 +8,8 @@ matplotlib 3.4.2 is needed!
 
 
 
-__version__='11.8.1'
-__date__='2022.11.25'
+__version__='11.8.2'
+__date__='2022.12.18'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -240,7 +240,7 @@ class SNAP():
         number_of_spectral_points=len(WavelengthArray)
         
         PeakWavelengthArray=np.empty((Number_of_positions,number_of_peaks_to_search))
-        resonance_parameters_array=np.empty((Number_of_positions,number_of_peaks_to_search,7))
+        resonance_parameters_array=np.empty((Number_of_positions,number_of_peaks_to_search,5))
         PeakWavelengthArray.fill(np.nan)
 
         resonance_parameters_array.fill(np.nan)
@@ -261,11 +261,11 @@ class SNAP():
                     for ii,peak_wavelength in enumerate(shortWavArray):
                         if peak_wavelength is not np.nan:
                             index=NewPeakind[ii]
-                            [non_res_transmission,Fano_phase, res_wavelength, depth,linewidth,delta_c,delta_0,bandwidth_for_fitting]=find_width(
+                            [non_res_transmission,Fano_phase, res_wavelength,delta_c,delta_0,bandwidth_for_fitting,perr]=find_width(
                                 WavelengthArray,self.signal[:,Zind],peak_wavelength,bandwidth_for_fitting,iterate_different_bandwidths,max_bandwidth_for_fitting,iterating_cost_function_type)
                   
                             resonance_parameters_array[Zind,ii]=([non_res_transmission,Fano_phase,
-                                                                  depth,linewidth,delta_c,delta_0,bandwidth_for_fitting])
+                                                                  delta_c,delta_0,bandwidth_for_fitting])
         ERV = (PeakWavelengthArray-lambda_0_for_ERV)/lambda_0_for_ERV*self.R_0*self.refractive_index*1e3
         print('Analyzing finished')
 
@@ -279,7 +279,7 @@ class SNAP():
                 iterate_different_bandwidths:bool, max_bandwidth_for_fitting:int, iterating_cost_function_type:str):
         
         mode_wavelengths=self.find_modes(min_peak_level,min_peak_distance)
-        print(mode_wavelengths)
+        print('rough mode estimations:',mode_wavelengths)
         
         if bandwidth_for_fitting!=0:
             window=bandwidth_for_fitting
@@ -301,17 +301,37 @@ class SNAP():
             print("process mode at {} nm".format(central_wavelength))
             ind_max=np.argmin(abs(self.wavelengths-central_wavelength))+int(window/2/dw)
             ind_min=np.argmin(abs(self.wavelengths-central_wavelength))-int(window/2/dw)
-            print(ind_min,ind_max)
             if ind_min<0: ind_min=0
-            if ind_max>len(self.wavelengths): ind_max=len(self.wavelengths)
+            if ind_max>len(self.wavelengths):ind_max=len(self.wavelengths)-1
             signal=self.signal[ind_min:ind_max,:]
             waves=self.wavelengths[ind_min:ind_max]
-            resonance_parameters_array=np.empty((len(x_array),7))
+            undisturbed_mode_wavelength=central_wavelength
+            resonance_parameters_array=np.empty((len(x_array),6))
+            resonance_parameters_errors_array=np.empty((len(x_array),5))
             for jj,_ in enumerate(x_array):
-                [non_res_transmission,Fano_phase, res_wavelength, depth,linewidth,delta_c,delta_0,best_bandwidth_for_fitting]=find_width(waves,signal[:,jj],central_wavelength,bandwidth_for_fitting,iterate_different_bandwidths,max_bandwidth_for_fitting,iterating_cost_function_type)
-                resonance_parameters_array[jj,:]=[non_res_transmission,Fano_phase,
-                                                                  depth,linewidth,delta_c,delta_0,best_bandwidth_for_fitting]
-            D={'mode':central_wavelength,'parameters':resonance_parameters_array}
+                try:
+                    [non_res_transmission,Fano_phase, res_wavelength,delta_c,delta_0,best_bandwidth_for_fitting,perr]=find_width(waves,signal[:,jj],central_wavelength,bandwidth_for_fitting,iterate_different_bandwidths,max_bandwidth_for_fitting,iterating_cost_function_type)
+                    if res_wavelength<undisturbed_mode_wavelength:
+                        undisturbed_mode_wavelength=res_wavelength
+                    resonance_parameters_array[jj,:]=[non_res_transmission,Fano_phase,
+                                                                      res_wavelength,delta_c,delta_0,best_bandwidth_for_fitting]
+                    resonance_parameters_errors_array[jj,:]=perr
+                except TypeError: # if find_width returns NOne
+                    resonance_parameters_array[jj,:]=np.nan
+            print('Minimal resonance wavelength is ',undisturbed_mode_wavelength )
+            D={'mode wavelength':undisturbed_mode_wavelength}
+            D['non_res_transmission']=resonance_parameters_array[:,0]
+            D['non_res_transmission_error']=resonance_parameters_errors_array[:,0]
+            D['Fano_phase']=resonance_parameters_array[:,1]
+            D['Fano_phase_error']=resonance_parameters_errors_array[:,1]
+            D['res_wavelength']=resonance_parameters_array[:,2]
+            D['res_wavelength_error']=resonance_parameters_errors_array[:,2]
+            D['delta_c']=resonance_parameters_array[:,3]
+            D['delta_c_error']=resonance_parameters_errors_array[:,4]
+            D['delta_0']=resonance_parameters_array[:,4]
+            D['delta_0_error']=resonance_parameters_errors_array[:,3]
+            D['best_bandwidth_for_fitting']=resonance_parameters_array[:,5]
+            
             modes_parameters.append(D)
         return modes_parameters
             
@@ -363,11 +383,11 @@ def find_width(waves,signal,peak_wavelength,bandwidth_for_fitting=0,iterate_diff
     max_ind_ind_bandwidth_for_fitting=int(max_bandwidth_for_fitting/dw)
     if not iterate_different_bandwidths:
         if ind_bandwidth_for_fitting==0:
-            fitting_parameters,_,_,_=get_Fano_fit(waves, signal,peak_wavelength)
+            fitting_parameters,perr,_,_=get_Fano_fit(waves, signal,peak_wavelength)
         else:
             i_min=0 if index-ind_bandwidth_for_fitting<0 else index-ind_bandwidth_for_fitting
             i_max=number_of_spectral_points-1 if index+ind_bandwidth_for_fitting>number_of_spectral_points-1 else index+ind_bandwidth_for_fitting
-            fitting_parameters,_,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
+            fitting_parameters,perr,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
     else:
         ind_bandwidth_for_fitting=10
         minimal_linewidth=np.max(waves)-np.min(waves)
@@ -376,7 +396,7 @@ def find_width(waves,signal,peak_wavelength,bandwidth_for_fitting=0,iterate_diff
         for N_points in np.arange(10,max_ind_ind_bandwidth_for_fitting,2):
              i_min=0 if index-N_points<0 else index-N_points
              i_max=number_of_spectral_points-1 if index+N_points>number_of_spectral_points-1 else index+N_points
-             fitting_parameters,_,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
+             fitting_parameters,perr,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
              [transmission,phase,peak_wavelength,delta_0,delta_c]=fitting_parameters
              linewidth=(delta_0+delta_c)*2/lambda_to_omega
              
@@ -401,12 +421,11 @@ def find_width(waves,signal,peak_wavelength,bandwidth_for_fitting=0,iterate_diff
                  
         i_min=0 if index-ind_bandwidth_for_fitting<0 else index-ind_bandwidth_for_fitting
         i_max=number_of_spectral_points-1 if index+ind_bandwidth_for_fitting>number_of_spectral_points-1 else index+ind_bandwidth_for_fitting
-        fitting_parameters,_,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
+        fitting_parameters,perr,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
     [non_res_transmission, Fano_phase, res_wavelength,delta_0,delta_c]=fitting_parameters
     
-    linewidth=(delta_0+delta_c)*2/lambda_to_omega
-    depth=4*delta_0*delta_c/(delta_0+delta_c)**2
-    return [non_res_transmission,Fano_phase, res_wavelength, depth,linewidth,delta_c,delta_0,ind_bandwidth_for_fitting*dw]
+
+    return [non_res_transmission,Fano_phase, res_wavelength, delta_c,delta_0,ind_bandwidth_for_fitting*dw,perr]
 
 # @njit
 def get_Fano_fit(waves,signal,peak_wavelength=None):
@@ -456,11 +475,12 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
             popt, pcov=scipy.optimize.curve_fit(linear_Fano_lorenzian,waves,signal_lin,p0=initial_guess,bounds=bounds)
         else:
             popt, pcov=scipy.optimize.curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds)
-        return popt,pcov, waves, Fano_lorenzian(waves,*popt)
+        perr = np.sqrt(np.diag(pcov))
+        return popt,perr, waves, Fano_lorenzian(waves,*popt)
     except RuntimeError as E:
         pass
         print(E)
-        return initial_guess,0,waves,Fano_lorenzian(waves,*initial_guess)
+        return None
     
 # @njit
 def get_complex_Fano_fit(waves,signal,peak_wavelength=None,height=None):
@@ -495,12 +515,15 @@ def get_complex_Fano_fit(waves,signal,peak_wavelength=None,height=None):
     
     try:
         popt, pcov=scipy.optimize.curve_fit(complex_Fano_lorenzian_splitted,np.hstack([waves,waves]),re_im_signal,p0=initial_guess,bounds=bounds)
-        return popt,pcov, waves, complex_Fano_lorenzian(waves,*popt)
+        perr = np.sqrt(np.diag(pcov))
+        return popt,perr, waves, complex_Fano_lorenzian(waves,*popt)
     except RuntimeError as E:
         pass
         print(E)
         return initial_guess,0,waves,Fano_lorenzian(waves,*initial_guess)
 
+       
+    
 def complex_Fano_lorenzian_splitted(w,transmission,total_phase, fano_phase,w0,delta_0,delta_c):
     N=len(w)
     w_real = w[:N//2]
@@ -561,7 +584,7 @@ if __name__ == "__main__":
         S=pickle.load(file)
     #%%
     T=S.find_modes(peak_height=4)
-    T2=S.get_modes_parameters(min_peak_level=5,min_peak_distance=0.05,bandwidth_for_fitting=0,iterate_different_bandwidths=False,iterating_cost_function_type='linewidth',max_bandwidth_for_fitting=100)
+    T2=S.get_modes_parameters(min_peak_level=0.8,min_peak_distance=0.05,bandwidth_for_fitting=0,iterate_different_bandwidths=False,iterating_cost_function_type='linewidth',max_bandwidth_for_fitting=100)
     
    
     

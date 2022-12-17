@@ -4,8 +4,8 @@
 
 
 """
-__version__='2.5'
-__date__='2022.11.25'
+__version__='2.6'
+__date__='2022.12.18'
 
 import os
 import sys
@@ -25,7 +25,8 @@ except ModuleNotFoundError as E:
     import QuantumNumbersStructure
 import json
 
-lambda_to_nu=125e3 #MHz/nm
+
+c=299792458 # m/s
 
 class Analyzer(QObject):
         def __init__(self, spectrogram_file_path=None,parameters=None):
@@ -42,8 +43,8 @@ class Analyzer(QObject):
             self.figure_spectrogram=None
             
             self.number_of_peaks_to_search=1
-            self.min_peak_level=1
-            self.min_peak_distance=10
+            self.min_peak_level=0.8
+            self.min_peak_distance=0.05
             self.min_wave=1500
             self.max_wave=1600
 
@@ -60,7 +61,8 @@ class Analyzer(QObject):
             self.bandwidth_for_fitting=0
             self.iterate_different_bandwidths=False
             self.iterating_cost_function_type='linewidth'
-            self.max_bandwidth_for_fitting=1
+            self.max_bandwidth_for_fitting=0.05
+            self.derive_taper_cavity_params=False
             
             self.FFTFilter_low_freq_edge=0.00001
             self.FFTFilter_high_freq_edge=0.01
@@ -514,6 +516,8 @@ class Analyzer(QObject):
                 plt.xlabel('Длина волны, нм')
                 plt.ylabel('Спектральная плотность мощности, дБм')
             self.single_spectrum_figure=fig
+            plt.tight_layout()
+            return fig
             
         def analyze_spectrum(self,fig):
             '''
@@ -543,18 +547,27 @@ class Analyzer(QObject):
                 
                 
                 try:
-                    [non_res_transmission,Fano_phase,resonance_position,depth,linewidth,delta_c,delta_0,bandwidth_for_fitting]=SNAP_experiment.find_width(waves, signal, wavelength_main_peak,
+                    [non_res_transmission,Fano_phase,resonance_position,delta_c,delta_0,bandwidth_for_fitting,perrors]=SNAP_experiment.find_width(waves, signal, wavelength_main_peak,
                                                                                                                                       self.bandwidth_for_fitting,self.iterate_different_bandwidths,
                                                                                                                                       self.max_bandwidth_for_fitting,self.iterating_cost_function_type)
                     # parameters, waves_fitted,signal_fitted=SNAP_experiment.get_Fano_fit(waves,signal,wavelength_main_peak)
                     signal_fitted=SNAP_experiment.Fano_lorenzian(waves,non_res_transmission,Fano_phase,resonance_position,delta_0,delta_c)
                 except Exception as e:
                         print('Error: {}'.format(e))
-                axes.plot(waves, signal_fitted, color='green')             
-                results_text1='$|S_0|$={:.2f} \n arg(S)={:.2f} $\pi$  \n $\lambda_0$={:.4f}  nm \n $\Delta \lambda={:.5f}$ nm \n Depth={:.3e} \n'.format(non_res_transmission,Fano_phase, resonance_position,linewidth,depth)
+                axes.plot(waves, signal_fitted, color='green')   
+                lambda_to_nu=c/resonance_position**2*1e3 # MHz per nm
+                lambda_to_omega=lambda_to_nu*2*np.pi
+                depth=4*delta_0*delta_c/(delta_0+delta_c)**2
+                linewidth=(delta_0+delta_c)*2/lambda_to_omega
+                results_text1='$|S_0|$={:.2f} \n arg(S)={:.2f} $\pi$  \n $\lambda_0$={:.4f}  nm \n $\Delta \lambda={:.3f}$ pm \n Depth={:.3e} \n'.format(non_res_transmission,Fano_phase, resonance_position,linewidth*1e3,depth)
+                delta_c_err=perrors[4]
+                delta_0_err=perrors[3]
+                
                 Q_factor=resonance_position/linewidth
-                results_text2='\n $\delta_c$={:.2f} 1e6/s \n $\delta_0$={:.2f} 1e6/s \n Q-factor={:.2e}'.format(delta_c,delta_0,Q_factor)
-                results_text=results_text1+results_text2
+                results_text2='\n $\delta_c$=({:.2f} $\pm$ {:.2f}) '.format(delta_c,delta_c_err)+'$\mu s^{-1}$'
+                results_text3='\n $\delta_0$=({:.2f} $\pm$ {:.2f}) '.format(delta_0,delta_0_err)+'$\mu s^{-1}$'
+                results_text4='\n Q-factor={:.2e}'.format(Q_factor)
+                results_text=results_text1+results_text2+results_text3+results_text4
                 for t in axes.texts:
                     t.set_visible(False)
                 axes.text(0.8, 0.5,results_text,
@@ -622,20 +635,26 @@ class Analyzer(QObject):
             if len(modes_parameters)>0:
                 for D in modes_parameters:
                     if self.figure_spectrogram is not None:
-                        self.figure_spectrogram.axes[0].plot(x,D['mode']*np.ones(len(x)),color='black')
+                        self.figure_spectrogram.axes[0].plot(x,D['mode wavelength']*np.ones(len(x)),color='black')
+                    delta_c=D['delta_c']
+                    delta_c_err=D['delta_c_error']
+                    delta_0=D['delta_0']
+                    delta_0_err=D['delta_0_error']
+                    axes1[0].errorbar(x,delta_c,yerr=delta_c_err,label='{:.2f}'.format(D['mode wavelength']))
+                    axes1[1].errorbar(x,delta_0,yerr=delta_0_err,label='{:.2f}'.format(D['mode wavelength']))
                     
-                    axes1[0].plot(x,D['parameters'][:,4],'-.',label='{:.2f}'.format(D['mode']))
-                    axes1[1].plot(x,D['parameters'][:,5],'-.',label='{:.2f}'.format(D['mode']))
-                    mode_intensity=(D['parameters'][:,5]*D['parameters'][:,4])/(D['parameters'][:,4]+D['parameters'][:,4])**2
-                    axes2[0].plot(x,mode_intensity,label='{:.2f}'.format(D['mode']))
-                    threshold=(D['parameters'][:,5]+D['parameters'][:,4])**3/D['parameters'][:,4]
-                    axes2[1].plot(x,threshold,label='{:.2f}'.format(D['mode']))
+                    mode_intensity=(delta_c)/(delta_0+delta_c)**2
+                    threshold=(delta_0+delta_c)**3/delta_c
+                    
+                    axes2[0].plot(x,mode_intensity,label='{:.2f}'.format(D['mode wavelength']))
+                    axes2[1].plot(x,threshold,label='{:.2f}'.format(D['mode wavelength']))
                     
                 if self.figure_spectrogram is not None:
                     self.figure_spectrogram.canvas.draw()
                     
-                axes1[0].set_ylim(bottom=0)
-                axes1[1].set_ylim(bottom=0)
+                axes1[0].set_ylim(bottom=0,top=np.nanmax(delta_c)*1.1)
+                axes1[1].set_ylim(bottom=0,top=np.nanmax(delta_0)*1.1)
+                axes1[0]
                 
                 axes2[0].set_yscale('log')
                 axes2[1].set_yscale('log')
@@ -645,7 +664,7 @@ class Analyzer(QObject):
                 
                 axes1[0].set_ylabel('$\delta_c$, 1e6 1/s')
                 axes1[1].set_ylabel('$\delta_0$, 1e6 1/s')
-                axes2[0].set_ylabel(r'$\frac {\delta_0*\delta_c} {(\delta_c+\delta_0)^{2}}$')
+                axes2[0].set_ylabel(r'$\frac {\delta_c} {(\delta_c+\delta_0)^{2}}$')
                 axes2[1].set_ylabel(r'$\frac{(\delta_0+\delta_c)^{3}}{\delta_c}$, 1e12 $1/s^2$')
                 axes1[0].legend()
                 
@@ -654,9 +673,18 @@ class Analyzer(QObject):
                 
                 path, FileName = os.path.split(self.spectrogram_file_path)
                 NewFileName=path+'\\'+FileName.split('.')[-2]+'_mode_parameters.pkl'
+                Data_to_save={}
+                Data_to_save['modes_parameters']=modes_parameters
+                Data_to_save['coordinates']=x
                 with open(NewFileName,'wb') as f:
-                    pickle.dump(modes_parameters, f)
+                    pickle.dump(Data_to_save, f)
                 print('mode parameters saved to ', NewFileName)
+            
+            if self.derive_taper_cavity_params:
+                print(1)
+                from Theory.estimate_cavity_and_taper_params import estimate_params
+                estimate_params(NewFileName)
+                
         
         def plot_ERV_params(self,params_dict:dict,find_widths=True):
             positions=params_dict['positions']
@@ -664,6 +692,21 @@ class Analyzer(QObject):
             peak_wavelengths=params_dict['peak_wavelengths']
             number_of_peaks_to_search=np.shape(peak_wavelengths)[1]
             resonance_parameters_array=params_dict['resonance_parameters']
+            
+            non_res_transmission=resonance_parameters_array[:,:,0]
+            Fano_phase=resonance_parameters_array[:,:,1]
+            delta_c=resonance_parameters_array[:,:,2]
+            delta_0=resonance_parameters_array[:,:,3]
+            
+            non_res_transmission=non_res_transmission.reshape(len(positions),number_of_peaks_to_search)
+            Fano_phase=Fano_phase.reshape(len(positions),number_of_peaks_to_search)
+            delta_c=delta_c.reshape(len(positions),number_of_peaks_to_search)
+            delta_0=delta_0.reshape(len(positions),number_of_peaks_to_search)
+            
+            lambda_to_nu=c/np.nanmean(peak_wavelengths)**2*1e3 # MHz per nm
+            lambda_to_omega=lambda_to_nu*2*np.pi
+            depth=4*delta_0*delta_c/(delta_0+delta_c)**2
+            linewidth=(delta_0+delta_c)*2/lambda_to_omega
             
             plt.figure()
             for i in range(0,number_of_peaks_to_search):
@@ -681,17 +724,18 @@ class Analyzer(QObject):
             plt.title('Effective radius variation')
             plt.tight_layout()
   
+
             plt.figure()
             plt.title('Depth and Linewidth $\Delta \lambda$')
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,resonance_parameters_array[:,i,2],color='blue')
+                plt.plot(positions,depth[:,i],color='blue')
             plt.xlabel('Distance, $\mu$m')
             plt.ylabel('Depth ',color='blue')
             plt.gca().tick_params(axis='y', colors='blue')
             plt.gca().twinx()
             # plt.figure()
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,resonance_parameters_array[:,i,3], color='red')
+                plt.plot(positions,linewidth[:,i], color='red')
             plt.ylabel('Linewidth $\Delta \lambda$, nm',color='red')
             plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
@@ -699,14 +743,14 @@ class Analyzer(QObject):
             plt.figure()
             plt.title('Nonresonanse transmission $|S_0|$ and its phase')
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,resonance_parameters_array[:,i,0],color='blue')
+                plt.plot(positions,non_res_transmission[:,i],color='blue')
             plt.xlabel('Distance, $\mu$m')
             plt.ylabel('Nonresonance transmission $|S_0|$',color='blue')
             plt.gca().tick_params(axis='y', colors='blue')
             plt.gca().twinx()
             # plt.figure()
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,resonance_parameters_array[:,i,1], color='red')
+                plt.plot(positions,Fano_phase[:,i], color='red')
             plt.ylabel('Phase',color='red')
             plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
@@ -714,14 +758,14 @@ class Analyzer(QObject):
             plt.figure()
             plt.title('$\delta_0$ and $\delta_c$')
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,resonance_parameters_array[:,i,4],color='blue')
+                plt.plot(positions,delta_c[:,i],color='blue')
             plt.xlabel('Distance, $\mu$m')
             plt.ylabel('$\delta_c$,  $10^6$ 1/s',color='blue')
             plt.gca().tick_params(axis='y', colors='blue')
             plt.gca().twinx()
             # plt.figure()
             for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,resonance_parameters_array[:,i,5], color='red')
+                plt.plot(positions,delta_0[:,i], color='red')
             plt.ylabel('$\delta_0$,  $10^6$ 1/s',color='red')
             plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
@@ -827,11 +871,12 @@ if __name__ == "__main__":
     os.chdir('..')
 
     a=Analyzer()
-    a.load_data('1.pkl3d')
+
     a.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
+    f="C:\\Users\\t-vatniki\\Desktop\\cold resonator one taper_resaved.SNAP"
+    a.load_data('1.SNAP')
+    a.get_modes_parameters()
     
-    a.plot_spectrogram()
-    # analyzer.plot_slice(800)
     
     # import json
     # f=open('Parameters.txt')

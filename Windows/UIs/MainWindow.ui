@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1065</width>
+    <width>1039</width>
     <height>640</height>
    </rect>
   </property>
@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1041</width>
-         <height>565</height>
+         <width>1019</width>
+         <height>579</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -330,7 +330,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>388</height>
+             <height>426</height>
             </rect>
            </property>
            <attribute name="label">
@@ -648,7 +648,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>279</width>
+             <width>283</width>
              <height>700</height>
             </rect>
            </property>
@@ -1219,8 +1219,8 @@
               <rect>
                <x>130</x>
                <y>110</y>
-               <width>37</width>
-               <height>22</height>
+               <width>32</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1417,8 +1417,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>28</height>
+             <width>300</width>
+             <height>426</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1588,7 +1588,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>279</width>
+             <width>283</width>
              <height>600</height>
             </rect>
            </property>
@@ -1687,48 +1687,8 @@
                </rect>
               </property>
               <property name="text">
-               <string>microns along axis</string>
+               <string>microns</string>
               </property>
-             </widget>
-             <widget class="QComboBox" name="comboBox_axis_to_analyze_along_arb_data">
-              <property name="geometry">
-               <rect>
-                <x>240</x>
-                <y>20</y>
-                <width>38</width>
-                <height>22</height>
-               </rect>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="toolTip">
-               <string>Choose channel to plot</string>
-              </property>
-              <property name="currentIndex">
-               <number>2</number>
-              </property>
-              <property name="sizeAdjustPolicy">
-               <enum>QComboBox::AdjustToContents</enum>
-              </property>
-              <item>
-               <property name="text">
-                <string>X</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Y</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Z</string>
-               </property>
-              </item>
              </widget>
             </widget>
             <widget class="QPushButton" name="pushButton_analyzer_choose_plotting_param_file">
@@ -1990,7 +1950,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>279</width>
+             <width>283</width>
              <height>500</height>
             </rect>
            </property>
@@ -2528,8 +2488,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1065</width>
-     <height>26</height>
+     <width>1039</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuTools">

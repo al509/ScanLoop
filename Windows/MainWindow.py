@@ -94,13 +94,13 @@ class MainWindow(ThreadedMainWindow):
     '''
     Initialization
     '''
-    def __init__(self, parent=None,version='0.0'):
+    def __init__(self, parent=None,version='0.0',date='0.0.0'):
         super().__init__(parent)
         self.path_to_main=os.getcwd()
         # GUI
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.setWindowTitle("ScanLoop V."+version)
+        self.setWindowTitle("ScanLoop V."+version+', released '+date)
        
         self.stages=None
         self.OSA=None

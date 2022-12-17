@@ -13,10 +13,12 @@ Estimate different mode parameters:
 
 Mode distributions are derived following Demchenko, Y. A. and Gorodetsky, M. L., “Analytical estimates of eigenfrequencies, dispersion, and field distribution in whispering gallery resonators,” J. Opt. Soc. Am. B 30(11), 3056 (2013).
 eq(23)
+
+Estimations given following М. Л. Городецкий, Оптические Микрорезонаторы с Гигантской Добротностью (2012).
 """
 
-__version__=2
-__date__='21.10.2022'
+__version__=2.1
+__date__='2022.12.18'
 
 import numpy as np
 from scipy import special
@@ -97,7 +99,7 @@ volume=cross_section*length*1e-6 # m**3
 zeta=epsilon_0*n*c*absorption*cross_section/(2*specific_heat*density*np.pi*R_0**2*1e-12)
 
 F=np.sqrt(4*P_in*delta_c/(epsilon_0*n**2*volume))  #(11.21) 
-field_intensity=F**2/(delta_c**2+delta_0**2) # (11.20)
+field_intensity=F**2/(delta_c+delta_0)**2 # (from first diff equation in 11.20)
 
 heat_effect=field_intensity*zeta/delta_theta/P_in
 temperature_shift=field_intensity*zeta/delta_theta*int_psi_4_by_int_psi_2
