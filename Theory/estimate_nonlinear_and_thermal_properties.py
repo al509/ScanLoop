@@ -25,13 +25,13 @@ from scipy import special
 import matplotlib.pyplot as plt 
 from numba import jit
 
-delta_c=12e6 # 2*pi*Hz
-delta_0=125e6 # 2*pi*Hz
+delta_c=400e6 # 2*pi*Hz
+delta_0=750e6 # 2*pi*Hz
 lambda_0=1550 # nm
 
 n=1.445
 
-length=100 # micron
+length=65 # micron
 R_0=62.5 #micron
 delta_theta=1/3 # s^-1, thermal dissipation time, (11.35) from Gorodetsky, calculated numerically
 
@@ -103,7 +103,7 @@ def get_cross_section(R):
     
     return sum(F_TM_Array*Rarray*2*np.pi)*step/max(F_TM_Array)*1e-12 # in m**2 , here we consider distributions normilized as max(I(r))=1
 
-def volume(length,R):
+def volume(length,R): #length, R - in microns
     cross_section=get_cross_section(R) # in m
     volume=cross_section*length*1e-6 # m**3
     return volume
@@ -116,7 +116,8 @@ def get_field_intensity(delta_c,length,R):
     return field_intensity
 
 
-def Kerr_threshold(delta_c,delta_0,length,R):
+def Kerr_threshold(wave,delta_c,delta_0,length,R):
+    omega=c/(lambda_0*1e-9)*2*np.pi # 1/sec
     delta=(delta_0+delta_c)*2
     thres=n**2*volume(length,R)*delta**3/c/omega/n2/delta_c # Gorodecky (11.25)
     return thres
@@ -127,7 +128,8 @@ def get_heat_effect(delta_c,delta_0,length,R):
     temperature_shift=get_field_intensity(delta_c,length,R)*zeta/delta_theta*int_psi_4_by_int_psi_2
     return heat_effect,temperature_shift
 
-def get_min_threshold(R,a,w,C,D,Gamma):
+def get_min_threshold(R,wave,a,w,C,D,Gamma):
+    omega=c/(lambda_0*1e-9)*2*np.pi # 1/sec
     Leff=np.sqrt(2*np.pi)*w
     volume=get_cross_section(R)*Leff*1e-6
     min_threshold=9*epsilon_0*n**4*volume/4/omega/hi_3*(Gamma*1e6)**2*(D)/C
@@ -137,9 +139,9 @@ def get_min_threshold(R,a,w,C,D,Gamma):
 if __name__=='__main__':
     delta=(delta_0+delta_c)*2
     
-    threshold=Kerr_threshold(delta_c,delta_0,length,R_0)
+    threshold=Kerr_threshold(lambda_0,delta_c,delta_0,length,R_0)
     heat_effect,temperature_shift=get_heat_effect(delta_c,delta_0,length,R_0)
-    min_threshold, position=get_min_threshold(R_0,a,w,C,Im_D,Gamma)
+    min_threshold, position=get_min_threshold(R_0,omega,a,w,C,Im_D,Gamma)
     
     print('Threshold for Kerr nonlinearity={} W'.format(threshold))
     print('Minimal Threshold at optimized point={} W'.format(min_threshold))

@@ -16,7 +16,7 @@ import pickle
 import matplotlib.pyplot as plt
 from  scipy.optimize import curve_fit
 
-
+delete_unreliable_data=False
 max_allowed_error=0.2 #  omit data with higher relative error
 file=r"C:\!WorkFolder\!Experiments\!SNAP system\2022.12 playing with parameters\potential 4\parabola3_resaved_mode_parameters.pkl"
 
@@ -70,15 +70,17 @@ def estimate_params(file):
     ind_nan=np.argwhere(np.isnan(delta_c))
     ind_high_delta_c_errors=np.argwhere(delta_c_errors/delta_c>max_allowed_error)
     ind_high_delta_0_errors=np.argwhere(delta_0_errors/delta_0>max_allowed_error)
-    
-    ind_to_delete = np.unique(np.concatenate((ind_nan,ind_high_delta_c_errors,ind_high_delta_0_errors)))
-    
+    if delete_unreliable_data:
+        ind_to_delete = np.unique(np.concatenate((ind_nan,ind_high_delta_c_errors,ind_high_delta_0_errors)))
+    else:
+        ind_to_delete=ind_nan
     # ind_to_delete=sorted(np.unique(ind_nan+ind_high_delta_c_errors+ind_high_delta_0_errors))
-    x=np.delete(x,ind_to_delete)
-    delta_c=np.delete(delta_c,ind_to_delete)
-    delta_0=np.delete(delta_0,ind_to_delete)
-    delta_c_errors=np.delete(delta_c_errors,ind_to_delete)
-    delta_0_errors=np.delete(delta_0_errors,ind_to_delete)
+
+        x=np.delete(x,ind_to_delete)
+        delta_c=np.delete(delta_c,ind_to_delete)
+        delta_0=np.delete(delta_0,ind_to_delete)
+        delta_c_errors=np.delete(delta_c_errors,ind_to_delete)
+        delta_0_errors=np.delete(delta_0_errors,ind_to_delete)
     
     popt,perr=get_taper_resonator_qualities(x,delta_c,delta_0)
     a,w,C,D,Gamma,a_err,w_err,C_err,D_err,Gamma_err=*popt,*perr
@@ -103,6 +105,8 @@ def estimate_params(file):
               horizontalalignment='center',
               verticalalignment='center',
               transform = ax[0].transAxes)
+    ax[0].set_ylim((0,np.nanmax(delta_c)*1.1))
+    ax[1].set_ylim((0,np.nanmax(delta_0)*1.1))
     plt.tight_layout()
     return  a,w,C,D,Gamma
     
@@ -110,3 +114,4 @@ def estimate_params(file):
 
 if __name__=='__main__':
     estimate_params(file)
+

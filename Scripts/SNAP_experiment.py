@@ -310,7 +310,8 @@ class SNAP():
             resonance_parameters_errors_array=np.empty((len(x_array),5))*np.nan
             for jj,_ in enumerate(x_array):
                 try:
-                    [non_res_transmission,Fano_phase, res_wavelength,delta_c,delta_0,best_bandwidth_for_fitting,perr]=find_width(waves,signal[:,jj],None,bandwidth_for_fitting,iterate_different_bandwidths,max_bandwidth_for_fitting,iterating_cost_function_type)
+                    peakind,_=scipy.signal.find_peaks(abs(signal[:,jj]-np.nanmean(signal[:,jj])),height=min_peak_level , distance=int(min_peak_distance/dw))
+                    [non_res_transmission,Fano_phase, res_wavelength,delta_c,delta_0,best_bandwidth_for_fitting,perr]=find_width(waves,signal[:,jj],waves[peakind[0]],bandwidth_for_fitting,iterate_different_bandwidths,max_bandwidth_for_fitting,iterating_cost_function_type)
                     '''
                     print(x_array[jj])
                     plt.figure

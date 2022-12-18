@@ -636,7 +636,7 @@ class Analyzer(QObject):
                 for D in modes_parameters:
                     if self.figure_spectrogram is not None:
                         self.figure_spectrogram.axes[0].plot(x,D['mode wavelength']*np.ones(len(x)),'--',color='black')
-                        self.figure_spectrogram.axes[0].plot(x,D['res_wavelength'],color='black')
+                        self.figure_spectrogram.axes[0].plot(x,D['res_wavelength'],color='gray',linewidth=3.0)
                     delta_c=D['delta_c']
                     delta_c_err=D['delta_c_error']
                     delta_0=D['delta_0']
@@ -655,7 +655,7 @@ class Analyzer(QObject):
                     
                 axes1[0].set_ylim(bottom=0,top=np.nanmax(delta_c)*1.1)
                 axes1[1].set_ylim(bottom=0,top=np.nanmax(delta_0)*1.1)
-                axes1[0]
+
                 
                 axes2[0].set_yscale('log')
                 axes2[1].set_yscale('log')
@@ -682,12 +682,47 @@ class Analyzer(QObject):
                 print('mode parameters saved to ', NewFileName)
             
             if self.derive_taper_cavity_params:
+                max_allowed_error=0.2
                 from Theory.estimate_cavity_and_taper_params import estimate_params
-                from Theory.estimate_nonlinear_and_thermal_properties import get_min_threshold
+                from Theory.estimate_nonlinear_and_thermal_properties import get_min_threshold,Kerr_threshold
                 a,w,C,D,Gamma=estimate_params(NewFileName)
-                min_treshold,position=get_min_threshold(self.SNAP.R_0,a,w,C,D,Gamma)
-                print('Min_threshold={} W'.format(min_treshold))
+                min_threshold,position=get_min_threshold(self.SNAP.R_0,self.SNAP.wavelengths[0],a,w,C,D,Gamma)
+                print('Min_threshold={} W'.format(min_threshold))
                 self.figure_spectrogram.axes[0].axvline(position,color='blue')
+                self.figure_spectrogram.axes[0].text(0.4,0.4,'{:.3f} W'.format(min_threshold), 
+                                                     horizontalalignment='center',
+                                                     verticalalignment='center',
+                                                     transform = self.figure_spectrogram.axes[0].transAxes)
+                self.figure_spectrogram.canvas.draw()
+                plt.figure()
+                for D in modes_parameters:
+                    delta_c=D['delta_c']
+                    delta_c_err=D['delta_c_error']
+                    delta_0=D['delta_0']
+                    delta_0_err=D['delta_0_error']
+                    
+                    # ind_nan=np.argwhere(np.isnan(delta_c))
+                    # ind_high_delta_c_errors=np.argwhere(delta_c_err/delta_c>max_allowed_error)
+                    # ind_high_delta_0_errors=np.argwhere(delta_0_err/delta_0>max_allowed_error)
+                    # ind_to_delete = np.unique(np.concatenate((ind_nan,ind_high_delta_c_errors,ind_high_delta_0_errors)))
+    
+                    #     # ind_to_delete=sorted(np.unique(ind_nan+ind_high_delta_c_errors+ind_high_delta_0_errors))
+                    # x_cutted=np.delete(x,ind_to_delete)
+                    # delta_c=np.delete(delta_c,ind_to_delete)
+                    # delta_0=np.delete(delta_0,ind_to_delete)
+                    
+                    x_cutted=x
+
+    
+                    length=np.nansum(delta_c[1:]*np.diff(x_cutted))/np.nanmax(delta_c)
+                    plt.plot(x_cutted,Kerr_threshold(D['res_wavelength'],delta_c*1e6,delta_0*1e6,length,self.SNAP.R_0),label='{:.2f}'.format(D['mode wavelength']))
+                plt.xlabel('Distance, micron')
+                plt.ylabel('Kerr threshold, W')
+                plt.legend()
+                plt.tight_layout()
+                    
+                    
+                
 
                 
         
