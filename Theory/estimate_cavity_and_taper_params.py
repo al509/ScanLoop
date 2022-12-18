@@ -8,13 +8,19 @@ Created on Sun Dec 18 01:39:35 2022
 following paper of Kolesnikova 
 """
 
+__version__='1'
+__date__='2022.12.18'
+
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 from  scipy.optimize import curve_fit
 
 
-threshold=0.4 # to ommit data with high error
+max_allowed_error=0.2 #  omit data with higher relative error
+file=r"C:\!WorkFolder\!Experiments\!SNAP system\2022.12 playing with parameters\potential 4\parabola3_resaved_mode_parameters.pkl"
+
+epsilon_0=8.85e-12 # F/m
 
 def Gauss_delta_c(x,a,w,C):
     L_eff=(2*np.pi*w)
@@ -41,9 +47,16 @@ def get_taper_resonator_qualities(x_array,delta_c,delta_0):
     ydata = np.column_stack((delta_c,delta_0))
     init_guess=[np.mean(x_array),(np.max(x_array)-np.min(x_array))/4,
                 10000,10000,10]
-    popt,pcov = curve_fit(Gaussian_2D, x_array, ydata.T.ravel(),p0=init_guess)
-    perr = np.sqrt(np.diag(pcov))
-    return popt,perr
+    bounds=[(0,np.inf),(0,np.inf),(0,np.inf),(0,np.inf),(0,100)]
+    try:
+        popt,pcov = curve_fit(Gaussian_2D, x_array, ydata.T.ravel(),p0=init_guess)
+        perr = np.sqrt(np.diag(pcov))
+        return popt,perr
+    except Exception as e:
+        print(e)
+        return init_guess,np.array(init_guess)*0.1
+
+
 
 def estimate_params(file):
     with open(file,'rb') as f:
@@ -55,10 +68,10 @@ def estimate_params(file):
     delta_c_errors=data['modes_parameters'][0]['delta_c_error']
     delta_0_errors=data['modes_parameters'][0]['delta_0_error']
     ind_nan=np.argwhere(np.isnan(delta_c))
-    ind_high_delta_c_errors=np.argwhere(delta_c_errors/delta_c>threshold)
-    ind_high_delta_0_errors=np.argwhere(delta_0_errors/delta_0>threshold)
+    ind_high_delta_c_errors=np.argwhere(delta_c_errors/delta_c>max_allowed_error)
+    ind_high_delta_0_errors=np.argwhere(delta_0_errors/delta_0>max_allowed_error)
     
-    ind_to_delete = np.unique(np.concatenate((ind_nan,ind_high_delta_c_errors,ind_high_delta_0_errors),0))
+    ind_to_delete = np.unique(np.concatenate((ind_nan,ind_high_delta_c_errors,ind_high_delta_0_errors)))
     
     # ind_to_delete=sorted(np.unique(ind_nan+ind_high_delta_c_errors+ind_high_delta_0_errors))
     x=np.delete(x,ind_to_delete)
@@ -83,12 +96,17 @@ def estimate_params(file):
     results_text1='\n C=({:.1e} $\pm$ {:.1e}) '.format(C,C_err)+'$\mu m / \mu s$'
     results_text2='\n D=({:.1e} $\pm$ {:.1e}) '.format(D,D_err)+'$\mu m / \mu s$'
     results_text3='\n $\Gamma$=({:.0f} $\pm$ {:.0f}) '.format(Gamma,Gamma_err)+'$\mu s^{-1}$'
-    results_text=results_text1+results_text2+results_text3
-    ax[0].text(0.8, 0.5,results_text,
+    results_text4='\n $a$=({:.0f} $\pm$ {:.0f}) '.format(a,a_err)+'$\mu m$'
+    results_text5='\n $w$=({:.0f} $\pm$ {:.0f}) '.format(w,w_err)+'$\mu m$'
+    results_text=results_text1+results_text2+results_text3+results_text4+results_text5
+    ax[0].text(0.5, 0.3,results_text,
               horizontalalignment='center',
               verticalalignment='center',
               transform = ax[0].transAxes)
+    plt.tight_layout()
+    return  a,w,C,D,Gamma
+    
+    
 
 if __name__=='__main__':
-    file='C://Users//t-vatniki//Desktop//cold resonator one taper_resaved_mode_parameters.pkl'
     estimate_params(file)

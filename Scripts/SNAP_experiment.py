@@ -306,19 +306,28 @@ class SNAP():
             signal=self.signal[ind_min:ind_max,:]
             waves=self.wavelengths[ind_min:ind_max]
             undisturbed_mode_wavelength=central_wavelength
-            resonance_parameters_array=np.empty((len(x_array),6))
-            resonance_parameters_errors_array=np.empty((len(x_array),5))
+            resonance_parameters_array=np.empty((len(x_array),6))*np.nan
+            resonance_parameters_errors_array=np.empty((len(x_array),5))*np.nan
             for jj,_ in enumerate(x_array):
                 try:
-                    [non_res_transmission,Fano_phase, res_wavelength,delta_c,delta_0,best_bandwidth_for_fitting,perr]=find_width(waves,signal[:,jj],central_wavelength,bandwidth_for_fitting,iterate_different_bandwidths,max_bandwidth_for_fitting,iterating_cost_function_type)
+                    [non_res_transmission,Fano_phase, res_wavelength,delta_c,delta_0,best_bandwidth_for_fitting,perr]=find_width(waves,signal[:,jj],None,bandwidth_for_fitting,iterate_different_bandwidths,max_bandwidth_for_fitting,iterating_cost_function_type)
+                    '''
+                    print(x_array[jj])
+                    plt.figure
+                    plt.plot(waves,signal[:,jj])
+                    plt.plot(waves,Fano_lorenzian(waves,non_res_transmission,Fano_phase, res_wavelength,delta_0,delta_c))
+                    print(perr[4]/delta_c)
+                    '''
                     if res_wavelength<undisturbed_mode_wavelength:
                         undisturbed_mode_wavelength=res_wavelength
                     resonance_parameters_array[jj,:]=[non_res_transmission,Fano_phase,
                                                                       res_wavelength,delta_c,delta_0,best_bandwidth_for_fitting]
                     resonance_parameters_errors_array[jj,:]=perr
-                except TypeError: # if find_width returns NOne
+                except Exception as e: # if find_width returns None
+                    print(e)
+                    print('for x={} no width found'.format(x_array[jj]))
                     resonance_parameters_array[jj,:]=np.nan
-            print('Minimal resonance wavelength is ',undisturbed_mode_wavelength )
+            print('Minimal resonance wavelength is ',undisturbed_mode_wavelength)
             D={'mode wavelength':undisturbed_mode_wavelength}
             D['non_res_transmission']=resonance_parameters_array[:,0]
             D['non_res_transmission_error']=resonance_parameters_errors_array[:,0]
@@ -376,7 +385,10 @@ def extract_taper_jones_matrixes(jones_matrixes,out_of_contact_jones_matrixes):
 
 # @njit
 def find_width(waves,signal,peak_wavelength,bandwidth_for_fitting=0,iterate_different_bandwidths=False,max_bandwidth_for_fitting=100,iterating_cost_function_type='linewidth'):
-    index=np.argmin(np.abs(waves-peak_wavelength))
+    if peak_wavelength is not None:    
+        index=np.argmin(np.abs(waves-peak_wavelength))
+    else:
+        index=int(len(waves)//2)
     number_of_spectral_points=np.shape(waves)[0]
     dw=(waves[-1]-waves[0])/len(waves)
     ind_bandwidth_for_fitting=int(bandwidth_for_fitting/dw)
@@ -438,15 +450,23 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
     return [transmission, Fano_phase, resonance_position,delta_0,delta_c], [x_fitted,y_fitted]
     
     '''
-    fitting_in_linear_scale=True
+    method='trf'
+    peak_wavelength_prominance=3e-3
+    fitting_in_linear_scale=False
+    
+    
     signal_lin=10**(signal/10)
     transmission=np.mean(signal_lin)
     if peak_wavelength is None:
-        peak_wavelength=waves[scipy.signal.find_peaks(signal_lin-transmission)[0][0]]
-        peak_wavelength_lower_bound=0
-        peak_wavelength_higher_bound=np.inf
+        # ind,_=scipy.signal.find_peaks(abs(signal_lin-transmission),threshold=signal_lin-transmission/2)
+        # ind,_=scipy.signal.find_peaks(abs(signal_lin-transmission),threshold=signal_lin-transmission/2)
+        ind=np.argmax(abs(signal_lin-transmission))
+        # print(ind)
+        peak_wavelength=waves[ind]
+        peak_wavelength_lower_bound=waves[0]
+        peak_wavelength_higher_bound=waves[-1]
     else:
-        peak_wavelength_prominance=10e-3
+
         peak_wavelength_lower_bound=peak_wavelength-peak_wavelength_prominance
         peak_wavelength_higher_bound=peak_wavelength+peak_wavelength_prominance
     
@@ -472,13 +492,12 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
     
     try:
         if fitting_in_linear_scale:
-            popt, pcov=scipy.optimize.curve_fit(linear_Fano_lorenzian,waves,signal_lin,p0=initial_guess,bounds=bounds)
+            popt, pcov=scipy.optimize.curve_fit(linear_Fano_lorenzian,waves,signal_lin,p0=initial_guess,bounds=bounds,method=method)
         else:
-            popt, pcov=scipy.optimize.curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds)
+            popt, pcov=scipy.optimize.curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds,method=method)
         perr = np.sqrt(np.diag(pcov))
         return popt,perr, waves, Fano_lorenzian(waves,*popt)
     except RuntimeError as E:
-        pass
         print(E)
         return None
     
@@ -500,8 +519,8 @@ def get_complex_Fano_fit(waves,signal,peak_wavelength=None,height=None):
         print(indexes)
         peak_wavelength=waves[indexes[0][0]]
 
-    peak_wavelength_lower_bound=peak_wavelength-1e-3
-    peak_wavelength_higher_bound=peak_wavelength+1e-3
+    peak_wavelength_lower_bound=peak_wavelength-5e-3
+    peak_wavelength_higher_bound=peak_wavelength+5e-3
     
     delta_0=300 # MHz
     delta_c=50 # MHz
@@ -579,28 +598,12 @@ if __name__ == "__main__":
     os.chdir('..')
     import Scripts.SNAP_experiment
     
-    f='1.SNAP'
+    f=r"C:\!WorkFolder\!Experiments\!SNAP system\2022.12 playing with parameters\potential 6\left.SNAP"
     with open(f,'rb') as file:
         S=pickle.load(file)
     #%%
-    T=S.find_modes(peak_height=4)
-    T2=S.get_modes_parameters(min_peak_level=0.8,min_peak_distance=0.05,bandwidth_for_fitting=0,iterate_different_bandwidths=False,iterating_cost_function_type='linewidth',max_bandwidth_for_fitting=100)
-    
-   
-    
-    
-    #%%
-    plt.figure()
-    mode_wavelengths=S.find_modes()
-    central_wave=mode_wavelengths[0]
-    waves=S.wavelengths
-    for jj in range(0,1):
-        Signal=S.signal[:,jj+3]
-        plt.plot(waves,Signal,color='blue')
-        _,_, _, fitted_signal=get_Fano_fit(waves, Signal,central_wave)
-        plt.plot(waves,fitted_signal,color='red')
-    
-    # [x, peaks, ERV, resonance_parameters_array]=S.extract_ERV(find_widths=True)   
-    # plt.figure(1)
-    # plt.plot(x,peaks)
 
+    T2=S.get_modes_parameters(min_peak_level=0.8,min_peak_distance=0.05,bandwidth_for_fitting=0,iterate_different_bandwidths=False,iterating_cost_function_type='linewidth',max_bandwidth_for_fitting=100)
+    plt.errorbar(S.positions[:,S.axes_dict[S.axis_key]],T2[0]['delta_0'],T2[0]['delta_0_error'])
+    plt.ylim((0,np.nanmax(T2[0]['delta_0'])*1.2))
+    

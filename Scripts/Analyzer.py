@@ -635,7 +635,8 @@ class Analyzer(QObject):
             if len(modes_parameters)>0:
                 for D in modes_parameters:
                     if self.figure_spectrogram is not None:
-                        self.figure_spectrogram.axes[0].plot(x,D['mode wavelength']*np.ones(len(x)),color='black')
+                        self.figure_spectrogram.axes[0].plot(x,D['mode wavelength']*np.ones(len(x)),'--',color='black')
+                        self.figure_spectrogram.axes[0].plot(x,D['res_wavelength'],color='black')
                     delta_c=D['delta_c']
                     delta_c_err=D['delta_c_error']
                     delta_0=D['delta_0']
@@ -681,9 +682,13 @@ class Analyzer(QObject):
                 print('mode parameters saved to ', NewFileName)
             
             if self.derive_taper_cavity_params:
-                print(1)
                 from Theory.estimate_cavity_and_taper_params import estimate_params
-                estimate_params(NewFileName)
+                from Theory.estimate_nonlinear_and_thermal_properties import get_min_threshold
+                a,w,C,D,Gamma=estimate_params(NewFileName)
+                min_treshold,position=get_min_threshold(self.SNAP.R_0,a,w,C,D,Gamma)
+                print('Min_threshold={} W'.format(min_treshold))
+                self.figure_spectrogram.axes[0].axvline(position,color='blue')
+
                 
         
         def plot_ERV_params(self,params_dict:dict,find_widths=True):
@@ -873,9 +878,10 @@ if __name__ == "__main__":
     a=Analyzer()
 
     a.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
-    f="C:\\Users\\t-vatniki\\Desktop\\cold resonator one taper_resaved.SNAP"
-    a.load_data('1.SNAP')
-    a.get_modes_parameters()
+    f=r"C:\!WorkFolder\!Experiments\!SNAP system\2022.12 playing with parameters\potential 6\central.SNAP"
+    a.load_data(f)
+    a.plot_slice(680)
+    a.analyze_spectrum(a.single_spectrum_figure)
     
     
     # import json

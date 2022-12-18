@@ -25,19 +25,27 @@ from scipy import special
 import matplotlib.pyplot as plt 
 from numba import jit
 
-delta_c=100e6 # 2*pi*Hz
-delta_0=300e6 # 2*pi*Hz
+delta_c=12e6 # 2*pi*Hz
+delta_0=125e6 # 2*pi*Hz
 lambda_0=1550 # nm
 
 n=1.445
 
-length=200 # micron
+length=100 # micron
 R_0=62.5 #micron
 delta_theta=1/3 # s^-1, thermal dissipation time, (11.35) from Gorodetsky, calculated numerically
 
 
 P_in=0.05 # W
 '''
+'''
+C=6e4 # micron/microsec
+Im_D=2e5 # micron/microsec
+Gamma=40 # 1/microsec
+w=26 # micron, gussian distribution
+a=433 # micron, maximum position
+'''
+
 
 '''
 
@@ -62,8 +70,10 @@ density=2.2*1e3 # kg/m**3
 
 delta_omega=0
 
+hi_3=4*n2/3*epsilon_0*c*n**2
+omega=c/(lambda_0*1e-9)*2*np.pi # 1/sec
 
-def get_cross_section():
+def get_cross_section(R):
     T_mp=special.jn_zeros(m,p)[p-1]
     
     def E(x,R,pol='TE'): #phase not considered
@@ -93,23 +103,48 @@ def get_cross_section():
     
     return sum(F_TM_Array*Rarray*2*np.pi)*step/max(F_TM_Array)*1e-12 # in m**2 , here we consider distributions normilized as max(I(r))=1
 
+def volume(length,R):
+    cross_section=get_cross_section(R) # in m
+    volume=cross_section*length*1e-6 # m**3
+    return volume
+    
+def F(delta_c,length,R):
+    return np.sqrt(4*P_in*delta_c/(epsilon_0*n**2*volume(length,R)))  #(11.21) 
 
-cross_section=get_cross_section() # in m
-volume=cross_section*length*1e-6 # m**3
-zeta=epsilon_0*n*c*absorption*cross_section/(2*specific_heat*density*np.pi*R_0**2*1e-12)
+def get_field_intensity(delta_c,length,R):
+    field_intensity=F(delta_c,length,R)**2/(delta_c+delta_0)**2 # (from first diff equation in 11.20)
+    return field_intensity
 
-F=np.sqrt(4*P_in*delta_c/(epsilon_0*n**2*volume))  #(11.21) 
-field_intensity=F**2/(delta_c+delta_0)**2 # (from first diff equation in 11.20)
 
-heat_effect=field_intensity*zeta/delta_theta/P_in
-temperature_shift=field_intensity*zeta/delta_theta*int_psi_4_by_int_psi_2
-omega=c/(lambda_0*1e-9)*2*np.pi
-delta=(delta_0+delta_c)*2
+def Kerr_threshold(delta_c,delta_0,length,R):
+    delta=(delta_0+delta_c)*2
+    thres=n**2*volume(length,R)*delta**3/c/omega/n2/delta_c # Gorodecky (11.25)
+    return thres
 
-threshold=n**2*volume*delta**3/c/omega/n2/delta_c # Gorodecky (11.25)
-print('Threshold for Kerr nonlinearity={} W'.format(threshold))
-print('Q_factor={:.2e}, V={} m^3={} micron^3'.format(omega/delta,volume,volume*1e18))
-print('Mode amplitude squared={:.3e} (V/m)**2'.format(field_intensity))
-print('Thermal shift {} K '.format(temperature_shift))
-print('Averaged temperature response is {} degrees per Watt of pump'.format(heat_effect))
+def get_heat_effect(delta_c,delta_0,length,R):
+    zeta=epsilon_0*n*c*absorption*get_cross_section(R)/(2*specific_heat*density*np.pi*R_0**2*1e-12)
+    heat_effect=get_field_intensity(delta_c,length,R)*zeta/delta_theta/P_in    
+    temperature_shift=get_field_intensity(delta_c,length,R)*zeta/delta_theta*int_psi_4_by_int_psi_2
+    return heat_effect,temperature_shift
 
+def get_min_threshold(R,a,w,C,D,Gamma):
+    Leff=np.sqrt(2*np.pi)*w
+    volume=get_cross_section(R)*Leff*1e-6
+    min_threshold=9*epsilon_0*n**4*volume/4/omega/hi_3*(Gamma*1e6)**2*(D)/C
+    position=a-np.sqrt(-(np.log(Gamma*Leff/2/D)*2*w**2))
+    return min_threshold, position
+
+if __name__=='__main__':
+    delta=(delta_0+delta_c)*2
+    
+    threshold=Kerr_threshold(delta_c,delta_0,length,R_0)
+    heat_effect,temperature_shift=get_heat_effect(delta_c,delta_0,length,R_0)
+    min_threshold, position=get_min_threshold(R_0,a,w,C,Im_D,Gamma)
+    
+    print('Threshold for Kerr nonlinearity={} W'.format(threshold))
+    print('Minimal Threshold at optimized point={} W'.format(min_threshold))
+    print('Q_factor={:.2e}, V={} m^3={} micron^3'.format(omega/delta,volume(length,R_0),volume(length,R_0)*1e18))
+    print('Mode amplitude squared={:.3e} (V/m)**2'.format(get_field_intensity(delta_c,length,R_0)))
+    print('Thermal shift {} K '.format(temperature_shift))
+    print('Averaged temperature response is {} degrees per Watt of pump'.format(heat_effect))
+    
