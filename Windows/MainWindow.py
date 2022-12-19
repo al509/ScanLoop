@@ -1,34 +1,40 @@
 # -*- coding: utf-8 -*-
-__version__='20.6.3'
+__version__='20.6.4'
 __date__='2022.12.05'
 
 import os
 if __name__=='__main__':
     os.chdir('..')
+    
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 
 from PyQt5.QtCore import pyqtSignal, QThread
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog,QLineEdit,QComboBox,QCheckBox,QMessageBox
 
 from Common.Consts import Consts
 from Hardware.Config import Config
+
+'''
 from Hardware.Interrogator import Interrogator
 from Hardware.YokogawaOSA import OSA_AQ6370
 from Hardware.ova5000 import Luna
 from Hardware.KeysightOscilloscope import Scope
 from Hardware.APEX_OSA import APEX_OSA_with_additional_features
+'''
 
 from Logger.Logger import Logger
 from Visualization.Painter import MyPainter
 from Utils.PyQtUtils import pyqtSlotWExceptions
 from Windows.UIs.MainWindowUI import Ui_MainWindow
-# from Scripts import AnalyzerForSpectrogram
+
+
 from Scripts import Analyzer
 from Scripts import Spectral_processor
 
 
-import sys
+
 
 
 def isfloat(value):
@@ -299,6 +305,7 @@ class MainWindow(ThreadedMainWindow):
         None.
 
         '''
+        from Hardware.KeysightOscilloscope import Scope
         self.scope=Scope(Consts.Scope.HOST)
         self.add_thread([self.scope])
         self.scope.received_data.connect(self.painter.set_data)
@@ -350,8 +357,10 @@ class MainWindow(ThreadedMainWindow):
 
         '''
         if self.ui.comboBox_Type_of_OSA.currentText()=='Luna':
+            from Hardware.ova5000 import Luna
             self.OSA=Luna(port=Consts.LUNA.PORT)  
         if self.ui.comboBox_Type_of_OSA.currentText()=='Yokogawa':
+            from Hardware.YokogawaOSA import OSA_AQ6370
             HOST = Consts.Yokogawa.HOST
             PORT = 10001
             timeout_short = 0.2
@@ -359,6 +368,7 @@ class MainWindow(ThreadedMainWindow):
             self.OSA=OSA_AQ6370(None,HOST, PORT, timeout_long,timeout_short)
 #            self.OSA.received_spectra.connect(self.painter.set_spectra)
         elif self.ui.comboBox_Type_of_OSA.currentText()=='Astro interrogator':
+            from Hardware.Interrogator import Interrogator
             cfg = Config("config_interrogator.json")
             self.repeatmode=False
             self.OSA = Interrogator(
@@ -378,6 +388,7 @@ class MainWindow(ThreadedMainWindow):
 
 
         elif self.ui.comboBox_Type_of_OSA.currentText()=='APEX':
+            from Hardware.APEX_OSA import APEX_OSA_with_additional_features
             self.OSA = APEX_OSA_with_additional_features(Consts.APEX.HOST)
             self.ui.checkBox_HighRes.setChecked(self.OSA.IsHighRes)
             self.ui.comboBox_APEX_mode.setEnabled(True)
