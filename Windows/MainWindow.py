@@ -277,6 +277,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_save_single_spectrum.clicked.connect(self.analyzer.save_single_spectrum)        
         self.ui.pushButton_analyzer_resave_SNAP.clicked.connect(lambda : self.analyzer.resave_SNAP(self.ui.comboBox_analyzer_resave_type.currentText()))        
         self.ui.pushButton_set_analyzer_parameters.clicked.connect(self.on_pushButton_set_analyzer_parameters)
+        self.ui.pushButton_delete_slice.clicked.connect(self.delete_slice_from_spectrogram)
         # self.ui.pushButton_analyzer_save_as_pkl3d.clicked.connect(lambda: self.analyzer.save_as_pkl3d())
         
         # self.ui.pushButton_analyzer_save_cropped.clicked.connect(lambda: self.analyzer.save_cropped_data())
@@ -1187,6 +1188,16 @@ class MainWindow(ThreadedMainWindow):
             self.ui.label_scanning_axis.setText(self.scanningProcess.axis_to_scan)
 
             
+    def delete_slice_from_spectrogram(self):
+        msg=QMessageBox(2, 'Warning', 'Do you want to delete slice at {}?'.format(float(self.ui.lineEdit_slice_position.text())))
+        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        if msg.exec_():  
+            self.analyzer.delete_slice(float(self.ui.lineEdit_slice_position.text()))
+            msg=QMessageBox(2, 'Warning', 'Spectogram without slice is resaved')
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()
+        
+
     def delete_data_from_folders(self):
         msg=QMessageBox(2, 'Warning', 'Do you want to delete all raw data?')
 

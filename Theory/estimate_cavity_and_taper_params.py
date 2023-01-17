@@ -23,10 +23,10 @@ file=r"C:\!WorkFolder\!Experiments\!SNAP system\2022.12 playing with parameters\
 epsilon_0=8.85e-12 # F/m
 
 def Gauss_delta_c(x,a,w,C):
-    L_eff=(2*np.pi*w)
+    L_eff=np.sqrt(2*np.pi)*w
     return  C/L_eff*np.exp(-(x-a)**2/2/w**2)
 def Gauss_delta_0(x,a,w,C,D,Gamma):
-    L_eff=(2*np.pi*w)
+    L_eff=np.sqrt(2*np.pi)*w
     return  (D-C)/L_eff*np.exp(-(x-a)**2/2/w**2)+Gamma
     
 def get_taper_resonator_qualities(x_array,delta_c,delta_0):
@@ -47,9 +47,9 @@ def get_taper_resonator_qualities(x_array,delta_c,delta_0):
     ydata = np.column_stack((delta_c,delta_0))
     init_guess=[np.mean(x_array),(np.max(x_array)-np.min(x_array))/4,
                 10000,10000,10]
-    bounds=[(0,np.inf),(0,np.inf),(0,np.inf),(0,np.inf),(0,100)]
+    bounds=[(-np.inf,0,0,0,0),(np.inf,1000,1e6,1e6,1e6)]
     try:
-        popt,pcov = curve_fit(Gaussian_2D, x_array, ydata.T.ravel(),p0=init_guess)
+        popt,pcov = curve_fit(Gaussian_2D, x_array, ydata.T.ravel(),p0=init_guess,bounds=bounds)
         perr = np.sqrt(np.diag(pcov))
         return popt,perr
     except Exception as e:

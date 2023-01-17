@@ -142,7 +142,7 @@ if __name__=='__main__':
     threshold=Kerr_threshold(lambda_0,delta_c,delta_0,length,R_0)
     heat_effect,temperature_shift=get_heat_effect(delta_c,delta_0,length,R_0)
     min_threshold, position=get_min_threshold(R_0,omega,a,w,C,Im_D,Gamma)
-    
+    print(get_cross_section(62.5)*1e12)
     print('Threshold for Kerr nonlinearity={} W'.format(threshold))
     print('Minimal Threshold at optimized point={} W'.format(min_threshold))
     print('Q_factor={:.2e}, V={} m^3={} micron^3'.format(omega/delta,volume(length,R_0),volume(length,R_0)*1e18))

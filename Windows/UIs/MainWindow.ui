@@ -329,8 +329,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>426</height>
+             <width>87</width>
+             <height>118</height>
             </rect>
            </property>
            <attribute name="label">
@@ -648,7 +648,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>83</width>
              <height>700</height>
             </rect>
            </property>
@@ -1417,8 +1417,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>426</height>
+             <width>100</width>
+             <height>30</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1690,6 +1690,19 @@
                <string>microns</string>
               </property>
              </widget>
+             <widget class="QPushButton" name="pushButton_delete_slice">
+              <property name="geometry">
+               <rect>
+                <x>200</x>
+                <y>20</y>
+                <width>75</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>delete slice</string>
+              </property>
+             </widget>
             </widget>
             <widget class="QPushButton" name="pushButton_analyzer_choose_plotting_param_file">
              <property name="geometry">
@@ -1950,7 +1963,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>83</width>
              <height>500</height>
             </rect>
            </property>

@@ -4,8 +4,8 @@
 
 
 """
-__version__='2.6'
-__date__='2022.12.18'
+__version__='2.6.2'
+__date__='2023.01.17'
 
 import os
 import sys
@@ -228,8 +228,25 @@ class Analyzer(QObject):
                     pickle.dump(D,f)
                 print('spectrogram saved as ' +NewFileName)
 
+        def delete_slice(self,position):
+            self.slice_position=position
+            if self.SNAP.signal is None:
+                self.load_data()
 
-                        
+
+            x=self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]
+            index=np.argmin(abs(position-x))
+            print(index)
+            self.SNAP.signal=np.delete(self.SNAP.signal,index,1)
+            self.SNAP.positions=np.delete(self.SNAP.positions,index,0)
+            path,FileName = os.path.split(self.spectrogram_file_path)
+            NewFileName=path+'\\'+FileName.split('.')[-2]+'_resaved.SNAP'
+            f=open(NewFileName,'wb')
+            pickle.dump(self.SNAP,f)
+            f.close()
+            print('Data resaved to {}'.format(NewFileName))
+    
+                            
         # def save_cropped_data(self):
         #     x_lim=self.figure_spectrogram.axes[0].get_xlim() #positions
         #     wave_lim=self.figure_spectrogram.axes[0].get_ylim()
@@ -367,7 +384,9 @@ class Analyzer(QObject):
                 print(E)
             
             w_0=np.mean(self.SNAP.wavelengths)
-            x=self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]
+            x=self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]-p['shift_x_axis']
+            if p['shift_x_axis']!=0:
+                print('!!! Note that X axis in spectrogram are shifted on {} um according to plotting_parameters.txt'.format(p['shift_x_axis']))
             
             def _convert_ax_Wavelength_to_Radius(ax_Wavelengths):
                 """
@@ -407,7 +426,9 @@ class Analyzer(QObject):
             if p['ERV_axis']:
                 ax_Radius = ax_Wavelengths.secondary_yaxis('right', functions=(_forward,_backward))
                 # ax_Wavelengths.callbacks.connect("ylim_changed", _convert_ax_Wavelength_to_Radius)
-            
+            '''
+            legacy code
+            '''
             if p['position_in_steps_axis']:
                 ax_steps=ax_Wavelengths.twiny()
                 ax_steps.set_xlim([np.min(x)/2.5,np.max(x)/2.5])
@@ -419,11 +440,11 @@ class Analyzer(QObject):
             else:
                 try:
                     clb=fig.colorbar(im,ax=ax_Wavelengths,pad=p['colorbar_pad'],location=p['colorbar_location'])
-                except TypeError:
-                    print('WARNING: update matplotlib up to 3.4.2 to plot colorbars properly')
+                except TypeError as e:
+                    print('WARNING: update matplotlib up to 3.4.2 to plot colorbars properly. Error is ', e)
                     clb=fig.colorbar(im,ax=ax_Wavelengths,pad=p['colorbar_pad'])
     
-            if p['language']=='eng':
+            if p['language'] in ['eng','en']:
                 try:
                     if self.SNAP.axis_key=='W':
                         ax_Wavelengths.set_xlabel('Wavelength, nm')    
@@ -439,7 +460,7 @@ class Analyzer(QObject):
                         if p['colorbar_title_position']=='right':
                             clb.ax.set_ylabel('dB',rotation= p['colorbar_title_rotation'],labelpad=5)
                         else:
-                            clb.ax.set_title('dB',labelpad=5)
+                            clb.ax.set_title('dB')
                     if p['title']:
                         plt.title('experiment')
                     try:
@@ -509,7 +530,7 @@ class Analyzer(QObject):
             index=np.argmin(abs(position-x))
             plt.plot(self.SNAP.wavelengths,self.SNAP.signal[:,index])
             
-            if p['language']=='eng':
+            if p['language'] in ['eng','en']:
                 plt.xlabel('Wavelength, nm')
                 plt.ylabel('Spectral power density, dBm')
             elif p['language']=='ru':
@@ -518,6 +539,8 @@ class Analyzer(QObject):
             self.single_spectrum_figure=fig
             plt.tight_layout()
             return fig
+        
+        
             
         def analyze_spectrum(self,fig):
             '''
@@ -559,7 +582,7 @@ class Analyzer(QObject):
                 lambda_to_omega=lambda_to_nu*2*np.pi
                 depth=4*delta_0*delta_c/(delta_0+delta_c)**2
                 linewidth=(delta_0+delta_c)*2/lambda_to_omega
-                results_text1='$|S_0|$={:.2f} \n arg(S)={:.2f} $\pi$  \n $\lambda_0$={:.4f}  nm \n $\Delta \lambda={:.3f}$ pm \n Depth={:.3e} \n'.format(non_res_transmission,Fano_phase, resonance_position,linewidth*1e3,depth)
+                results_text1='$|S_0|$={:.2f} \n arg(S)={:.2f} $\pi$  \n $\lambda_0$={:.5f}  nm \n $\Delta \lambda={:.3f}$ pm \n Depth={:.3e} \n'.format(non_res_transmission,Fano_phase, resonance_position,linewidth*1e3,depth)
                 delta_c_err=perrors[4]
                 delta_0_err=perrors[3]
                 
