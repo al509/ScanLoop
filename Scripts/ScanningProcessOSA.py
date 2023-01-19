@@ -6,8 +6,8 @@ Created on Tue Nov 20 19:09:12 2018
 @author: Ilya
 """
 
-__date__='2022.11.11'
-__version__='3'
+__date__='2023.01.19'
+__version__='3.1'
 
 from PyQt5.QtCore import pyqtSignal, QObject
 import numpy as np
@@ -24,6 +24,9 @@ class ScanningProcess(QObject):
     S_saveSpectrumToOSA=pyqtSignal(str) # signal used if high resolution needed. Initiate saving spectral data to inner hard drive of OSA
     S_addPosition_and_FilePrefix=pyqtSignal(str) #signal to initiate saving current position of the stages and current file index to file "Positions.txt"
     S_finished=pyqtSignal()  # signal to finish
+    S_print=pyqtSignal(str) # signal used to print into main text browser
+    S_print_error=pyqtSignal(str) # signal used to print errors into main text browser
+
 
     minimumPeakHight=1
 
@@ -135,21 +138,21 @@ class ScanningProcess(QObject):
         while not self.IsInContact:
             self.stages.shiftOnArbitrary(self.axis_to_get_contact,self.seeking_step)
             total_seeking_shift+=self.seeking_step
-            print('Moved to Sample')
+            self.S_print.emit('Moved to Sample')
             wavelengthdata, spectrum=self.OSA.acquire_spectrum()
             time.sleep(0.05)
             self.IsInContact=self.checkIfContact(spectrum)
             if total_seeking_shift>self.max_allowed_shift:
                 self.is_running=False
-                print('max allowed shift for seeking is approached. Seeking for contact has been stopped')
+                self.S_print_error.emit('max allowed shift for seeking is approached. Seeking for contact has been stopped')
             if not self.is_running : ##if scanning process is interrupted,stop searching contact
                 self.set_OSA_to_Measuring_State()
                 self.OSA.acquire_spectrum()
-                print('\nSeeking for contact interrupted')
+                self.S_print.emit('\nSeeking for contact interrupted')
                 return False
         
         
-        print('\nContact found\n')
+        self.S_print.emit('\nContact found\n')
         self.set_OSA_to_Measuring_State()
         winsound.Beep(1000, 500)
         return True
@@ -158,7 +161,7 @@ class ScanningProcess(QObject):
         self.set_OSA_to_Searching_Contact_State()
         while self.IsInContact:
             self.stages.shiftOnArbitrary(self.axis_to_get_contact,-self.backstep)
-            print('Moved Back from Sample')
+            self.S_print.emit('Moved Back from Sample')
             wavelengthdata,spectrum=self.OSA.acquire_spectrum()
             time.sleep(0.05)
             self.IsInContact=self.checkIfContact(spectrum)
@@ -166,7 +169,7 @@ class ScanningProcess(QObject):
                 self.set_OSA_to_Measuring_State()
                 self.OSA.acquire_spectrum()
                 return False
-        print('\nContact lost\n')
+        self.S_print.emit('\nContact lost\n')
         self.set_OSA_to_Measuring_State()
         return True
 
@@ -209,7 +212,7 @@ class ScanningProcess(QObject):
             
             ## Acquring and saving data
             for jj in range(0,self.number_of_scans_at_point):
-                print('saving sweep # ', jj+1)
+                self.S_print.emit('saving sweep # ' + str(jj+1))
                 wavelengthdata, spectrum=self.OSA.acquire_spectrum()
                 time.sleep(0.05)
                 
@@ -237,13 +240,13 @@ class ScanningProcess(QObject):
             self.stages.shiftOnArbitrary(self.axis_to_scan,self.scanning_step)
             self.current_file_index+=1
 
-            print('\n Shifted along the scanning axis\n')
+            self.S_print.emit('\n Shifted along the scanning axis\n')
 
-            print('Time elapsed for measuring at single point is ', time.time()-time0,'\n')
+            self.S_print.emit('Time elapsed for measuring at single point is {} \n'.format(time.time()-time0))
 
         # if scanning finishes because all points along scanning axis are measured
         if not self.is_running:
-            print('\nScanning interrupted\n')
+            self.S_print_error.emit('\nScanning interrupted\n')
         if self.current_file_index>self.stop_file_index:
             self.is_running=False
             print('\nScanning finished\n')

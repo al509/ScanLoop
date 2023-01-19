@@ -2,15 +2,15 @@
 '''
 Making single SNAP object (or complex matrix Jones-based SNAP object) from the bunch of the files 
 '''
-__version__='2.5'
-__date__='2022.11.16'
+__version__='2.6'
+__date__='2023.01.19'
 
 import os,sys
 import numpy as np
 import matplotlib.pyplot as plt
 import time
 from scipy import interpolate
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject,pyqtSignal
 import pickle
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -23,7 +23,8 @@ except ModuleNotFoundError as E:
 sys.modules['SNAP_experiment'] = SNAP_experiment
 
 class Spectral_processor(QObject):
-    
+    S_print=pyqtSignal(str) # signal used to print into main text browser
+    S_print_error=pyqtSignal(str) # signal used to print errors into main text browser
 
     def __init__(self, path_to_main:str):
         QObject.__init__(self)
@@ -211,7 +212,7 @@ class Spectral_processor(QObject):
                     ContactFileList.append(file)
                     
         if len(ContactFileList)==0:
-            print('Error. No files found with specified parameters. Please recheck')
+            self.S_print_error.emit('Error. No files found with specified parameters. Please recheck')
 
         '''
         legacy code
@@ -246,7 +247,7 @@ class Spectral_processor(QObject):
                 try:
                     minw,maxw=self.get_min_max_wavelengths_from_file(self.source_dir_path +File)
                 except UnicodeDecodeError:
-                    print('Error while getting wavelengths from file {}'.format(File))
+                    self.S_print_error.emit('Error while getting wavelengths from file {}'.format(File))
     
                 if minw<MinWavelength:
                     MinWavelength=minw
@@ -266,7 +267,7 @@ class Spectral_processor(QObject):
             if self.type_of_input_data=='bin':
                 jones_matrixes_array=np.zeros((NumberOfWavelengthPoints,NumberOfPointsZ,2,2),dtype='complex_')
             else:
-                print('Error. input files should be processed as bin files to derive complex SNAP data.Please choose another output data type')
+                self.S_print_error.emit('Error. input files should be processed as bin files to derive complex SNAP data.Please choose another output data type')
                 return
 
         """
@@ -278,7 +279,7 @@ class Spectral_processor(QObject):
             NumberOfArraysToAverage=len(FileNameListAtPoint)
             SmallSignalArray=np.zeros((NumberOfWavelengthPoints,NumberOfArraysToAverage))
             ShiftIndexesMatrix=np.zeros((NumberOfArraysToAverage,NumberOfArraysToAverage))
-            print(ii,FileNameListAtPoint)
+            self.S_print.emit('{} {}'.format(ii,FileNameListAtPoint))
             
             """
             

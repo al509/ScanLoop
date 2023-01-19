@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1515</width>
-    <height>719</height>
+    <height>780</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1491</width>
-         <height>644</height>
+         <width>1495</width>
+         <height>613</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -269,7 +269,7 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>4</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
@@ -277,7 +277,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>467</height>
+             <height>460</height>
             </rect>
            </property>
            <attribute name="label">
@@ -616,8 +616,8 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-233</y>
-             <width>279</width>
+             <y>0</y>
+             <width>283</width>
              <height>700</height>
             </rect>
            </property>
@@ -1188,8 +1188,8 @@
               <rect>
                <x>130</x>
                <y>110</y>
-               <width>37</width>
-               <height>22</height>
+               <width>32</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1386,7 +1386,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>279</width>
+             <width>283</width>
              <height>500</height>
             </rect>
            </property>
@@ -1917,7 +1917,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>467</height>
+             <height>460</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2087,7 +2087,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>279</width>
+             <width>283</width>
              <height>600</height>
             </rect>
            </property>
@@ -2516,6 +2516,16 @@
       </widget>
      </widget>
     </item>
+    <item>
+     <widget class="QTextBrowser" name="LogField">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>100</height>
+       </size>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -2524,7 +2534,7 @@
      <x>0</x>
      <y>0</y>
      <width>1515</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuTools">

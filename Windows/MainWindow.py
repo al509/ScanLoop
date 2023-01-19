@@ -142,6 +142,13 @@ class MainWindow(ThreadedMainWindow):
         
         self.load_parameters_from_file()
         
+    def logText(self, text):
+        self.ui.LogField.append(">" + text)
+        
+    def logWarningText(self, text):
+        self.ui.LogField.append("<span style=\" font-size:8pt; font-weight:600; color:#ff0000;\" >"
+                             + ">" + text + "</span>")
+        
         
     def init_menu_bar(self):
         self.ui.action_save_parameters.triggered.connect(self.save_parameters_to_file)
@@ -245,6 +252,9 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_plotSampleShape_arb_data.clicked.connect(lambda:self.spectral_processor.plot_sample_shape())
         self.ui.pushButton_set_spectral_processor_parameters.clicked.connect(self.on_pushButton_set_spectral_processor_parameters)
         self.ui.pushButton_set_spectral_processor_parameters_2.clicked.connect(self.on_pushButton_set_spectral_processor_parameters)
+        
+        self.spectral_processor.S_print[str].connect(self.logText)
+        self.spectral_processor.S_print_error[str].connect(self.logText)
 # =============================================================================
 #         # analyzer logic
 # =============================================================================
@@ -284,6 +294,9 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_resave_SNAP.clicked.connect(lambda : self.analyzer.resave_SNAP(self.ui.comboBox_analyzer_resave_type.currentText()))        
         self.ui.pushButton_set_analyzer_parameters.clicked.connect(self.on_pushButton_set_analyzer_parameters)
         self.ui.pushButton_delete_slice.clicked.connect(self.delete_slice_from_spectrogram)
+        
+        self.analyzer.S_print[str].connect(self.logText)
+        self.analyzer.S_print_error[str].connect(self.logWarningText)
         # self.ui.pushButton_analyzer_save_as_pkl3d.clicked.connect(lambda: self.analyzer.save_as_pkl3d())
         
         # self.ui.pushButton_analyzer_save_cropped.clicked.connect(lambda: self.analyzer.save_cropped_data())
@@ -333,11 +346,11 @@ class MainWindow(ThreadedMainWindow):
                 widget.setChecked(self.scope.channels_states[i])
                 widget.stateChanged.connect(self.update_scope_channel_state)
             self.painter.TypeOfData='FromScope'
-            print('Connected to scope')
+            self.logText('Connected to scope')
         
         except Exception as e:
             print(e)
-            print('Connection to scope failed')
+            self.logWarningText('Connection to scope failed')
 
     def update_scope_channel_state(self):
         widgets = (self.ui.horizontalLayout_3.itemAt(i).widget()
@@ -363,7 +376,7 @@ class MainWindow(ThreadedMainWindow):
             self.ui.label_29.setVisible(not flag)
             self.ui.comboBox_APEX_mode.setVisible(not flag)
         except:
-            print(sys.exc_info())
+            self.logWarningText(sys.exc_info())
     
     def connect_OSA(self):
         '''
@@ -374,64 +387,68 @@ class MainWindow(ThreadedMainWindow):
         None.
 
         '''
-        if self.ui.comboBox_Type_of_OSA.currentText()=='Luna':
-            from Hardware.ova5000 import Luna
-            self.OSA=Luna(port=Consts.LUNA.PORT)  
-        if self.ui.comboBox_Type_of_OSA.currentText()=='Yokogawa':
-            from Hardware.YokogawaOSA import OSA_AQ6370
-            HOST = Consts.Yokogawa.HOST
-            PORT = 10001
-            timeout_short = 0.2
-            timeout_long = 100
-            self.OSA=OSA_AQ6370(None,HOST, PORT, timeout_long,timeout_short)
-#            self.OSA.received_spectra.connect(self.painter.set_spectra)
-        elif self.ui.comboBox_Type_of_OSA.currentText()=='Astro interrogator':
-            from Hardware.Interrogator import Interrogator
-            cfg = Config("config_interrogator.json")
-            self.repeatmode=False
-            self.OSA = Interrogator(
-                parent=None,
-                host=Consts.Interrogator.HOST,
-                command_port=Consts.Interrogator.COMMAND_PORT,
-                data_port=Consts.Interrogator.DATA_PORT,
-                short_timeout=Consts.Interrogator.SHORT_TIMEOUT,
-                long_timeout=Consts.Interrogator.LONG_TIMEOUT,
-                config=cfg.config["channels"])
-
-            self.ui.comboBox_interrogatorChannel.currentIndexChanged.connect(
-                self.OSA.set_channel_num)
-            self.ui.comboBox_interrogatorChannel.setEnabled(True)
-            self.ui.pushButton_OSA_AcquireRepAll.setEnabled(True)
-            self.ui.pushButton_OSA_AcquireAll.setEnabled(True)
-
-
-        elif self.ui.comboBox_Type_of_OSA.currentText()=='APEX':
-            from Hardware.APEX_OSA import APEX_OSA_with_additional_features
-            self.OSA = APEX_OSA_with_additional_features(Consts.APEX.HOST)
-            self.ui.checkBox_HighRes.setChecked(self.OSA.IsHighRes)
-            self.ui.comboBox_APEX_mode.setEnabled(True)
-            self.ui.pushButton_APEX_TLS.setEnabled(True)
-            self.ui.comboBox_APEX_mode.setCurrentIndex(self.OSA.GetMode()-3)
-            self.ui.comboBox_APEX_mode.currentIndexChanged[int].connect(lambda x: self.OSA.SetMode(x+3))
-            self.spectral_processor.isInterpolation=True
-            if self.OSA.tls.GetStatus()=='ON':
-                self.ui.pushButton_APEX_TLS.setChecked(True)
-
-        self.add_thread([self.OSA])
-        self.OSA.received_spectrum.connect(self.painter.set_data)
-
-        self.force_OSA_acquire.connect(self.OSA.acquire_spectrum)
-        self.ui.tabWidget_instruments.setEnabled(True)
-        self.ui.tabWidget_instruments.setCurrentIndex(0)
-        self.ui.lineEdit_StartWavelength.setText(str(self.OSA._StartWavelength))
-        self.ui.lineEdit_StopWavelength.setText(str(self.OSA._StopWavelength))
-
-        self.ui.groupBox_OSA_control.setEnabled(True)
-        self.ui.checkBox_OSA_for_laser_scanning.setEnabled(True)
-        print('Connected with OSA')
-        self.on_pushButton_acquireSpectrum_pressed()
-        self.enable_scanning_process()
-        self.painter.TypeOfData='FromOSA'
+        try:
+            if self.ui.comboBox_Type_of_OSA.currentText()=='Luna':
+                from Hardware.ova5000 import Luna
+                self.OSA=Luna(port=Consts.LUNA.PORT)  
+            if self.ui.comboBox_Type_of_OSA.currentText()=='Yokogawa':
+                from Hardware.YokogawaOSA import OSA_AQ6370
+                HOST = Consts.Yokogawa.HOST
+                PORT = 10001
+                timeout_short = 0.2
+                timeout_long = 100
+                self.OSA=OSA_AQ6370(None,HOST, PORT, timeout_long,timeout_short)
+    #            self.OSA.received_spectra.connect(self.painter.set_spectra)
+            elif self.ui.comboBox_Type_of_OSA.currentText()=='Astro interrogator':
+                from Hardware.Interrogator import Interrogator
+                cfg = Config("config_interrogator.json")
+                self.repeatmode=False
+                self.OSA = Interrogator(
+                    parent=None,
+                    host=Consts.Interrogator.HOST,
+                    command_port=Consts.Interrogator.COMMAND_PORT,
+                    data_port=Consts.Interrogator.DATA_PORT,
+                    short_timeout=Consts.Interrogator.SHORT_TIMEOUT,
+                    long_timeout=Consts.Interrogator.LONG_TIMEOUT,
+                    config=cfg.config["channels"])
+    
+                self.ui.comboBox_interrogatorChannel.currentIndexChanged.connect(
+                    self.OSA.set_channel_num)
+                self.ui.comboBox_interrogatorChannel.setEnabled(True)
+                self.ui.pushButton_OSA_AcquireRepAll.setEnabled(True)
+                self.ui.pushButton_OSA_AcquireAll.setEnabled(True)
+    
+    
+            elif self.ui.comboBox_Type_of_OSA.currentText()=='APEX':
+                from Hardware.APEX_OSA import APEX_OSA_with_additional_features
+                self.OSA = APEX_OSA_with_additional_features(Consts.APEX.HOST)
+                self.ui.checkBox_HighRes.setChecked(self.OSA.IsHighRes)
+                self.ui.comboBox_APEX_mode.setEnabled(True)
+                self.ui.pushButton_APEX_TLS.setEnabled(True)
+                self.ui.comboBox_APEX_mode.setCurrentIndex(self.OSA.GetMode()-3)
+                self.ui.comboBox_APEX_mode.currentIndexChanged[int].connect(lambda x: self.OSA.SetMode(x+3))
+                self.spectral_processor.isInterpolation=True
+                if self.OSA.tls.GetStatus()=='ON':
+                    self.ui.pushButton_APEX_TLS.setChecked(True)
+    
+            self.add_thread([self.OSA])
+            self.OSA.received_spectrum.connect(self.painter.set_data)
+    
+            self.force_OSA_acquire.connect(self.OSA.acquire_spectrum)
+            self.ui.tabWidget_instruments.setEnabled(True)
+            self.ui.tabWidget_instruments.setCurrentIndex(0)
+            self.ui.lineEdit_StartWavelength.setText(str(self.OSA._StartWavelength))
+            self.ui.lineEdit_StopWavelength.setText(str(self.OSA._StopWavelength))
+    
+            self.ui.groupBox_OSA_control.setEnabled(True)
+            self.ui.checkBox_OSA_for_laser_scanning.setEnabled(True)
+            self.logText('Connected with OSA')
+            self.on_pushButton_acquireSpectrum_pressed()
+            self.enable_scanning_process()
+            self.painter.TypeOfData='FromOSA'
+        except Exception as e:
+            print(e)
+            self.logWarningText('Connection to OSA failed')
 
     def connect_stages(self):
         '''
@@ -442,45 +459,49 @@ class MainWindow(ThreadedMainWindow):
         None.
 
         '''
-        if self.ui.comboBox_Type_of_Stages.currentText()=='3x Standa':
-            from Hardware.MyStanda import StandaStages
-            self.stages=StandaStages()
-        elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs':
-            import Hardware.MyThorlabsStages
-            self.stages=Hardware.MyThorlabsStages.ThorlabsStages()
-            self.ui.pushButton_MovePlusY.setEnabled(False)
-            self.ui.pushButton_MoveMinusY.setEnabled(False)
-        elif self.ui.comboBox_Type_of_Stages.currentText()=='3x Physik Instrumente':
-            import Hardware.PIStages
-            self.stages=Hardware.PIStages.PIStages()
-
-        if self.stages.isConnected>0:
-            print('Connected to stages')
-            self.add_thread([self.stages])
-            self.stages.set_zero_positions(self.logger.load_zero_position())
-            self.update_indicated_positions()
-            self.ui.pushButton_MovePlusX.pressed.connect(
-                lambda :self.setStageMoving('X',int(self.ui.lineEdit_StepX.text())))
-            self.ui.pushButton_MoveMinusX.pressed.connect(
-                lambda :self.setStageMoving('X',-1*int(self.ui.lineEdit_StepX.text())))
-            self.ui.pushButton_MovePlusY.pressed.connect(
-                lambda :self.setStageMoving('Y',int(self.ui.lineEdit_StepY.text())))
-            self.ui.pushButton_MoveMinusY.pressed.connect(
-                lambda :self.setStageMoving('Y',-1*int(self.ui.lineEdit_StepY.text())))
-            self.ui.pushButton_MovePlusZ.pressed.connect(
-                lambda :self.setStageMoving('Z',int(self.ui.lineEdit_StepZ.text())))
-            self.ui.pushButton_MoveMinusZ.pressed.connect(
-                lambda :self.setStageMoving('Z',-1*int(self.ui.lineEdit_StepZ.text())))
-            self.ui.pushButton_zero_position_X.pressed.connect(lambda: self.on_pushButton_zeroingPositions('X'))
-            self.ui.pushButton_zero_position_Y.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Y'))
-            self.ui.pushButton_zero_position_Z.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Z'))
-            self.force_stage_move[str,int].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
-            self.stages.stopped.connect(self.update_indicated_positions)
-            self.ui.groupBox_stand.setEnabled(True)
-            self.ui.pushButton_zeroing_stages.pressed.connect(
-                self.zeroing_stages)
-
-            self.enable_scanning_process()
+        try:
+            if self.ui.comboBox_Type_of_Stages.currentText()=='3x Standa':
+                from Hardware.MyStanda import StandaStages
+                self.stages=StandaStages()
+            elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs':
+                import Hardware.MyThorlabsStages
+                self.stages=Hardware.MyThorlabsStages.ThorlabsStages()
+                self.ui.pushButton_MovePlusY.setEnabled(False)
+                self.ui.pushButton_MoveMinusY.setEnabled(False)
+            elif self.ui.comboBox_Type_of_Stages.currentText()=='3x Physik Instrumente':
+                import Hardware.PIStages
+                self.stages=Hardware.PIStages.PIStages()
+    
+            if self.stages.isConnected>0:
+                self.logText('Connected to stages')
+                self.add_thread([self.stages])
+                self.stages.set_zero_positions(self.logger.load_zero_position())
+                self.update_indicated_positions()
+                self.ui.pushButton_MovePlusX.pressed.connect(
+                    lambda :self.setStageMoving('X',int(self.ui.lineEdit_StepX.text())))
+                self.ui.pushButton_MoveMinusX.pressed.connect(
+                    lambda :self.setStageMoving('X',-1*int(self.ui.lineEdit_StepX.text())))
+                self.ui.pushButton_MovePlusY.pressed.connect(
+                    lambda :self.setStageMoving('Y',int(self.ui.lineEdit_StepY.text())))
+                self.ui.pushButton_MoveMinusY.pressed.connect(
+                    lambda :self.setStageMoving('Y',-1*int(self.ui.lineEdit_StepY.text())))
+                self.ui.pushButton_MovePlusZ.pressed.connect(
+                    lambda :self.setStageMoving('Z',int(self.ui.lineEdit_StepZ.text())))
+                self.ui.pushButton_MoveMinusZ.pressed.connect(
+                    lambda :self.setStageMoving('Z',-1*int(self.ui.lineEdit_StepZ.text())))
+                self.ui.pushButton_zero_position_X.pressed.connect(lambda: self.on_pushButton_zeroingPositions('X'))
+                self.ui.pushButton_zero_position_Y.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Y'))
+                self.ui.pushButton_zero_position_Z.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Z'))
+                self.force_stage_move[str,int].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
+                self.stages.stopped.connect(self.update_indicated_positions)
+                self.ui.groupBox_stand.setEnabled(True)
+                self.ui.pushButton_zeroing_stages.pressed.connect(
+                    self.zeroing_stages)
+    
+                self.enable_scanning_process()
+        except Exception as e:
+            print(e)
+            self.logWarningText('Connection to stages failed')
 
     def zeroing_stages(self):
         '''
@@ -510,9 +531,10 @@ class MainWindow(ThreadedMainWindow):
             if self.powermeter is not None:
                 self.ui.checkBox_powermeter_for_laser_scanning.setEnabled(True)
                 self.ui.pushButton_powermeter_graph.setEnabled(True)
-                print('NOTE: if you want to use PM Graph feature, change the iPython Graphic preferences from ''Automatic'' to ''Tkinter''')
-        except:
-            print('Connection to power meter failed')
+                self.logText('NOTE: if you want to use PM Graph feature, change the iPython Graphic preferences from ''Automatic'' to ''Tkinter''')
+        except Exception as e:
+            print(e)
+            self.logWarningText('Connection to power meter failed')
 
     def connect_laser(self):
         '''
@@ -554,9 +576,11 @@ class MainWindow(ThreadedMainWindow):
             self.laser_scanning_process.S_finished.connect(
                     lambda : self.laser_scanning(False))
             self.force_laser_scanning_process.connect(self.laser_scanning_process.run)
+            self.laser_scanning_process.S_print[str].connect(self.logText)
+            self.laser_scanning_process.S_print_error[str].connect(self.logWarningText)
         except Exception as e:
             print(e)
-            print('Connection to laser failed. Check the COM port number')
+            self.logWarningText('Connection to laser failed. Check the COM port number')
             
     
     def run_powermeter_graph(self,pressed:bool):
@@ -638,6 +662,7 @@ class MainWindow(ThreadedMainWindow):
             self.laser.setMode(self.ui.comboBox_laser_mode.currentText())
         except Exception as e:
             print(e)
+            self.logWarningText('Laser mode change failed')
 
     def laser_fine_tuning(self):
         '''
@@ -692,7 +717,7 @@ class MainWindow(ThreadedMainWindow):
             self.laser_scanning_process.max_detuning=float(self.ui.lineEdit_laser_scanning_max_detuning.text())
 
             self.force_laser_scanning_process.emit()
-            print('Start laser scanning')
+            self.logText('Start laser scanning')
 
         else:
             self.laser_scanning_process.is_running=False
@@ -745,12 +770,12 @@ class MainWindow(ThreadedMainWindow):
                 wavelength_central=float(self.ui.lineEdit_laser_lambda_sweeping_central.text()),
                 max_detuning=float(self.ui.lineEdit_laser_sweeping_max_detuning.text()),
                 delay=float(self.ui.lineEdit_laser_lambda_sweeping_delay.text()))
-            print(float(self.ui.lineEdit_laser_lambda_sweeping_delay.text()))
+            self.logText(float(self.ui.lineEdit_laser_lambda_sweeping_delay.text()))
             self.add_thread([self.laser_sweeping_process])
             self.laser_sweeping_process.S_updateCurrentWavelength.connect(
                 lambda S:self.ui.label_current_scanning_laser_wavelength.setText(S))
             self.force_laser_sweeping_process.connect(self.laser_sweeping_process.run)
-            print('Start laser sweeping')
+            self.logText('Start laser sweeping')
             self.laser_sweeping_process.S_finished.connect(
                 self.ui.pushButton_sweep_laser_wavelength.toggle)
             self.laser_sweeping_process.S_finished.connect(lambda : self.laser_sweeping(False))
@@ -833,7 +858,7 @@ class MainWindow(ThreadedMainWindow):
         if self.OSA is not None:
             self.OSA.change_range(self.OSA.min_wavelength,self.OSA.max_wavelength)
         else:
-            print('OSA not connected')
+             self.logText('OSA not connected')
 
     @pyqtSlotWExceptions()
     def on_pushButton_acquireSpectrumRep_pressed(self,pressed):
@@ -897,6 +922,8 @@ class MainWindow(ThreadedMainWindow):
             self.scanningProcess.S_finished.connect(
                     lambda : self.on_pushButton_scan_in_space(False))
             self.scanningProcess.S_update_status.connect(lambda S: self.ui.label_scanning_index_status.setText(S))
+            self.scanningProcess.S_print[str].connect(self.logText)
+            self.scanningProcess.S_print_error[str].connect(self.logWarningText)
             
             if (self.ui.comboBox_Type_of_OSA.currentText()=='Luna' and self.ui.comboBox_Luna_mode.currentText() == 'Luna .bin files'):
                 self.scanningProcess.LunaJonesMeasurement=True
@@ -944,7 +971,7 @@ class MainWindow(ThreadedMainWindow):
                 self.ui.groupBox_stand.setEnabled(False)
                 self.ui.pushButton_set_scanning_parameters.setEnabled(False)
                 self.force_scanning_process.connect(self.scanningProcess.run)
-                print('Start Scanning')
+                self.logText('Start Scanning')
                 self.force_scanning_process.emit()
 
     
@@ -956,6 +983,7 @@ class MainWindow(ThreadedMainWindow):
                 self.ui.pushButton_set_scanning_parameters.setEnabled(True)
         except:
             print(sys.exc_info())
+            self.logWarningText('Some error')
 
 
     def on_pushButton_save_data(self):
@@ -980,12 +1008,14 @@ class MainWindow(ThreadedMainWindow):
                             + f"Sp_{FilePrefix}_X={X}"
                             + f"_Y={Y}"
                             + f"_Z={Z}_.bin")
-                        print("Saving Luna as bin")
+                        self.logText("Saving Luna as bin")
 
             else:
                 self.logger.save_data(Data,FilePrefix,X,Y,Z,self.painter.TypeOfData)
         except:
                 print(sys.exc_info())
+                self.logWarningText('Error')
+                
 
     def on_pushButton_getRange(self):
         Range=(self.painter.ax.get_xlim())
@@ -993,9 +1023,9 @@ class MainWindow(ThreadedMainWindow):
         self.ui.lineEdit_StopWavelength.setText(f'{Range[1]}:.1f')
         try:
             self.OSA.change_range(start_wavelength=float(Range[0]),stop_wavelength=float(Range[1]))
-            print('Range is taken')
+            self.logText('Range is taken')
         except:
-            print('Error while taking range')
+            self.logWarningText('Error while taking range')
 
 #    def ChangeRange(self,Minimum=None,Maximum=None):
 #        if Minimum is not None:
@@ -1138,7 +1168,7 @@ class MainWindow(ThreadedMainWindow):
     def choose_file_for_analyzer(self):
         DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl *.pkl3d *.SNAP *.cSNAP' )).split("\',")[0].split("('")[1]
         if DataFilePath=='':
-            print('file is not chosen or previous choice is preserved')
+            self.logWarningText('file is not chosen or previous choice is preserved')
         self.analyzer.spectrogram_file_path=DataFilePath
         self.ui.label_analyzer_file.setText(DataFilePath)
         self.analyzer.load_data()
@@ -1155,7 +1185,7 @@ class MainWindow(ThreadedMainWindow):
     def choose_single_spectrum_file_for_analyzer(self):
         DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl *.laserdata' )).split("\',")[0].split("('")[1]
         if DataFilePath=='':
-            print('file is not chosen or previous choice is preserved')
+            self.logWarningText('file is not chosen or previous choice is preserved')
         self.analyzer.single_spectrum_path=DataFilePath
         self.ui.label_analyzer_single_spectrum_file.setText(DataFilePath)
 
@@ -1229,7 +1259,7 @@ class MainWindow(ThreadedMainWindow):
                 if '.gitignore' in l:l.remove('.gitignore')
                 for file in l:
                     os.remove(self.path_to_main+directory+file)
-            print('Raw data deleted')
+            self.logText('Raw data deleted')
 
         
 
@@ -1298,7 +1328,7 @@ def set_widget_values(window,d:dict)->None:
              s=d[key]
              w.setText(str(s))
          except KeyError:
-             print('Set widget values error')
+             m.MainWindow.logWarningText('Set widget values error')
              pass
      for w in window.findChildren(QCheckBox):
          key=w.objectName().split('checkBox_')[1]
@@ -1307,7 +1337,7 @@ def set_widget_values(window,d:dict)->None:
              w.setChecked(s)
              w.clicked.emit(s)
          except KeyError:
-             print('Set widget values error')
+              m.MainWindow.logWarningText('Set widget values error')
      for w in window.findChildren(QComboBox):
          key=w.objectName().split('comboBox_')[1]
          try:

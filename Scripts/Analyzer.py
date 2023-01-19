@@ -4,8 +4,8 @@
 
 
 """
-__version__='2.6.2'
-__date__='2023.01.17'
+__version__='2.6.3'
+__date__='2023.01.19'
 
 import os
 import sys
@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import matplotlib
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, pyqtSignal
 import pickle
 from scipy.signal import find_peaks
 try:
@@ -29,6 +29,10 @@ import json
 c=299792458 # m/s
 
 class Analyzer(QObject):
+    
+        S_print=pyqtSignal(str) # signal used to print into main text browser
+        S_print_error=pyqtSignal(str) # signal used to print errors into main text browser
+     
         def __init__(self, spectrogram_file_path=None,parameters=None):
             '''
             path: 
@@ -122,15 +126,15 @@ class Analyzer(QObject):
 
                 if isinstance(loaded_object,SNAP_experiment.SNAP):
 
-                    print('loading SNAP data for analyzer from ',self.spectrogram_file_path)
+                    self.S_print.emit('loading SNAP data for analyzer from ' + self.spectrogram_file_path)
                     self.SNAP=loaded_object
                     if not hasattr(self.SNAP, 'type_of_signal'):
                         self.SNAP.type_of_signal='insertion losses'
                         self.SNAP.jones_matrix_used=False
                         self.SNAP.signal=self.SNAP.transmission
-                    print('File has been loaded to SNAP object')
+                    self.S_print.emit('File has been loaded to SNAP object')
                 else:
-                    print('loading old style SNAP data for analyzer from ', self.spectrogram_file_path)
+                    self.S_print.emit('loading old style SNAP data for analyzer from ' + self.spectrogram_file_path)
                     SNAP_object=SNAP_experiment.SNAP()
                     SNAP_object.axis_key=loaded_object['axis']
                     Positions=np.array(loaded_object['Positions'])
@@ -142,12 +146,12 @@ class Analyzer(QObject):
                         if scale=='microns':
                             pass
                     except KeyError:
-                            print('Spatial scale is defined as steps 2.5 um each')
+                            self.S_print_error.emit('Spatial scale is defined as steps 2.5 um each')
                             Positions[:,0:3]=Positions[:,0:3]*2.5
                     try:
                         SNAP_object.date=loaded_object['date']
                     except KeyError:
-                        print('No date indicated')
+                        self.S_print_error.emit('No date indicated')
                         SNAP_object.date='_'
                     
     
@@ -159,22 +163,22 @@ class Analyzer(QObject):
                     try:
                         SNAP_object.type_of_signal=loaded_object['type_of_signal']
                     except KeyError:
-                        print('No type of signal indicated')
+                        self.S_print_error.emit('No type of signal indicated')
                         SNAP_object.type_of_signal='insertion losses'
                     try:
                         SNAP_object.R_0=loaded_object['R_0']
                     except KeyError:
-                        print('No radius indicated')
+                        self.S_print_error.emit('No radius indicated')
                         SNAP_object.R_0=62.5
                     try:
                         SNAP_object.refractive_index=loaded_object['refractive_index']
                     except KeyError:
-                        print('No refractive index indicated')
+                        self.S_print_error.emit('No refractive index indicated')
                         SNAP_object.refractive_index=1.45
                     self.SNAP=SNAP_object
-                    print('File has been loaded to SNAP object')
+                    self.S_print.emit('File has been loaded to SNAP object')
             else:
-                print('SNAP file not chosen')
+                self.S_print.emit('SNAP file not chosen')
                 
 
         def resave_SNAP(self,output_file_type='SNAP'):
@@ -209,7 +213,7 @@ class Analyzer(QObject):
                 f=open(NewFileName,'wb')
                 pickle.dump(new_SNAP,f)
                 f.close()
-                print('Data resaved to {}'.format(NewFileName))
+                self.S_print.emit('Data resaved to {}'.format(NewFileName))
                 
             elif output_file_type=='pkl3d':
                 NewFileName=path+'\\'+FileName.split('.')[-2]+'_resaved.pkl3d'
@@ -226,7 +230,7 @@ class Analyzer(QObject):
                 D['refractive_index']=self.SNAP.refractive_index
                 with open(NewFileName,'wb') as f:
                     pickle.dump(D,f)
-                print('spectrogram saved as ' +NewFileName)
+                self.S_print.emit('spectrogram saved as ' +NewFileName)
 
         def delete_slice(self,position):
             self.slice_position=position
@@ -236,7 +240,6 @@ class Analyzer(QObject):
 
             x=self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]
             index=np.argmin(abs(position-x))
-            print(index)
             self.SNAP.signal=np.delete(self.SNAP.signal,index,1)
             self.SNAP.positions=np.delete(self.SNAP.positions,index,0)
             path,FileName = os.path.split(self.spectrogram_file_path)
@@ -244,7 +247,7 @@ class Analyzer(QObject):
             f=open(NewFileName,'wb')
             pickle.dump(self.SNAP,f)
             f.close()
-            print('Data resaved to {}'.format(NewFileName))
+            self.S_print.emit('Index {} deleted. Data resaved to {}'.format(index,NewFileName))
     
                             
         # def save_cropped_data(self):
@@ -297,14 +300,14 @@ class Analyzer(QObject):
             f = open(NewFileName+'.pkl',"wb")
             pickle.dump(Data,f)
             f.close()
-            print('spectrum has been saved to ', NewFileName+'.pkl')
+            self.S_print.emit('spectrum has been saved to ' + NewFileName+'.pkl')
         
 
         def plot_single_spectrum(self):
             self.slice_position=None
             if self.single_spectrum_path.split('.')[-1]=='laserdata':
 
-                print('loading data for analyzer from ' +self.single_spectrum_path)
+                self.S_print.emit('loading data for analyzer from ' +self.single_spectrum_path)
                 data=np.genfromtxt(self.single_spectrum_path)
                 attempts=[]
                 
@@ -358,7 +361,7 @@ class Analyzer(QObject):
                 
             elif self.single_spectrum_path.split('.')[-1]=='pkl':
                 with open(self.single_spectrum_path,'rb') as f:
-                    print('loading data for analyzer from ',self.single_spectrum_path)
+                    self.S_print.emit('loading data for analyzer from ' + self.single_spectrum_path)
                     Data=(pickle.load(f))
                 self.single_spectrum_figure=plt.figure()
                 plt.plot(Data[:,0],Data[:,1])
@@ -378,7 +381,7 @@ class Analyzer(QObject):
                     if self.SNAP.jones_matrixes_used:
                         self.SNAP.switch_signal_type(self.type_of_spectrogram)
                     else:
-                        print('Error. No complex data in SNAP object to derive {}. Only {} is available'.format(self.type_of_spectrogram, self.SNAP.type_of_signal))
+                        self.S_print_error.emit('Error. No complex data in SNAP object to derive {}. Only {} is available'.format(self.type_of_spectrogram, self.SNAP.type_of_signal))
                         return 
             except AttributeError as E:
                 print(E)
@@ -386,7 +389,7 @@ class Analyzer(QObject):
             w_0=np.mean(self.SNAP.wavelengths)
             x=self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]-p['shift_x_axis']
             if p['shift_x_axis']!=0:
-                print('!!! Note that X axis in spectrogram are shifted on {} um according to plotting_parameters.txt'.format(p['shift_x_axis']))
+                self.S_print_error.emit('!!! Note that X axis in spectrogram are shifted on {} um according to plotting_parameters.txt'.format(p['shift_x_axis']))
             
             def _convert_ax_Wavelength_to_Radius(ax_Wavelengths):
                 """
@@ -435,13 +438,13 @@ class Analyzer(QObject):
                 try:
                     clb=fig.colorbar(im,ax=ax_steps,pad=p['colorbar_pad'],location=p['colorbar_location'])
                 except TypeError:
-                    print('WARNING: update matplotlib up to 3.4.2 to plot colorbars properly')
+                    self.S_print.emit('WARNING: update matplotlib up to 3.4.2 to plot colorbars properly')
                     clb=fig.colorbar(im,ax=ax_steps,pad=p['colorbar_pad'])
             else:
                 try:
                     clb=fig.colorbar(im,ax=ax_Wavelengths,pad=p['colorbar_pad'],location=p['colorbar_location'])
                 except TypeError as e:
-                    print('WARNING: update matplotlib up to 3.4.2 to plot colorbars properly. Error is ', e)
+                    self.S_print.emit('WARNING: update matplotlib up to 3.4.2 to plot colorbars properly. Error is ' + str(e))
                     clb=fig.colorbar(im,ax=ax_Wavelengths,pad=p['colorbar_pad'])
     
             if p['language'] in ['eng','en']:
@@ -556,7 +559,7 @@ class Analyzer(QObject):
             waves=waves[index_min:index_max]
             signal=signal[index_min:index_max]
             if all(np.isnan(signal)):
-                print('Error. Signal is NAN only')
+                self.S_print_error.emit('Error. Signal is NAN only')
                 return
             dw=(waves[-1]-waves[0])/len(waves)
             peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),height=self.min_peak_level , distance=int(self.min_peak_distance/dw))
@@ -576,7 +579,7 @@ class Analyzer(QObject):
                     # parameters, waves_fitted,signal_fitted=SNAP_experiment.get_Fano_fit(waves,signal,wavelength_main_peak)
                     signal_fitted=SNAP_experiment.Fano_lorenzian(waves,non_res_transmission,Fano_phase,resonance_position,delta_0,delta_c)
                 except Exception as e:
-                        print('Error: {}'.format(e))
+                        self.S_print_error.emit('Error: {}'.format(e))
                 axes.plot(waves, signal_fitted, color='green')   
                 lambda_to_nu=c/resonance_position**2*1e3 # MHz per nm
                 lambda_to_omega=lambda_to_nu*2*np.pi
@@ -598,7 +601,7 @@ class Analyzer(QObject):
                          verticalalignment='center',
                          transform = axes.transAxes)
             else:
-                print('Error: No peaks found')
+                self.S_print_error.emit('Error: No peaks found')
             # plt.tight_layout()
             fig.canvas.draw_idle()
 
@@ -710,7 +713,7 @@ class Analyzer(QObject):
                 from Theory.estimate_nonlinear_and_thermal_properties import get_min_threshold,Kerr_threshold
                 a,w,C,D,Gamma=estimate_params(NewFileName)
                 min_threshold,position=get_min_threshold(self.SNAP.R_0,self.SNAP.wavelengths[0],a,w,C,D,Gamma)
-                print('Min_threshold={} W'.format(min_threshold))
+                self.S_print.emit('Min_threshold={} W'.format(min_threshold))
                 self.figure_spectrogram.axes[0].axvline(position,color='blue')
                 self.figure_spectrogram.axes[0].text(0.4,0.4,'{:.3f} W'.format(min_threshold), 
                                                      horizontalalignment='center',
@@ -833,7 +836,7 @@ class Analyzer(QObject):
             plt.gca().tick_params(axis='y', colors='red')
             plt.tight_layout()
             
-            print(f'R_0 = {params_dict["R_0"]}, n = {params_dict["refractive_index"]}')
+            self.S_print.emit(f'R_0 = {params_dict["R_0"]}, n = {params_dict["refractive_index"]}')
         
         
         def plot_ERV_from_file(self,file_name):
@@ -845,7 +848,7 @@ class Analyzer(QObject):
         def apply_FFT_to_spectrogram(self):
             self.SNAP.apply_FFT_filter(self.FFTFilter_low_freq_edge,self.FFTFilter_high_freq_edge)
             self.plot_spectrogram()
-            print('Filter applied. New spectrogram plotted')
+            self.S_print.emit('Filter applied. New spectrogram plotted')
             
 
             
@@ -860,7 +863,7 @@ class Analyzer(QObject):
             waves=waves[index_min:index_max]
             signal=signal[index_min:index_max]
             if all(np.isnan(signal)):
-                print('Error. Signal is NAN only')
+                self.S_print_error.emit('Error. Signal is NAN only')
                 return
             fitter=QuantumNumbersStructure.Fitter(waves, signal, self.min_peak_level, self.min_peak_distance,
                                                   wave_min=None, wave_max=None, p_guess_array=[self.quantum_numbers_fitter_p_max],
@@ -871,9 +874,9 @@ class Analyzer(QObject):
             axes.plot(fitter.exp_resonances,fitter.signal[fitter.resonances_indexes],'.')
             self.single_spectrum_figure.canvas.draw()
             
-            print('start finding quantum numbers...')
+            self.S_print.emit('start finding quantum numbers...')
             fitter.run(self.cost_function_figure, self.cost_function_ax)
-            print('quantum numbers found')
+            self.S_print.emit('quantum numbers found')
                     
             resonances, labels = fitter.th_resonances.create_unstructured_list(self.quantum_numbers_fitter_polarizations)
             

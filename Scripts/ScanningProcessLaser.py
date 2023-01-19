@@ -13,7 +13,8 @@ Version Nov 22 2019
 @author: Ilya
 """
 
-__date__='2022.04.11'
+__date__='2023.01.19'
+__version__='1.2'
 
 from PyQt5.QtCore import pyqtSignal, QObject
 import numpy as np
@@ -22,6 +23,8 @@ import time
 
 
 class LaserScanningProcess(QObject):
+    
+    
     is_running=False  ## Variable is "True" during scanning process. Pushing on "scanning" button in main window sets is_running True and start scanning process.
 
     S_updateCurrentWavelength=pyqtSignal(str) #signal to initiate update the index of the current file in lineEdit_CurrentFile of main window
@@ -31,6 +34,9 @@ class LaserScanningProcess(QObject):
     S_finished=pyqtSignal()  # signal to finish
     S_saveSpectrumToOSA=pyqtSignal(str)
     S_add_powers_to_file=pyqtSignal(object) # signal to initiate saving current wavelength and power from powermeter to file
+    
+    S_print=pyqtSignal(str) # signal used to print into main text browser
+    S_print_error=pyqtSignal(str) # signal used to print errors into main text browser
 
     def __init__(self,
                  OSA:QObject,
@@ -79,7 +85,7 @@ class LaserScanningProcess(QObject):
                 wavelengthdata, spectrum=self.OSA.acquire_spectrum()
                 time.sleep(0.05)
                 Data=np.stack((wavelengthdata, spectrum),axis=1)
-                self.S_saveData.emit(Data,'W='+str(self.wavelength)) # save spectrum to file
+                self.S_saveData.emit(''Data,'W='+str(self.wavelength)) # save spectrum to file
             if self.powermeter_for_laser_scanning and self.powermeter is not None:
                 power=self.powermeter.get_power()
                 file.write('{}\t{}\t{}\n'.format(time.time()-time_start,self.wavelength,power))
@@ -102,7 +108,7 @@ class LaserScanningProcess(QObject):
                     self.laser.fineTuning(0)
                     self.laser.setOn()
                     self.S_update_main_wavelength.emit('{:.3f}'.format(self.wavelength))
-                    print('setting new main wavelength... Wait {} s'.format(self.long_pause))
+                    self.S_print.emit('setting new main wavelength... Wait {} s'.format(self.long_pause))
                     time.sleep(self.long_pause)
                     
                 self.S_updateCurrentWavelength.emit('{:.5f}'.format(self.wavelength))
@@ -121,10 +127,10 @@ class LaserScanningProcess(QObject):
         file.close()
         self.S_finished.emit()
 
-        print('\nScanning finished\n')
+        self.S_print.emit('\nScanning finished\n')
         
     def __del__(self):
-        print('Closing scanning object...')
+        self.S_print.emit('Closing scanning object...')
         
         
         
