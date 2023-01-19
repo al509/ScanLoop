@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.6.6'
+__version__='20.6.7'
 __date__='2023.01.19'
 
 import os
@@ -175,6 +175,12 @@ class MainWindow(ThreadedMainWindow):
         self.ui.comboBox_Type_of_OSA.currentTextChanged.connect(self.features_visibility)
         self.ui.pushButton_set_max_OSA_range.pressed.connect(self.set_max_OSA_range)
         
+        self.ui.lineEdit_StartWavelength.editingFinished.connect(
+            lambda:self.OSA.change_range(start_wavelength=float(self.ui.lineEdit_StartWavelength.text())) 
+            if (isfloat(self.ui.lineEdit_StartWavelength.text())) else 0)
+        self.ui.lineEdit_StopWavelength.editingFinished.connect(
+            lambda:self.OSA.change_range(stop_wavelength=float(self.ui.lineEdit_StopWavelength.text())) 
+            if (isfloat(self.ui.lineEdit_StopWavelength.text())) else 0)      
         
         
         
@@ -209,12 +215,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.checkBox_ApplyFFTFilter.stateChanged.connect(self.on_stateChangeOfApplyFFTBox)
         self.ui.checkBox_HighRes.stateChanged.connect(self.on_stateChangeOfIsHighResolution)
         self.ui.pushButton_getRange.pressed.connect(self.on_pushButton_getRange)
-        self.ui.lineEdit_StartWavelength.editingFinished.connect(
-            lambda:self.OSA.change_range(start_wavelength=float(self.ui.lineEdit_StartWavelength.text())) 
-            if (isfloat(self.ui.lineEdit_StartWavelength.text())) else 0)
-        self.ui.lineEdit_StopWavelength.editingFinished.connect(
-            lambda:self.OSA.change_range(stop_wavelength=float(self.ui.lineEdit_StartWavelength.text())) 
-            if (isfloat(self.ui.lineEdit_StartWavelength.text())) else 0)
+
 
 # =============================================================================
 #         saving interface
