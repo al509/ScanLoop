@@ -20,9 +20,9 @@ class Scope(QObject):
     def __init__ (self, host):
         super().__init__(parent=None)
         rm=pyvisa.ResourceManager('@py')
-#        self.device=rm.open_resource('TCPIP::'+host+'::hislip0,4880::INSTR')
+        self.device=rm.open_resource('TCPIP::'+host+'::hislip0,4880::INSTR')
 #        self.device=rm.open_resource('TCPIP0::WINDOWS-E76DLEM::hislip0,4880::INSTR')
-        self.device=rm.open_resource('TCPIP0::WINDOWS-E76DLEM::inst0::INSTR')
+        # self.device=rm.open_resource('TCPIP0::WINDOWS-E76DLEM::inst0::INSTR')
         self.device.timeout=1000
         self.device.write(":WAV:FORMAT WORD")
         self.device.write(":WAV:BYTEORDER MSBF") # Set the byte order to Big-Endian (default for Infinium oscilloscopes)
@@ -238,13 +238,13 @@ class Scope(QObject):
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    HOST = '10.2.60.27'
+    HOST = '10.2.60.176'
     scope=Scope(HOST)
     print('Channels that are ON:',scope.channels_states)
-    scope.set_time_range(50e-9)
+    # scope.set_time_range(50e-9)
     print(scope.get_number_of_points())
-    scope.set_averaging_state(False)
-    scope.set_averaging_number(256)
+    # scope.set_averaging_state(False)
+    # scope.set_averaging_number(256)
     X,Y,ch=scope.acquire()
     temp=scope.get_sampling_rate()
     plt.plot(X,Y[0])

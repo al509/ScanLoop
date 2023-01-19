@@ -90,7 +90,7 @@ if __name__=='__main__':
     import os
     os.chdir('..')
     # from LaserLibs import itla_pyvisa
-    laser=Laser(12)
+    laser=Laser(26)
     laser.setOn()
     laser.setMode('whisper')
     laser.setOff()

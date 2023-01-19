@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-__version__='20.6.4'
-__date__='2022.12.05'
+
+__version__='20.6.5'
+__date__='2023.01.19'
 
 import os
 if __name__=='__main__':
@@ -300,27 +301,38 @@ class MainWindow(ThreadedMainWindow):
     def connect_scope(self):
         '''
         create connection to scope
+        use 'old' interface by Ilya or 'new' interface by Artem 
 
         Returns
         -------
         None.
 
         '''
-        from Hardware.KeysightOscilloscope import Scope
-        self.scope=Scope(Consts.Scope.HOST)
-        self.add_thread([self.scope])
-        self.scope.received_data.connect(self.painter.set_data)
-        self.ui.tabWidget_instruments.setEnabled(True)
-        self.ui.tabWidget_instruments.setCurrentIndex(1)
-        self.ui.groupBox_scope_control.setEnabled(True)
-        self.enable_scanning_process()
-        widgets = (self.ui.horizontalLayout_3.itemAt(i).widget()
-                   for i in range(self.ui.horizontalLayout_3.count()))
-        for i,widget in enumerate(widgets):
-            widget.setChecked(self.scope.channels_states[i])
-            widget.stateChanged.connect(self.update_scope_channel_state)
-        self.painter.TypeOfData='FromScope'
-        print('Connected to scope')
+        interface='new'
+        try:
+            if interface=='new':
+                from Hardware.scope import Scope
+                self.scope = Scope(Consts.Scope.NAME, protocol = 'inst0')
+            elif interface=='old':
+                from Hardware.KeysightOscilloscope import Scope
+                self.scope=Scope(Consts.Scope.HOST)
+            self.add_thread([self.scope])
+            self.scope.received_data.connect(self.painter.set_data)
+            self.ui.tabWidget_instruments.setEnabled(True)
+            self.ui.tabWidget_instruments.setCurrentIndex(1)
+            self.ui.groupBox_scope_control.setEnabled(True)
+            self.enable_scanning_process()
+            widgets = (self.ui.horizontalLayout_3.itemAt(i).widget()
+                       for i in range(self.ui.horizontalLayout_3.count()))
+            for i,widget in enumerate(widgets):
+                widget.setChecked(self.scope.channels_states[i])
+                widget.stateChanged.connect(self.update_scope_channel_state)
+            self.painter.TypeOfData='FromScope'
+            print('Connected to scope')
+        
+        except Exception as e:
+            print(e)
+            print('Connection to scope failed')
 
     def update_scope_channel_state(self):
         widgets = (self.ui.horizontalLayout_3.itemAt(i).widget()
@@ -503,7 +515,7 @@ class MainWindow(ThreadedMainWindow):
         None.
 
         '''
-        interface='pyvisa'
+        interface='serial'
         COMPort='COM'+self.ui.lineEdit_laser_COMport.text()
         try:
             if interface=='pyvisa':

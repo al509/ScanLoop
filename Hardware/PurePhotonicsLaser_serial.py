@@ -2,11 +2,14 @@
 By Alexandr Nesterok
 Using serial interface
 '''
-__date__='2022.12.03'
+__date__='2023.01.19'
 
 
 import serial
-from Hardware.LaserLibs import ITLA_serial as ITLA
+if __name__=='__main__':
+    from LaserLibs import ITLA_serial as ITLA
+else:
+    from Hardware.LaserLibs import ITLA_serial as ITLA
 import numpy as np
 
 def nmToDGHz(nm : float):
@@ -25,11 +28,15 @@ class Laser(serial.Serial):
         self.maximum_tuning=200.1 # in pm
         self.tuning=0
         self.main_wavelength=0 # in nm
+        print('Coonected to laser using Serial')
 
 
     def setOn(self):
+        print('try to set laser on')
         return ITLA.ITLA(self, ITLA.REG_Resena, 8, ITLA.WRITE)
+
     def setOff(self):
+        print('try to set laser off')
         return ITLA.ITLA(self, ITLA.REG_Resena, 0, ITLA.WRITE)
     def setPower(self,Power): # in 0.01 dB
         return ITLA.ITLA(self, ITLA.REG_Power, Power, ITLA.WRITE)
@@ -66,8 +73,10 @@ class Laser(serial.Serial):
 
 
 if __name__=='__main__':
-    laser=Laser('COM8')
-    del laser
+    laser=Laser('COM26')
+    laser.setOn()
+    laser.setOff()
+    # del laser
 
 
 
