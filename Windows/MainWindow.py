@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.6.5'
+__version__='20.6.6'
 __date__='2023.01.19'
 
 import os
@@ -166,12 +166,16 @@ class MainWindow(ThreadedMainWindow):
             self.on_pushButton_AcquireAllSpectra_pressed)
         self.ui.pushButton_OSA_AcquireRep.clicked[bool].connect(
             self.on_pushButton_acquireSpectrumRep_pressed)
+        
+        self.ui.pushButton_APEX_TLS.clicked[bool].connect(lambda x: self.OSA.tls.On() if x else self.OSA.tls.Off())
 
         self.ui.label_Luna_mode.setVisible(False)
         self.ui.comboBox_Luna_mode.setVisible(False)
         self.ui.comboBox_Luna_mode.currentTextChanged.connect(lambda : self.enable_scanning_process())
         self.ui.comboBox_Type_of_OSA.currentTextChanged.connect(self.features_visibility)
         self.ui.pushButton_set_max_OSA_range.pressed.connect(self.set_max_OSA_range)
+        
+        
         
         
 
@@ -312,7 +316,7 @@ class MainWindow(ThreadedMainWindow):
         try:
             if interface=='new':
                 from Hardware.scope import Scope
-                self.scope = Scope(Consts.Scope.NAME, protocol = 'inst0')
+                self.scope = Scope(Consts.Scope.HOST, protocol = 'inst0') # or Consts.Scope.NAME
             elif interface=='old':
                 from Hardware.KeysightOscilloscope import Scope
                 self.scope=Scope(Consts.Scope.HOST)
@@ -405,9 +409,12 @@ class MainWindow(ThreadedMainWindow):
             self.OSA = APEX_OSA_with_additional_features(Consts.APEX.HOST)
             self.ui.checkBox_HighRes.setChecked(self.OSA.IsHighRes)
             self.ui.comboBox_APEX_mode.setEnabled(True)
+            self.ui.pushButton_APEX_TLS.setEnabled(True)
             self.ui.comboBox_APEX_mode.setCurrentIndex(self.OSA.GetMode()-3)
             self.ui.comboBox_APEX_mode.currentIndexChanged[int].connect(lambda x: self.OSA.SetMode(x+3))
             self.spectral_processor.isInterpolation=True
+            if self.OSA.tls.GetStatus()=='ON':
+                self.ui.pushButton_APEX_TLS.setChecked(True)
 
         self.add_thread([self.OSA])
         self.OSA.received_spectrum.connect(self.painter.set_data)

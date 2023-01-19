@@ -1,4 +1,7 @@
-from PyApex.Common import Send, Receive
+try:
+    from PyApex.Common import Send, Receive
+except:
+    from Hardware.PyApex.Common import Send, Receive
 import sys
 
 
@@ -185,7 +188,7 @@ class TunableLaser():
             Send(self.__Connexion, Command)
         
         self.__Status = "ON"
-
+        print('Turn OSA.tls ON')
 
     def Off(self):
         '''
@@ -197,7 +200,7 @@ class TunableLaser():
             Send(self.__Connexion, Command)
         
         self.__Status = "OFF"
-
+        print('Turn OSA.tls OFF')
 
     def GetStatus(self):
         '''

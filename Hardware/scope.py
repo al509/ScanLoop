@@ -313,7 +313,9 @@ class Scope(QObject):
         
 
 if __name__ == '__main__':
-    scope = Scope('WINDOWS-E76DLEM', protocol = 'inst0')
+    
+    # scope = Scope('WINDOWS-E76DLEM', protocol = 'inst0')
+    scope=Scope('10.2.60.176', protocol = 'inst0')
     scope.macro_setup(
             channels_displayed = ([1,2]),
             channels_coupling = {1:'DC50', 2:'DC50'},

@@ -44,7 +44,8 @@ class Consts:
 
 
     class Scope:
-        HOST = '10.2.60.27'
+        # HOST = '10.2.60.27'
+        HOST = '10.2.60.176'
         NAME = 'WINDOWS-E76DLEM'
         
     class Powermeter:

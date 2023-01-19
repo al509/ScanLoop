@@ -13,12 +13,17 @@ from os.path import isdir, dirname
 from random import random
 from math import log10
 import time
-if __name__=='__main__':
-    os.chdir('..')
 
-from Hardware.PyApex.AP2XXX import AP2XXX
-from Hardware.PyApex.AP2XXX.osa import OSA
-from Common.Consts import Consts
+if __name__=='__main__':
+    from PyApex.AP2XXX import AP2XXX
+    from PyApex.AP2XXX.tls import TunableLaser
+    from PyApex.AP2XXX.osa import OSA
+    # from Common.Consts import Consts
+else:
+    from Hardware.PyApex.AP2XXX import AP2XXX
+    from Hardware.PyApex.AP2XXX.tls import TunableLaser
+    from Hardware.PyApex.AP2XXX.osa import OSA
+    from Common.Consts import Consts
 
 
 class APEX_OSA_with_additional_features(OSA,QObject):
@@ -29,9 +34,10 @@ class APEX_OSA_with_additional_features(OSA,QObject):
     
 
     def __init__(self,host: str):
+        
         QObject.__init__(self)
         OSA.__init__(self,host)
-
+        self.tls=TunableLaser(self)
         
         self.min_wavelength=1526
         self.max_wavelength=1567
