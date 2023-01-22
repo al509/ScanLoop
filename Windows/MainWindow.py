@@ -229,6 +229,9 @@ class MainWindow(ThreadedMainWindow):
 # =============================================================================
     def init_logger_interface(self):
         self.ui.pushButton_save_data.pressed.connect(self.on_pushButton_save_data)
+        self.logger.S_print[str].connect(self.logText)
+        self.logger.S_print_error[str].connect(self.logWarningText)
+        
 
 # =============================================================================
 #         #scanning process
@@ -288,15 +291,19 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum( self.painter.figure))  
         self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
         self.ui.pushButton_analyzer_get_modes_params.clicked.connect(lambda: self.analyzer.get_modes_parameters())
-        self.ui.pushButton_analyzer_quantum_numbers_fitter.clicked.connect(self.analyzer.run_quantum_numbers_fitter)
+        self.ui.pushButton_analyzer_quantum_numbers_fitter.clicked.connect(lambda: self.analyzer.run_quantum_numbers_fitter())
+        self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(self.analyzer.apply_FFT_to_spectrogram)
 
         self.ui.pushButton_analyzer_save_single_spectrum.clicked.connect(self.analyzer.save_single_spectrum)        
         self.ui.pushButton_analyzer_resave_SNAP.clicked.connect(lambda : self.analyzer.resave_SNAP(self.ui.comboBox_analyzer_resave_type.currentText()))        
         self.ui.pushButton_set_analyzer_parameters.clicked.connect(self.on_pushButton_set_analyzer_parameters)
         self.ui.pushButton_delete_slice.clicked.connect(self.delete_slice_from_spectrogram)
         
+        
+        
         self.analyzer.S_print[str].connect(self.logText)
         self.analyzer.S_print_error[str].connect(self.logWarningText)
+        
         # self.ui.pushButton_analyzer_save_as_pkl3d.clicked.connect(lambda: self.analyzer.save_as_pkl3d())
         
         # self.ui.pushButton_analyzer_save_cropped.clicked.connect(lambda: self.analyzer.save_cropped_data())
@@ -1306,7 +1313,7 @@ def get_widget_values(window)->dict:
         s=w.text()
         key=w.objectName().split('lineEdit_')[1]
         try:
-            f=float(s) if '.' in s else int(s)
+            f=float(s)
         except ValueError:
             f=s
         D[key]=f

@@ -562,7 +562,7 @@ class Analyzer(QObject):
                 self.S_print_error.emit('Error. Signal is NAN only')
                 return
             dw=(waves[-1]-waves[0])/len(waves)
-            peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),height=self.min_peak_level , distance=int(self.min_peak_distance/dw))
+            peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),prominence=self.min_peak_level , distance=int(self.min_peak_distance/dw))
             if len(peakind2)>0:
                 axes.plot(waves[peakind2], signal[peakind2], '.')
                 
@@ -846,13 +846,15 @@ class Analyzer(QObject):
             
             
         def apply_FFT_to_spectrogram(self):
-            self.SNAP.apply_FFT_filter(self.FFTFilter_low_freq_edge,self.FFTFilter_high_freq_edge)
+            self.S_print.emit('Applying FFT filter...')
+            self.SNAP.apply_FFT_filter(float(self.FFTFilter_low_freq_edge),float(self.FFTFilter_high_freq_edge))
             self.plot_spectrogram()
             self.S_print.emit('Filter applied. New spectrogram plotted')
             
 
             
         def run_quantum_numbers_fitter(self):
+            self.S_print.emit('start finding quantum numbers...')
             axes=self.single_spectrum_figure.gca()
             line = axes.get_lines()[0]
             waves = line.get_xdata()
@@ -874,7 +876,7 @@ class Analyzer(QObject):
             axes.plot(fitter.exp_resonances,fitter.signal[fitter.resonances_indexes],'.')
             self.single_spectrum_figure.canvas.draw()
             
-            self.S_print.emit('start finding quantum numbers...')
+            
             fitter.run(self.cost_function_figure, self.cost_function_ax)
             self.S_print.emit('quantum numbers found')
                     

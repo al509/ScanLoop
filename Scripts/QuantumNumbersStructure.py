@@ -6,8 +6,8 @@
 #See formula A3 for lambda_m_p
 ########
 
-__version__='3.8'
-__date__='2022.09.09'
+__version__='3.9'
+__date__='2023.01.22'
 
  
 import numpy as np
@@ -24,12 +24,12 @@ from numba import jit
 
 
 R_MIN = 62e3  #  В нанометрах (?) / Предыдущее значение 61e3
-R_MAX = 63e3  #  В нанометрах (?) / Предыдущее значение 64e3
+R_MAX = 64e3  #  В нанометрах (?) / Предыдущее значение 64e3
 R_step=3
 
 
 T_MIN = 18  #  В градусах Цельсия
-T_MAX = 25  #  В градусах Цельсия
+T_MAX = 28  #  В градусах Цельсия
 T_step=0.5
 
 c = 299792458  #  m/s
@@ -322,7 +322,8 @@ class Fitter():
         self.signal=signal[index_min:index_max]
         if FFT_filter:
             self.signal=FFTFilter(self.signal)
-        self.resonances_indexes,_=find_peaks(abs(self.signal-np.nanmean(self.signal)),height=peak_depth,distance=peak_distance)
+        dw=(wavelengths[-1]-wavelengths[0])/len(wavelengths)
+        self.resonances_indexes,_=find_peaks(abs(self.signal-np.nanmean(self.signal)),prominence=peak_depth,distance=peak_distance/dw)
         self.exp_resonances=self.wavelengths[self.resonances_indexes]
         self.polarizations=polarization
         self.material_dispersion=dispersion

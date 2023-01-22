@@ -17,6 +17,9 @@ class Logger(QObject):
     TDFolder=path+'\\TimeDomainData\\'
     ParametersFileName=path+'\\Parameters.txt'
     
+    S_print=pyqtSignal(str) # signal used to print into main text browser
+    S_print_error=pyqtSignal(str) # signal used to print errors into main text browser
+    
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -41,14 +44,14 @@ class Logger(QObject):
             f = open(FileName+'.pkl',"wb")
             pickle.dump(Data,f)
             f.close()
-        print('\nData saved\n')
+        self.S_print.emit('\nData saved\n')
 
     def save_parameters(self, list_dictionaries):
         f=open(self.ParametersFileName,'w')
         json.encoder.FLOAT_REPR = lambda x: format(x, '.5f') if (x<0.01) else x
         json.dump(list_dictionaries,f)
         f.close()
-        print('\nParameters saved\n')
+        self.S_print.emit('\nParameters saved\n')
 
     def load_parameters(self):
         '''
@@ -58,13 +61,13 @@ class Logger(QObject):
             f=open(self.ParametersFileName)
             Dicts=json.load(f)
             f.close()
-            print('\nParameters loaded\n')
+            self.S_print.emit('\nParameters loaded\n')
             return Dicts
         except FileNotFoundError:
-            print('Error while load parameters: Parameters file not found')
+            self.S_print_error.emit('Error while load parameters: Parameters file not found')
             return None
         except json.JSONDecodeError:
-            print('Errpr while load parameters: file has wrong format')
+            self.S_print_error.emit('Errpr while load parameters: file has wrong format')
             return None
         
     
@@ -76,7 +79,7 @@ class Logger(QObject):
         f=open(self.ZeroPositionFileName,'w')
         json.dump(Dict,f)
         f.close()
-        print('\nzero position saved\n')
+        self.S_print.emit('\nzero position saved\n')
         
     def load_zero_position(self):
         try:
