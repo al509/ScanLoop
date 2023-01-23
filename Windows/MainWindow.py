@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.6.7'
-__date__='2023.01.19'
+__version__='20.6.8'
+__date__='2023.01.23'
 
 import os
 if __name__=='__main__':
@@ -485,17 +485,17 @@ class MainWindow(ThreadedMainWindow):
                 self.stages.set_zero_positions(self.logger.load_zero_position())
                 self.update_indicated_positions()
                 self.ui.pushButton_MovePlusX.pressed.connect(
-                    lambda :self.setStageMoving('X',int(self.ui.lineEdit_StepX.text())))
+                    lambda :self.setStageMoving('X',float(self.ui.lineEdit_StepX.text())))
                 self.ui.pushButton_MoveMinusX.pressed.connect(
-                    lambda :self.setStageMoving('X',-1*int(self.ui.lineEdit_StepX.text())))
+                    lambda :self.setStageMoving('X',-1*float(self.ui.lineEdit_StepX.text())))
                 self.ui.pushButton_MovePlusY.pressed.connect(
-                    lambda :self.setStageMoving('Y',int(self.ui.lineEdit_StepY.text())))
+                    lambda :self.setStageMoving('Y',float(self.ui.lineEdit_StepY.text())))
                 self.ui.pushButton_MoveMinusY.pressed.connect(
-                    lambda :self.setStageMoving('Y',-1*int(self.ui.lineEdit_StepY.text())))
+                    lambda :self.setStageMoving('Y',-1*float(self.ui.lineEdit_StepY.text())))
                 self.ui.pushButton_MovePlusZ.pressed.connect(
-                    lambda :self.setStageMoving('Z',int(self.ui.lineEdit_StepZ.text())))
+                    lambda :self.setStageMoving('Z',float(self.ui.lineEdit_StepZ.text())))
                 self.ui.pushButton_MoveMinusZ.pressed.connect(
-                    lambda :self.setStageMoving('Z',-1*int(self.ui.lineEdit_StepZ.text())))
+                    lambda :self.setStageMoving('Z',-1*float(self.ui.lineEdit_StepZ.text())))
                 self.ui.pushButton_zero_position_X.pressed.connect(lambda: self.on_pushButton_zeroingPositions('X'))
                 self.ui.pushButton_zero_position_Y.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Y'))
                 self.ui.pushButton_zero_position_Z.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Z'))
