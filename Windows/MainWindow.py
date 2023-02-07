@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.6.8'
-__date__='2023.01.23'
+__version__='20.6.9'
+__date__='2023.02.07'
 
 import os
 if __name__=='__main__':
@@ -1313,9 +1313,12 @@ def get_widget_values(window)->dict:
         s=w.text()
         key=w.objectName().split('lineEdit_')[1]
         try:
-            f=float(s)
+            f=int(s)
         except ValueError:
-            f=s
+            try:
+                f=float(s)
+            except ValueError:
+                f=s
         D[key]=f
     for w in window.findChildren(QCheckBox):
         f=w.isChecked()
