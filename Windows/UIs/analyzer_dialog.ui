@@ -850,7 +850,7 @@ p, li { white-space: pre-wrap; }
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_zero_wave">
+    <widget class="QLineEdit" name="lineEdit_lambda_0_for_ERV">
      <property name="geometry">
       <rect>
        <x>60</x>

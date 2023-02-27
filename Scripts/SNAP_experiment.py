@@ -9,7 +9,7 @@ matplotlib 3.4.2 is needed!
 
 
 __version__='11.8.2'
-__date__='2022.12.18'
+__date__='2023.02.27'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,7 +27,7 @@ import scipy.linalg as la
 from numba import njit
 # from mpl_toolkits.mplot3d import Axes3D
 
-lambda_to_nu=125e3 #MHz/nm
+lambda_to_nu=125e3 #MHz/nm at 1550 nm
 lambda_to_omega=lambda_to_nu*2*np.pi 
 
 class SNAP():
@@ -215,7 +215,7 @@ class SNAP():
 
     # @numba.njit
     def extract_ERV(self, number_of_peaks_to_search=1, min_peak_level=1,
-                    min_peak_distance=0.05, min_wave=0, max_wave=1e4, lambda_0_for_ERV=0,
+                    min_peak_distance=0.05, min_wave=0, max_wave=1e4, lambda_0_for_ERV=1550,
                     find_widths=True, bandwidth_for_fitting=0.1,
                     iterate_different_bandwidths=False, max_bandwidth_for_fitting=1, iterating_cost_function_type='linewidth'):
         '''
@@ -448,7 +448,9 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
     Gorodetsky, (9.19), p.253
     
     may use peak_wavelength
-    return [transmission, Fano_phase, resonance_position,delta_0,delta_c], [x_fitted,y_fitted]
+    
+    return 
+    [transmission, Fano_phase, resonance_position,delta_0,delta_c], [x_fitted,y_fitted]
     
     '''
     method='trf'
@@ -565,7 +567,7 @@ def Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c,scale='log'):
     return log of Fano shape
 
     Modified formula (9.19), p.253 by Gorodetsky
-    w is wavelength
+    w is wavelength in nm
     delta_0, delta_c is in 2pi*MHz or 1e6/s
     '''
     
@@ -596,15 +598,29 @@ if __name__ == "__main__":
     import pickle
     import matplotlib.pyplot as plt
     
-    os.chdir('..')
-    import Scripts.SNAP_experiment
+    # os.chdir('..')
+    # import Scripts.SNAP_experiment
     
-    f=r"C:\!WorkFolder\!Experiments\!SNAP system\2022.12 playing with parameters\potential 6\left.SNAP"
+    from  Unpickling_proper_modules import renamed_load
+    
+    f=r"C:\Users\Илья\Desktop\линейная модификация_resaved_resaved_resaved.SNAP"
     with open(f,'rb') as file:
-        S=pickle.load(file)
-    #%%
-
-    T2=S.get_modes_parameters(min_peak_level=0.8,min_peak_distance=0.05,bandwidth_for_fitting=0,iterate_different_bandwidths=False,iterating_cost_function_type='linewidth',max_bandwidth_for_fitting=100)
-    plt.errorbar(S.positions[:,S.axes_dict[S.axis_key]],T2[0]['delta_0'],T2[0]['delta_0_error'])
-    plt.ylim((0,np.nanmax(T2[0]['delta_0'])*1.2))
+        S=renamed_load(file)
+        # S=renamed_load(file)
+    a=S.extract_ERV(lambda_0_for_ERV=1553.34,find_widths=False)
+    # #%%
+    # f=r'F:/!Projects/!SNAP system/Q -factors, Dependence on taper waist, etc/2022.12 good potential for losses evaluation\Processed_spectrogram good potential_resaved_q=0_at_1930.0.pkl'
+    # with open(f,'rb') as file:
+    #     S=pickle.load(file)
+    # signal=S[:,1]
+    # waves=S[:,0]
+    # # peakind,_=scipy.signal.find_peaks(signal-np.nanmean(signal),prominence=5)
+    # # peakind
+    # ([transmission, Fano_phase, resonance_position,delta_0,delta_c],errors,x_fitted,y_fitted) =get_Fano_fit(waves,signal,None)
+    # plt.figure()
+    # plt.plot(waves,signal)
+    # plt.plot(x_fitted,y_fitted)
+    # # plt.plot(waves[peakind],signal[peakind],'.')
+    # print(delta_0,delta_c,resonance_position)
+    
     

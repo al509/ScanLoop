@@ -4,8 +4,8 @@
 
 
 """
-__version__='2.6.3'
-__date__='2023.01.19'
+__version__='2.6.5'
+__date__='2023.02.27'
 
 import os
 import sys
@@ -21,7 +21,8 @@ try:
     import Scripts.QuantumNumbersStructure as QuantumNumbersStructure
 except ModuleNotFoundError as E:
     print(E)
-    import SNAP_experiment 
+    
+    import SNAP_experiment
     import QuantumNumbersStructure
 import json
 
@@ -202,6 +203,7 @@ class Analyzer(QObject):
                 new_SNAP.positions=self.SNAP.positions[i_x_min:i_x_max,:]
                 new_SNAP.wavelengths=self.SNAP.wavelengths[i_w_min:i_w_max]
                 new_SNAP.signal=self.SNAP.signal[i_w_min:i_w_max,i_x_min:i_x_max]
+                new_SNAP.lambda_0=new_SNAP.wavelengths[0]
                 if output_file_type=='SNAP':
                     NewFileName=path+'\\'+FileName.split('.')[-2]+'_resaved.SNAP'
                     new_SNAP.jones_matrixes_used=False
@@ -397,15 +399,15 @@ class Analyzer(QObject):
                 """
                 y1, y2 = ax_Wavelengths.get_ylim()
                 print(y1,y2)
-                nY1=(y1-self.SNAP.lambda_0)/w_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
-                nY2=(y2-self.SNAP.lambda_0)/w_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
+                nY1=(y1-self.SNAP.lambda_0)/self.SNAP.lambda_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
+                nY2=(y2-self.SNAP.lambda_0)/self.SNAP.lambda_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
                 ax_Radius.set_ylim(nY1, nY2)
                 
             def _forward(x):
-                return (x-self.SNAP.lambda_0)/w_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
+                return (x-self.SNAP.lambda_0)/self.SNAP.lambda_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
     
             def _backward(x):
-                return self.SNAP.lambda_0 + w_0*x/self.SNAP.R_0/self.SNAP.refractive_index/1e3
+                return self.SNAP.lambda_0 + self.SNAP.lambda_0*x/self.SNAP.R_0/self.SNAP.refractive_index/1e3
         
         
             
@@ -711,10 +713,10 @@ class Analyzer(QObject):
                 max_allowed_error=0.2
                 from Theory.estimate_cavity_and_taper_params import estimate_params
                 from Theory.estimate_nonlinear_and_thermal_properties import get_min_threshold,Kerr_threshold
-                a,w,C,D,Gamma=estimate_params(NewFileName)
-                min_threshold,position=get_min_threshold(self.SNAP.R_0,self.SNAP.wavelengths[0],a,w,C,D,Gamma)
+                a,w,C,ReD,ImD,Gamma=estimate_params(NewFileName)
+                min_threshold,position_for_min_threshold=get_min_threshold(self.SNAP.R_0,self.SNAP.wavelengths[0],a,w,C,ImD,Gamma)
                 self.S_print.emit('Min_threshold={} W'.format(min_threshold))
-                self.figure_spectrogram.axes[0].axvline(position,color='blue')
+                self.figure_spectrogram.axes[0].axvline(position_for_min_threshold,color='blue')
                 self.figure_spectrogram.axes[0].text(0.4,0.4,'{:.3f} W'.format(min_threshold), 
                                                      horizontalalignment='center',
                                                      verticalalignment='center',
@@ -724,6 +726,7 @@ class Analyzer(QObject):
                 for D in modes_parameters:
                     delta_c=D['delta_c']
                     delta_c_err=D['delta_c_error']
+                    
                     delta_0=D['delta_0']
                     delta_0_err=D['delta_0_error']
                     
@@ -791,50 +794,51 @@ class Analyzer(QObject):
             plt.tight_layout()
   
 
-            plt.figure()
-            plt.title('Depth and Linewidth $\Delta \lambda$')
-            for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,depth[:,i],color='blue')
-            plt.xlabel('Distance, $\mu$m')
-            plt.ylabel('Depth ',color='blue')
-            plt.gca().tick_params(axis='y', colors='blue')
-            plt.gca().twinx()
-            # plt.figure()
-            for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,linewidth[:,i], color='red')
-            plt.ylabel('Linewidth $\Delta \lambda$, nm',color='red')
-            plt.gca().tick_params(axis='y', colors='red')
-            plt.tight_layout()
-            
-            plt.figure()
-            plt.title('Nonresonanse transmission $|S_0|$ and its phase')
-            for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,non_res_transmission[:,i],color='blue')
-            plt.xlabel('Distance, $\mu$m')
-            plt.ylabel('Nonresonance transmission $|S_0|$',color='blue')
-            plt.gca().tick_params(axis='y', colors='blue')
-            plt.gca().twinx()
-            # plt.figure()
-            for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,Fano_phase[:,i], color='red')
-            plt.ylabel('Phase',color='red')
-            plt.gca().tick_params(axis='y', colors='red')
-            plt.tight_layout()
-            
-            plt.figure()
-            plt.title('$\delta_0$ and $\delta_c$')
-            for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,delta_c[:,i],color='blue')
-            plt.xlabel('Distance, $\mu$m')
-            plt.ylabel('$\delta_c$,  $10^6$ 1/s',color='blue')
-            plt.gca().tick_params(axis='y', colors='blue')
-            plt.gca().twinx()
-            # plt.figure()
-            for i in range(0,number_of_peaks_to_search):
-                plt.plot(positions,delta_0[:,i], color='red')
-            plt.ylabel('$\delta_0$,  $10^6$ 1/s',color='red')
-            plt.gca().tick_params(axis='y', colors='red')
-            plt.tight_layout()
+            if  find_widths:
+                plt.figure()
+                plt.title('Depth and Linewidth $\Delta \lambda$')
+                for i in range(0,number_of_peaks_to_search):
+                    plt.plot(positions,depth[:,i],color='blue')
+                plt.xlabel('Distance, $\mu$m')
+                plt.ylabel('Depth ',color='blue')
+                plt.gca().tick_params(axis='y', colors='blue')
+                plt.gca().twinx()
+                # plt.figure()
+                for i in range(0,number_of_peaks_to_search):
+                    plt.plot(positions,linewidth[:,i], color='red')
+                plt.ylabel('Linewidth $\Delta \lambda$, nm',color='red')
+                plt.gca().tick_params(axis='y', colors='red')
+                plt.tight_layout()
+                
+                plt.figure()
+                plt.title('Nonresonanse transmission $|S_0|$ and its phase')
+                for i in range(0,number_of_peaks_to_search):
+                    plt.plot(positions,non_res_transmission[:,i],color='blue')
+                plt.xlabel('Distance, $\mu$m')
+                plt.ylabel('Nonresonance transmission $|S_0|$',color='blue')
+                plt.gca().tick_params(axis='y', colors='blue')
+                plt.gca().twinx()
+                # plt.figure()
+                for i in range(0,number_of_peaks_to_search):
+                    plt.plot(positions,Fano_phase[:,i], color='red')
+                plt.ylabel('Phase',color='red')
+                plt.gca().tick_params(axis='y', colors='red')
+                plt.tight_layout()
+                
+                plt.figure()
+                plt.title('$\delta_0$ and $\delta_c$')
+                for i in range(0,number_of_peaks_to_search):
+                    plt.plot(positions,delta_c[:,i],color='blue')
+                plt.xlabel('Distance, $\mu$m')
+                plt.ylabel('$\delta_c$,  $10^6$ 1/s',color='blue')
+                plt.gca().tick_params(axis='y', colors='blue')
+                plt.gca().twinx()
+                # plt.figure()
+                for i in range(0,number_of_peaks_to_search):
+                    plt.plot(positions,delta_0[:,i], color='red')
+                plt.ylabel('$\delta_0$,  $10^6$ 1/s',color='red')
+                plt.gca().tick_params(axis='y', colors='red')
+                plt.tight_layout()
             
             self.S_print.emit(f'R_0 = {params_dict["R_0"]}, n = {params_dict["refractive_index"]}')
         
@@ -941,11 +945,14 @@ if __name__ == "__main__":
     a=Analyzer()
 
     a.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
-    f=r"C:\!WorkFolder\!Experiments\!SNAP system\2022.12 playing with parameters\potential 6\central.SNAP"
+    # f=r"C:\!WorkFolder\!Experiments\!SNAP system\2022.12 playing with parameters\potential 6\central.SNAP"
+    f=r"C:\Users\Илья\Desktop\линейная модификация_resaved_resaved_resaved_resaved.pkl3d"
     a.load_data(f)
     a.plot_slice(680)
     a.analyze_spectrum(a.single_spectrum_figure)
-    
+    a.plot_results_separately=True
+    a.lambda_0_for_ERV=1553.34
+    b=a.extract_ERV()
     
     # import json
     # f=open('Parameters.txt')
