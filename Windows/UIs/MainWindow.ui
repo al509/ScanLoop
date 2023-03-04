@@ -419,7 +419,7 @@
                  <x>0</x>
                  <y>140</y>
                  <width>281</width>
-                 <height>81</height>
+                 <height>121</height>
                 </rect>
                </property>
                <property name="title">
@@ -557,6 +557,28 @@
                 </property>
                 <property name="checkable">
                  <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+               <widget class="QPushButton" name="pushButton_APEX_calibration">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="geometry">
+                 <rect>
+                  <x>210</x>
+                  <y>90</y>
+                  <width>61</width>
+                  <height>23</height>
+                 </rect>
+                </property>
+                <property name="text">
+                 <string>Calibration</string>
+                </property>
+                <property name="checkable">
+                 <bool>false</bool>
                 </property>
                 <property name="checked">
                  <bool>false</bool>
@@ -1346,7 +1368,7 @@
               <rect>
                <x>190</x>
                <y>130</y>
-               <width>51</width>
+               <width>71</width>
                <height>20</height>
               </rect>
              </property>
@@ -1360,25 +1382,42 @@
             <widget class="QLabel" name="label_2">
              <property name="geometry">
               <rect>
-               <x>20</x>
+               <x>120</x>
                <y>130</y>
-               <width>271</width>
+               <width>61</width>
                <height>20</height>
               </rect>
              </property>
              <property name="text">
-              <string>Scan along __, final position _______ microns</string>
+              <string>final position</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
              </property>
             </widget>
+            <widget class="QLabel" name="label_4">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>130</y>
+               <width>51</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Scan along</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <zorder>label_scanning_index_status</zorder>
             <zorder>label_2</zorder>
             <zorder>pushButton_scan_in_space</zorder>
             <zorder>pushButton_set_scanning_parameters</zorder>
-            <zorder>label_scanning_index_status</zorder>
             <zorder>label_scanning_axis</zorder>
             <zorder>label_scanning_final_position</zorder>
+            <zorder>label_4</zorder>
            </widget>
           </widget>
           <widget class="QWidget" name="page_6">

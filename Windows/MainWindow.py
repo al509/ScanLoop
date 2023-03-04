@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.6.9'
-__date__='2023.02.07'
+__version__='20.6.10'
+__date__='2023.03.04'
 
 import os
 if __name__=='__main__':
@@ -175,12 +175,15 @@ class MainWindow(ThreadedMainWindow):
             self.on_pushButton_acquireSpectrumRep_pressed)
         
         self.ui.pushButton_APEX_TLS.clicked[bool].connect(lambda x: self.OSA.tls.On() if x else self.OSA.tls.Off())
+        self.ui.pushButton_APEX_calibration.clicked.connect(lambda : self.OSA.WavelengthCalib())
+                
 
         self.ui.label_Luna_mode.setVisible(False)
         self.ui.comboBox_Luna_mode.setVisible(False)
         self.ui.comboBox_Luna_mode.currentTextChanged.connect(lambda : self.enable_scanning_process())
         self.ui.comboBox_Type_of_OSA.currentTextChanged.connect(self.features_visibility)
         self.ui.pushButton_set_max_OSA_range.pressed.connect(self.set_max_OSA_range)
+        
         
         self.ui.lineEdit_StartWavelength.editingFinished.connect(
             lambda:self.OSA.change_range(start_wavelength=float(self.ui.lineEdit_StartWavelength.text())) 
@@ -432,6 +435,7 @@ class MainWindow(ThreadedMainWindow):
                 self.ui.checkBox_HighRes.setChecked(self.OSA.IsHighRes)
                 self.ui.comboBox_APEX_mode.setEnabled(True)
                 self.ui.pushButton_APEX_TLS.setEnabled(True)
+                self.ui.pushButton_APEX_calibration.setEnabled(True)
                 self.ui.comboBox_APEX_mode.setCurrentIndex(self.OSA.GetMode()-3)
                 self.ui.comboBox_APEX_mode.currentIndexChanged[int].connect(lambda x: self.OSA.SetMode(x+3))
                 self.spectral_processor.isInterpolation=True
@@ -1337,8 +1341,8 @@ def set_widget_values(window,d:dict)->None:
          try:
              s=d[key]
              w.setText(str(s))
-         except KeyError:
-             m.MainWindow.logWarningText('Set widget values error')
+         except KeyError as e:
+             print('Set widget values error: '+ str(e))
              pass
      for w in window.findChildren(QCheckBox):
          key=w.objectName().split('checkBox_')[1]
@@ -1346,8 +1350,8 @@ def set_widget_values(window,d:dict)->None:
              s=d[key]
              w.setChecked(s)
              w.clicked.emit(s)
-         except KeyError:
-              m.MainWindow.logWarningText('Set widget values error')
+         except KeyError as e:
+             print('Set widget values error: '+ str(e))
      for w in window.findChildren(QComboBox):
          key=w.objectName().split('comboBox_')[1]
          try:
@@ -1358,6 +1362,7 @@ def set_widget_values(window,d:dict)->None:
          
 if __name__=='__main__':
     m=MainWindow()
-    m.connect_laser()
+    m.on_pushButton_set_spectral_processor_parameters()
+    # m.connect_laser()
     # from Hardware.PurePhotonicsLaser_pyvisa import Laser
     # l=Laser('COM12')
