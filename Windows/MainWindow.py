@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.6.10'
-__date__='2023.03.04'
+__version__='20.6.11'
+__date__='2023.03.06'
 
 import os
 if __name__=='__main__':
@@ -90,7 +90,7 @@ class ThreadedMainWindow(QMainWindow):
 class MainWindow(ThreadedMainWindow):
     force_OSA_acquireAll = pyqtSignal()
     force_OSA_acquire = pyqtSignal()
-    force_stage_move = pyqtSignal(str,int)
+    force_stage_move = pyqtSignal(str,float)
     force_scope_acquire = pyqtSignal()
     force_scanning_process=pyqtSignal()
     force_laser_scanning_process=pyqtSignal()
@@ -503,7 +503,7 @@ class MainWindow(ThreadedMainWindow):
                 self.ui.pushButton_zero_position_X.pressed.connect(lambda: self.on_pushButton_zeroingPositions('X'))
                 self.ui.pushButton_zero_position_Y.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Y'))
                 self.ui.pushButton_zero_position_Z.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Z'))
-                self.force_stage_move[str,int].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
+                self.force_stage_move[str,float].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
                 self.stages.stopped.connect(self.update_indicated_positions)
                 self.ui.groupBox_stand.setEnabled(True)
                 self.ui.pushButton_zeroing_stages.pressed.connect(

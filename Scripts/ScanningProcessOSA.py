@@ -189,7 +189,7 @@ class ScanningProcess(QObject):
         ### main loop
         self.set_axes()
         self.update_OSA_parameters()
-
+    
            
         while self.is_running and self.current_file_index<self.stop_file_index+1:
             self.S_update_status.emit('Step {} of {}'.format(self.current_file_index,self.stop_file_index))
