@@ -4,8 +4,8 @@
 
 
 """
-__version__='2.6.5'
-__date__='2023.02.27'
+__version__='2.6.6'
+__date__='2023.03.07'
 
 import os
 import sys
@@ -452,12 +452,12 @@ class Analyzer(QObject):
             if p['language'] in ['eng','en']:
                 try:
                     if self.SNAP.axis_key=='W':
-                        ax_Wavelengths.set_xlabel('Wavelength, nm')    
+                        ax_Wavelengths.set_xlabel(r'Wavelength $\lambda$, nm')    
                     elif self.SNAP.axis_key=='p':
                         ax_Wavelengths.set_xlabel('Position, number')   
                     else:
-                        ax_Wavelengths.set_xlabel(r'Position, $\mu$m')
-                    ax_Wavelengths.set_ylabel('Wavelength, nm')
+                        ax_Wavelengths.set_xlabel(r'Position $z_0$, $\mu$m')
+                    ax_Wavelengths.set_ylabel(r'Wavelength $\lambda$, nm')   
                     try:
                         ax_Radius.set_ylabel('$\Delta r_{eff}$, nm')
                     except: pass
@@ -713,8 +713,9 @@ class Analyzer(QObject):
                 max_allowed_error=0.2
                 from Theory.estimate_cavity_and_taper_params import estimate_params
                 from Theory.estimate_nonlinear_and_thermal_properties import get_min_threshold,Kerr_threshold
-                a,w,C,ReD,ImD,Gamma=estimate_params(NewFileName)
-                min_threshold,position_for_min_threshold=get_min_threshold(self.SNAP.R_0,self.SNAP.wavelengths[0],a,w,C,ImD,Gamma)
+                a,w,C2,ReD,ImD,Gamma=estimate_params(NewFileName)
+                print(C2,ReD,ImD,Gamma)
+                min_threshold,position_for_min_threshold=get_min_threshold(self.SNAP.R_0,self.SNAP.wavelengths[0],a,w,C2,ImD,Gamma)
                 self.S_print.emit('Min_threshold={} W'.format(min_threshold))
                 self.figure_spectrogram.axes[0].axvline(position_for_min_threshold,color='blue')
                 self.figure_spectrogram.axes[0].text(0.4,0.4,'{:.3f} W'.format(min_threshold), 

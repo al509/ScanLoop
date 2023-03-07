@@ -73,42 +73,64 @@ delta_omega=0
 hi_3=4*n2/3*epsilon_0*c*n**2
 omega=c/(lambda_0*1e-9)*2*np.pi # 1/sec
 
-def get_cross_section(R):
+
+def E(x,R,pol='TE'): #phase not considered
     T_mp=special.jn_zeros(m,p)[p-1]
+    if pol=='TE':
+        P=1
+    elif pol=='TM':
+        P=1/n**2
+    k_0=m/R/n
+    gamma=np.sqrt(n**2-1)*k_0
+    R_eff=R+P/gamma
     
-    def E(x,R,pol='TE'): #phase not considered
-        if pol=='TE':
-            P=1
-        elif pol=='TM':
-            P=1/n**2
-        k_0=m/R/n
-        gamma=np.sqrt(n**2-1)*k_0
-        R_eff=R+P/gamma
-        
+   
+    if x<R:
+        return special.jn(m,x/R_eff*T_mp)
+    else:
+        return 1/P *special.jn(m,R/R_eff*T_mp)*np.exp(-gamma*(x-R))
+
+def get_cross_section(R):
+    '''
+    integral e(r,\phi)**2 d2r with max(e(r,\phi)**2)=1
+    '''
        
-        if x<R:
-            return special.jn(m,x/R_eff*T_mp)
-        else:
-            return 1/P *special.jn(m,R/R_eff*T_mp)*np.exp(-gamma*(x-R))
-       
-    
-    step=R_0*0.0001 # Number of points
+    step=R_0*0.001 # Number of points
     r_min=R_0*0.8
     r_max=R_0*1.1
     
     F = np.vectorize(E)
     Rarray=np.arange(r_min,r_max,step)
-    F_TM_Array=abs(F(Rarray,pol='TM', R=R_0))**2
-    F_TE_Array=abs(F(Rarray,pol='TE',R=R_0))**2
+    Intenisty_TM_Array=abs(F(Rarray,pol='TM', R=R_0))**2
+    # Intenisty_TE_Array=abs(F(Rarray,pol='TE',R=R_0))**2
+    Integral=sum(Intenisty_TM_Array*Rarray*2*np.pi)*step
+    return Integral/max(Intenisty_TM_Array)*1e-12 # in m**2 , here we consider distributions normilized as max(I(r))=1
+
+def get_cross_section_2(R):
+    '''
+    integral e(r,\phi)**4 d2r with max(e(r,\phi)**2)=1
+    '''
+
+        
     
-    return sum(F_TM_Array*Rarray*2*np.pi)*step/max(F_TM_Array)*1e-12 # in m**2 , here we consider distributions normilized as max(I(r))=1
+    step=R_0*0.001 # Number of points
+    r_min=R_0*0.8
+    r_max=R_0*1.1
+    
+    F = np.vectorize(E)
+    Rarray=np.arange(r_min,r_max,step)
+    Intenisty_TM_Array=abs(F(Rarray,pol='TM', R=R_0))**2
+    # Intenisty_TE_Array=abs(F(Rarray,pol='TE',R=R_0))**2
+    Integral=sum(Intenisty_TM_Array**2*Rarray*2*np.pi)*step
+    return Integral/max(Intenisty_TM_Array**2)*1e-12 # in m**2 , here we consider distributions normilized as max(I(r))=1
+
 
 def volume(length,R): #length, R - in microns
     cross_section=get_cross_section(R) # in m
     volume=cross_section*length*1e-6 # m**3
     return volume
     
-def F(delta_c,length,R):
+def F(delta_c,length,R): # NOTE that definition follows Gorodetsky, not Kolesnikova 2023
     return np.sqrt(4*P_in*delta_c/(epsilon_0*n**2*volume(length,R)))  #(11.21) 
 
 def get_field_intensity(delta_c,length,R):
@@ -116,11 +138,34 @@ def get_field_intensity(delta_c,length,R):
     return field_intensity
 
 
-def Kerr_threshold(wave,delta_c,delta_0,length,R):
+def Kerr_threshold_gorodetski(wave,delta_c,delta_0,length,R):
     omega=c/(lambda_0*1e-9)*2*np.pi # 1/sec
     delta=(delta_0+delta_c)*2
     thres=n**2*volume(length,R)*delta**3/c/omega/n2/delta_c # Gorodecky (11.25)
     return thres
+
+def Kerr_threshold(wave,delta_c,delta_0,length,R):
+    '''
+    
+    Parameters
+    ----------
+    wave : TYPE
+        DESCRIPTION.
+    delta_c : in 1/mks.
+    delta_0 : in 1/mks
+    length : in mkm
+    R : in mkm
+
+    Returns
+    -------
+    thres : in W
+
+    '''
+    omega=c/(lambda_0*1e-9)*2*np.pi # 1/sec
+    delta=(delta_0+delta_c)*2
+    thres=n**2*volume(length,R)*delta**3/c/omega/n2/delta_c # Kolesnikova 2023
+    return thres
+
 
 def get_heat_effect(delta_c,delta_0,length,R):
     zeta=epsilon_0*n*c*absorption*get_cross_section(R)/(2*specific_heat*density*np.pi*R_0**2*1e-12)
@@ -128,13 +173,20 @@ def get_heat_effect(delta_c,delta_0,length,R):
     temperature_shift=get_field_intensity(delta_c,length,R)*zeta/delta_theta*int_psi_4_by_int_psi_2
     return heat_effect,temperature_shift
 
-def get_min_threshold(R,wave,a,w,C,D,Gamma):
+def get_min_threshold(R,wave,potential_center,potential_width,C2,ImD,Gamma):
+    '''
+    potential_width in microns
+    potential_center in microns 
+    C2 in micron/mks
+    ImD in micron/mks
+    Gamma in 1/mks
+    '''
     omega=c/(lambda_0*1e-9)*2*np.pi # 1/sec
-    Leff=np.sqrt(2*np.pi)*w
-    volume=get_cross_section(R)*Leff*1e-6
-    min_threshold=9*epsilon_0*n**4*volume/4/omega/hi_3*(Gamma*1e6)**2*(D)/C
-    position=a-np.sqrt(-(np.log(Gamma*Leff/2/D)*2*w**2))
-    return min_threshold, position
+    Leff=np.sqrt(2*np.pi)*potential_width*1e-6 # integral INtensity(z) dz, m
+    Leff_2=np.sqrt(2*np.pi)*potential_width/np.sqrt(2)*1e-6 # integral INtensity(z)**2 dz, m
+    min_threshold=9*epsilon_0*n**4/omega/hi_3*(Gamma*1e6)**2*(ImD)/C2*(get_cross_section(R)*Leff)**2 / (get_cross_section_2(R)*Leff_2)
+    optimal_position=potential_center-np.sqrt(-(np.log(Gamma*Leff*1e6/2/ImD)*2*w**2)) # in microns
+    return min_threshold, optimal_position # in W, in micron
 
 if __name__=='__main__':
     delta=(delta_0+delta_c)*2

@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets
 from packaging import version
 import sys
 __version__ = '20.3.46'
-__date__ = '2023.03.06'
+__date__ = '2023.03.07'
 
 
 # from conda import __version__ as condaVersion

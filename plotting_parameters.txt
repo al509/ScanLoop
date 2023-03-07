@@ -1,2 +1,2 @@
 {"new_figure": true, "figsize": [7, 4], "font_size": 14, "title": false, "vmin": null, "vmax": null, "cmap": "jet", "language": "eng", "enable_offset": false, "colorbar_location": "right","position_in_steps_axis": false, "shift_x_axis":0,
-"ERV_axis":true, "colorbar_pad": 0.08, "colorbar_title_position": "top", "colorbar_title_rotation": 0,"use_contourf": false,"contourf_levels":20}
+"ERV_axis":false, "colorbar_pad": 0.08, "colorbar_title_position": "top", "colorbar_title_rotation": 0,"use_contourf": true,"contourf_levels":20}
