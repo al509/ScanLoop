@@ -8,8 +8,8 @@ matplotlib 3.4.2 is needed!
 
 
 
-__version__='11.8.2'
-__date__='2023.02.27'
+__version__='11.8.3'
+__date__='2023.03.14'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -102,7 +102,7 @@ class SNAP():
     def find_modes(self,peak_height=2,  min_peak_distance=0.05):
         T_shrinked=np.nanmax(abs(self.signal-np.nanmean(self.signal,axis=0)),axis=1)
         dw=(self.wavelengths[-1]-self.wavelengths[0])/len(self.wavelengths)
-        mode_indexes,_=scipy.signal.find_peaks(T_shrinked,prominence=peak_height,distance=int(min_peak_distance/dw))
+        mode_indexes,_=scipy.signal.find_peaks(T_shrinked,prominence=peak_height,distance=int(min_peak_distance/dw)+1)
         mode_wavelengths=np.sort(self.wavelengths[mode_indexes])
         mode_wavelengths=np.array([x for x in mode_wavelengths if x>self.lambda_0])
         self.mode_wavelengths=mode_wavelengths
@@ -247,7 +247,7 @@ class SNAP():
         
             
         for Zind, Z in enumerate(range(0,Number_of_positions)):
-            peakind,_=scipy.signal.find_peaks(abs(self.signal[:,Zind]-np.nanmean(self.signal[:,Zind])),prominence=min_peak_level,distance=int(min_peak_distance/dw))
+            peakind,_=scipy.signal.find_peaks(abs(self.signal[:,Zind]-np.nanmean(self.signal[:,Zind])),prominence=min_peak_level,distance=int(min_peak_distance/dw)+1)
             NewPeakind=np.extract((WavelengthArray[peakind]>min_wave) & (WavelengthArray[peakind]<max_wave),peakind)
             NewPeakind=NewPeakind[np.argsort(-WavelengthArray[NewPeakind])] ##sort in wavelength decreasing
             if len(NewPeakind)>0:
@@ -310,7 +310,7 @@ class SNAP():
             resonance_parameters_errors_array=np.empty((len(x_array),5))*np.nan
             for jj,_ in enumerate(x_array):
                 try:
-                    peakind,_=scipy.signal.find_peaks(abs(signal[:,jj]-np.nanmean(signal[:,jj])),prominence=min_peak_level , distance=int(min_peak_distance/dw))
+                    peakind,_=scipy.signal.find_peaks(abs(signal[:,jj]-np.nanmean(signal[:,jj])),prominence=min_peak_level , distance=int(min_peak_distance/dw)+1)
                     [non_res_transmission,Fano_phase, res_wavelength,delta_c,delta_0,best_bandwidth_for_fitting,perr]=find_width(waves,signal[:,jj],waves[peakind[0]],bandwidth_for_fitting,iterate_different_bandwidths,max_bandwidth_for_fitting,iterating_cost_function_type)
                     '''
                     print(x_array[jj])

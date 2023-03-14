@@ -8,8 +8,8 @@ Created on Sun Dec 18 01:39:35 2022
 following paper of Kolesnikova 
 """
 
-__version__='2'
-__date__='2023.02.20'
+__version__='2.1'
+__date__='2023.03.14'
 
 import numpy as np
 import pickle
@@ -145,7 +145,7 @@ def estimate_params(file):
     ax[1].set_ylabel('$\delta_0$, 1/$\mu$s')
     ax[2].set_ylabel('$\Omega$, 1/$\mu$s')
     
-    results_text1='C=({:.1e} $\pm$ {:.1e}) '.format(C,C_err)+'$\mu m / \mu s$'
+    results_text1='$C^2$=({:.1e} $\pm$ {:.1e}) '.format(C,C_err)+'$\mu m / \mu s$'
     ax[0].text(0.7, 0.9,results_text1,
               horizontalalignment='center',
               verticalalignment='center',

@@ -17,8 +17,8 @@ eq(23)
 Estimations given following М. Л. Городецкий, Оптические Микрорезонаторы с Гигантской Добротностью (2012).
 """
 
-__version__=2.1
-__date__='2022.12.18'
+__version__='3'
+__date__='2022.03.14'
 
 import numpy as np
 from scipy import special
