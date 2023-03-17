@@ -8,8 +8,8 @@ matplotlib 3.4.2 is needed!
 
 
 
-__version__='11.8.3'
-__date__='2023.03.14'
+__version__='11.8.4'
+__date__='2023.03.17'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -119,11 +119,11 @@ class SNAP():
         return (np.sum(t_f*x)/np.sum(t_f))
     
     
-    def apply_FFT_filter(self,LowFreqEdge=0.00001,HighFreqEdge=0.001):
+    def apply_FFT_filter(self,LowFreqEdge=0.0001,HighFreqEdge=2):
         def FFTFilter(y_array):
             W=fftfreq(y_array.size)
             f_array = rfft(y_array)
-            Indexes=[i for  i,w  in enumerate(W) if all([abs(w)>LowFreqEdge,abs(w)<HighFreqEdge])]
+            Indexes=[i for  i,w  in enumerate(W) if any([w<LowFreqEdge,abs(w)>HighFreqEdge])]
             f_array[Indexes] = 0
 #            f_array[] = 0
             return irfft(f_array)

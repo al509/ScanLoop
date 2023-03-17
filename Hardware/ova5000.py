@@ -4,6 +4,9 @@ import time
 from PyQt5.QtCore import QObject,pyqtSignal
 import numpy as np
 
+__version__='2'
+__date__='2023.03.17'
+
 RESPONSE_TIMEOUT = 2 # seconds
 
 BUFSIZE = 4096 # bytes
@@ -34,6 +37,7 @@ class Luna(QObject):
         self.min_wavelength=1525
         self.max_wavelength=1610
         self._N_to_cut=10
+        self.IsHighRes=False
 
 
     def recvall(self):

@@ -96,7 +96,7 @@ class Ui_Dialog(object):
         self.label_7.setWordWrap(True)
         self.label_7.setObjectName("label_7")
         self.label_9 = QtWidgets.QLabel(self.groupBox_seeking_contact)
-        self.label_9.setGeometry(QtCore.QRect(30, 80, 141, 51))
+        self.label_9.setGeometry(QtCore.QRect(30, 80, 71, 51))
         self.label_9.setWordWrap(True)
         self.label_9.setObjectName("label_9")
         self.lineEdit_level_to_detect_contact = QtWidgets.QLineEdit(self.groupBox_seeking_contact)
@@ -111,7 +111,7 @@ class Ui_Dialog(object):
         self.lineEdit_backstep.setObjectName("lineEdit_backstep")
         self.lineEdit_max_allowed_shift = QtWidgets.QLineEdit(self.groupBox_seeking_contact)
         self.lineEdit_max_allowed_shift.setEnabled(True)
-        self.lineEdit_max_allowed_shift.setGeometry(QtCore.QRect(120, 120, 61, 20))
+        self.lineEdit_max_allowed_shift.setGeometry(QtCore.QRect(30, 120, 61, 20))
         self.lineEdit_max_allowed_shift.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.lineEdit_max_allowed_shift.setObjectName("lineEdit_max_allowed_shift")
         self.checkBox_is_squeeze_span_for_seeking_contact = QtWidgets.QCheckBox(self.groupBox_seeking_contact)
@@ -126,6 +126,15 @@ class Ui_Dialog(object):
         self.checkBox_is_low_res_for_seeking_contact.setIconSize(QtCore.QSize(1, 1))
         self.checkBox_is_low_res_for_seeking_contact.setShortcut("")
         self.checkBox_is_low_res_for_seeking_contact.setObjectName("checkBox_is_low_res_for_seeking_contact")
+        self.comboBox_recognize_contact_logic = QtWidgets.QComboBox(self.groupBox_seeking_contact)
+        self.comboBox_recognize_contact_logic.setGeometry(QtCore.QRect(120, 120, 69, 22))
+        self.comboBox_recognize_contact_logic.setObjectName("comboBox_recognize_contact_logic")
+        self.comboBox_recognize_contact_logic.addItem("")
+        self.comboBox_recognize_contact_logic.addItem("")
+        self.label_10 = QtWidgets.QLabel(self.groupBox_seeking_contact)
+        self.label_10.setGeometry(QtCore.QRect(120, 80, 71, 51))
+        self.label_10.setWordWrap(True)
+        self.label_10.setObjectName("label_10")
 
         self.retranslateUi(Dialog)
         self.buttonBox.accepted.connect(Dialog.accept)
@@ -169,6 +178,9 @@ class Ui_Dialog(object):
         self.checkBox_is_squeeze_span_for_seeking_contact.setText(_translate("Dialog", "Squeeze span"))
         self.checkBox_is_low_res_for_seeking_contact.setToolTip(_translate("Dialog", "Squeeze Span while search contact"))
         self.checkBox_is_low_res_for_seeking_contact.setText(_translate("Dialog", "Use low resolution"))
+        self.comboBox_recognize_contact_logic.setItemText(0, _translate("Dialog", "min"))
+        self.comboBox_recognize_contact_logic.setItemText(1, _translate("Dialog", "mean"))
+        self.label_10.setText(_translate("Dialog", "Recognize contact logic"))
 
 
 if __name__ == "__main__":

@@ -4,8 +4,8 @@
 
 
 """
-__version__='2.6.6'
-__date__='2023.03.07'
+__version__='2.6.7'
+__date__='2023.03.17'
 
 import os
 import sys
@@ -608,6 +608,48 @@ class Analyzer(QObject):
             fig.canvas.draw_idle()
 
 
+            
+        def apply_FFT_to_spectrum(self,fig):
+            from scipy.fftpack import rfft, irfft, fftfreq
+            LowFreqEdge= float(self.FFTFilter_low_freq_edge)
+            HighFreqEdge=float(self.FFTFilter_high_freq_edge)
+            def FFTFilter(y_array):
+                W=fftfreq(y_array.size)
+                # plt.figure(10)
+                f_array = rfft(y_array)
+                # plt.plot(W,f_array)
+                Indexes=[i for  i,w  in enumerate(W) if any([w<LowFreqEdge,abs(w)>HighFreqEdge])]
+                f_array[Indexes] = 0
+                # plt.plot(W,f_array)
+                # plt.ylim((-1000,1000))
+                return irfft(f_array)
+    #            f_array[] = 0
+            self.S_print.emit('Applying FFT filter to single spectrum...')
+            axes=fig.gca()
+            line =axes.get_lines()[0]
+            waves = line.get_xdata()
+            signal = line.get_ydata()
+            wave_min,wave_max=axes.get_xlim()
+            index_min=np.argmin(abs(waves-wave_min))
+            index_max=np.argmin(abs(waves-wave_max))
+            waves=waves[index_min:index_max]
+            signal=signal[index_min:index_max]
+            if all(np.isnan(signal)):
+                self.S_print_error.emit('Error. Signal is NAN only')
+                return
+            
+            signal=FFTFilter(signal)
+            
+            self.single_spectrum_figure=plt.figure()
+            plt.plot(waves,signal)
+            plt.xlabel('Wavelength, nm')
+            plt.ylabel('Spectral power density, dBm')
+            plt.tight_layout()
+                  
+            self.S_print.emit('Filter applied. New spectrum plotted')
+            
+
+
         def extract_ERV(self):
             positions, peak_wavelengths, ERV, resonance_parameters = self.SNAP.extract_ERV(self.number_of_peaks_to_search,
                                                                                            self.min_peak_level,
@@ -947,14 +989,12 @@ if __name__ == "__main__":
 
     a.plotting_parameters_file_path=os.getcwd()+'\\plotting_parameters.txt'
     # f=r"C:\!WorkFolder\!Experiments\!SNAP system\2022.12 playing with parameters\potential 6\central.SNAP"
-    f=r"C:\Users\Илья\Desktop\линейная модификация_resaved_resaved_resaved_resaved.pkl3d"
-    a.load_data(f)
-    a.plot_slice(680)
-    a.analyze_spectrum(a.single_spectrum_figure)
-    a.plot_results_separately=True
-    a.lambda_0_for_ERV=1553.34
-    b=a.extract_ERV()
-    
+    f=r'F:\!Projects\!SNAP system\Modifications\Annealing by CO2\2023.03.16 annealed 6 times at 16%\4полный спектр для 7 нм\Sp_initial 1 _X=-190.0_Y=0.0_Z=1500.0_.pkl'
+    a.single_spectrum_path=f
+    a.plot_single_spectrum()
+    a.FFTFilter_high_freq_edge=2
+    a.FFTFilter_low_freq_edge=0.001
+    a.apply_FFT_to_spectrum(a.single_spectrum_figure)    
     # import json
     # f=open('Parameters.txt')
     # Dicts=json.load(f)

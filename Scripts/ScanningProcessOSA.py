@@ -6,8 +6,8 @@ Created on Tue Nov 20 19:09:12 2018
 @author: Ilya
 """
 
-__date__='2023.01.19'
-__version__='3.1'
+__date__='2023.03.17'
+__version__='3.2'
 
 from PyQt5.QtCore import pyqtSignal, QObject
 import numpy as np
@@ -47,6 +47,7 @@ class ScanningProcess(QObject):
         self.is_squeeze_span_for_seeking_contact=False
         self.is_low_res_for_seeking_contact=False
         self.is_seeking_contact=False
+        self.recognize_contact_logic='min'
         
         self.is_follow_peak=False
         self.max_allowed_shift=1000
@@ -174,7 +175,10 @@ class ScanningProcess(QObject):
         return True
 
     def checkIfContact(self, spectrum):  ## take measured spectrum and decide if there is contact between the taper and the sample
-        value=np.min(spectrum)
+        if self.recognize_contact_logic=='min':
+            value=np.min(spectrum)
+        elif self.recognize_contact_logic=='mean':
+            value=np.mean(spectrum)
         if value<self.level_to_detect_contact:
             return True
         else:

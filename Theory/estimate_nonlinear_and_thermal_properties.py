@@ -17,8 +17,8 @@ eq(23)
 Estimations given following М. Л. Городецкий, Оптические Микрорезонаторы с Гигантской Добротностью (2012).
 """
 
-__version__='3'
-__date__='2022.03.14'
+__version__='3.1'
+__date__='2022.03.16'
 
 import numpy as np
 from scipy import special
@@ -39,10 +39,10 @@ delta_theta=1/3 # s^-1, thermal dissipation time, (11.35) from Gorodetsky, calcu
 P_in=0.05 # W
 '''
 '''
-C=6e4 # micron/microsec
-Im_D=2e5 # micron/microsec
-Gamma=40 # 1/microsec
-w=26 # micron, gussian distribution
+C_2=1.5e4 # micron/microsec
+Im_D=5.1e4 # micron/microsec
+Gamma=13 # 1/microsec
+w=22 # micron, gussian distribution
 a=433 # micron, maximum position
 '''
 
@@ -193,7 +193,7 @@ if __name__=='__main__':
     
     threshold=Kerr_threshold(lambda_0,delta_c,delta_0,length,R_0)
     heat_effect,temperature_shift=get_heat_effect(delta_c,delta_0,length,R_0)
-    min_threshold, position=get_min_threshold(R_0,omega,a,w,C,Im_D,Gamma)
+    min_threshold, position=get_min_threshold(R_0,omega,a,w,C_2,Im_D,Gamma)
     print(get_cross_section(62.5)*1e12)
     print('Threshold for Kerr nonlinearity={} W'.format(threshold))
     print('Minimal Threshold at optimized point={} W'.format(min_threshold))

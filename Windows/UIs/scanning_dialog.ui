@@ -345,7 +345,7 @@
       <rect>
        <x>30</x>
        <y>80</y>
-       <width>141</width>
+       <width>71</width>
        <height>51</height>
       </rect>
      </property>
@@ -400,7 +400,7 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>120</x>
+       <x>30</x>
        <y>120</y>
        <width>61</width>
        <height>20</height>
@@ -467,6 +467,42 @@
      </property>
      <property name="shortcut">
       <string extracomment="Squeeze Span"/>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBox_recognize_contact_logic">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>120</y>
+       <width>69</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>min</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>mean</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLabel" name="label_10">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>80</y>
+       <width>71</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Recognize contact logic</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>

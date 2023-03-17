@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.6.11'
-__date__='2023.03.06'
+__version__='20.6.12'
+__date__='2023.03.17'
 
 import os
 if __name__=='__main__':
@@ -275,28 +275,37 @@ class MainWindow(ThreadedMainWindow):
         None.
 
         '''
-        self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(
-            self.choose_file_for_analyzer)
+
         self.ui.pushButton_analyzer_choose_plotting_param_file.clicked.connect(
             self.choose_file_for_analyzer_plotting_parameters)
-        self.ui.pushButton_analyzer_choose_single_spectrum.clicked.connect(
-            self.choose_single_spectrum_file_for_analyzer)
+               
+    # self.painter.FilterLowFreqEdge=float(self.ui.lineEdit_FilterLowFreqEdge.text())
+    #         self.painter.FilterHighFreqEdge=float(self.ui.lineEdit_FilterHighFreqEdge.text())
+    #         self.painter.FFTPointsToCut=int(self.ui.lineEdit_FilterPointsToCut.text())
+    #     else:
         
-
+        self.ui.lineEdit_FilterLowFreqEdge.editingFinished.connect(lambda: setattr(self.analyzer, 'FFTFilter_low_freq_edge', float(self.ui.lineEdit_FilterLowFreqEdge.text())))
+        self.ui.lineEdit_FilterHighFreqEdge.editingFinished.connect(lambda: setattr(self.analyzer, 'FFTFilter_high_freq_edge', float(self.ui.lineEdit_FilterHighFreqEdge.text())))
+        
+        
+        
+        self.ui.pushButton_analyzer_choose_file_spectrogram.clicked.connect(
+            self.choose_file_for_analyzer)
         self.ui.pushButton_analyzer_plot_ERV_from_file.clicked.connect(self.plot_ERV_from_file)
         self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(lambda: self.analyzer.plot_sample_shape())
         self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot_spectrogram())
         self.ui.pushButton_analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plot_slice(float(self.ui.lineEdit_slice_position.text())))
         self.ui.pushButton_analyzer_plot_single_spectrum.clicked.connect(lambda: self.analyzer.plot_single_spectrum())
-        
-        
-        self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(self.analyzer.single_spectrum_figure))
-        self.ui.pushButton_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum( self.painter.figure))  
         self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
         self.ui.pushButton_analyzer_get_modes_params.clicked.connect(lambda: self.analyzer.get_modes_parameters())
         self.ui.pushButton_analyzer_quantum_numbers_fitter.clicked.connect(lambda: self.analyzer.run_quantum_numbers_fitter())
         self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(self.analyzer.apply_FFT_to_spectrogram)
-
+        
+        self.ui.pushButton_analyzer_choose_single_spectrum.clicked.connect(
+            self.choose_single_spectrum_file_for_analyzer)
+        self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(self.analyzer.single_spectrum_figure))
+        self.ui.pushButton_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum( self.painter.figure))  
+        self.ui.pushButton_analyzer_apply_FFT_filter_single_spectrum.clicked.connect(lambda: self.analyzer.apply_FFT_to_spectrum(self.analyzer.single_spectrum_figure))
         self.ui.pushButton_analyzer_save_single_spectrum.clicked.connect(self.analyzer.save_single_spectrum)        
         self.ui.pushButton_analyzer_resave_SNAP.clicked.connect(lambda : self.analyzer.resave_SNAP(self.ui.comboBox_analyzer_resave_type.currentText()))        
         self.ui.pushButton_set_analyzer_parameters.clicked.connect(self.on_pushButton_set_analyzer_parameters)

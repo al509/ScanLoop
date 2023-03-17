@@ -17,6 +17,7 @@ import time
 from sys import stdout 
 
 
+
 from PyQt5.QtCore import QObject, pyqtSignal        
 
 class Scope(QObject):
@@ -311,22 +312,34 @@ class Scope(QObject):
         
         
         
-
+#%%
 if __name__ == '__main__':
-    
-    # scope = Scope('WINDOWS-E76DLEM', protocol = 'inst0')
-    scope=Scope('10.2.60.176', protocol = 'inst0')
+    import matplotlib.pyplot as plt
+    import time
+    scope = Scope('WINDOWS-E76DLEM', protocol = 'hislip0')
+    # scope=Scope('10.2.60.168', protocol = 'inst0')
+    #%%
     scope.macro_setup(
-            channels_displayed = ([1,2]),
-            channels_coupling = {1:'DC50', 2:'DC50'},
+            channels_displayed = ([4]),
+            channels_coupling = {4:'DC50'},
             average_count = 0, # if 0 - no average
-            trace_points = 1e4, # if 0 - minimum
-            sampling_rate = 1e9, # if 0 - minimum
+            trace_points = 1e3, # if 0 - minimum
+            sampling_rate = 5e9, # if 0 - minimum
             trigger = 'AUTO',
-            wave_source = 1) # channel number
-    # scope.acquire()
-    print('Channels that are ON:',scope.channels_states)
-    # wave = scope.query_wave_fast()
-
+            wave_source = 4) # channel number
+    #%%
+    scope.acquire()
+    # print('Channels that are ON:',scope.channels_states)
+    time1=time.time()
+    wave = scope.query_wave_fast()
+    print(time.time()-time1)
+    print(len(wave[0]))
+    print(len(wave[0])*wave[2])
+    
+    plt.plot(wave[2]*np.arange(len(wave[0])),wave[0])
+    from matplotlib.ticker import EngFormatter
+    formatter0 = EngFormatter()
+    plt.gca().xaxis.set_major_formatter(formatter0)
+    
 
     
