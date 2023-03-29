@@ -13,8 +13,8 @@ Version Nov 22 2019
 @author: Ilya
 """
 
-__date__='2023.01.19'
-__version__='1.2'
+__date__='2023.03.29'
+__version__='1.3'
 
 from PyQt5.QtCore import pyqtSignal, QObject
 import numpy as np
@@ -85,7 +85,7 @@ class LaserScanningProcess(QObject):
                 wavelengthdata, spectrum=self.OSA.acquire_spectrum()
                 time.sleep(0.05)
                 Data=np.stack((wavelengthdata, spectrum),axis=1)
-                self.S_saveData.emit(''Data,'W='+str(self.wavelength)) # save spectrum to file
+                self.S_saveData.emit('Data','W='+str(self.wavelength)) # save spectrum to file
             if self.powermeter_for_laser_scanning and self.powermeter is not None:
                 power=self.powermeter.get_power()
                 file.write('{}\t{}\t{}\n'.format(time.time()-time_start,self.wavelength,power))
@@ -98,7 +98,7 @@ class LaserScanningProcess(QObject):
             if not self.hold_wavelength:
                 self.tuning+=self.step
                 self.wavelength+=self.step*1e-3
-                if self.tuning<self.laser.maximum_tuning:
+                if self.tuning<=self.laser.maximum_tuning:
                     self.laser.fineTuning(self.tuning)
                     time.sleep(self.short_pause)
                 else:

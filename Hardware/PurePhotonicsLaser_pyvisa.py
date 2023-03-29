@@ -18,6 +18,7 @@ else:
     from Hardware.LaserLibs import itla_pyvisa
     
 import numpy as np
+from PyQt5.QtCore import QObject, pyqtSignal    
 
 def nmToHz(nm : float):
     return int(299792458 / nm * 1e9)
@@ -25,12 +26,19 @@ def nmToHz(nm : float):
 def dnm_to_dHz(nm:float,d_nm:float):
     return -int(299792458/nm**2*d_nm*1e9)
 
-class Laser():
-    
+class Laser(QObject):
+    S_print=pyqtSignal(str) # signal used to print into main 1text browser
+    S_print_error=pyqtSignal(str) # signal used to print errors into main text browser
     def __init__(self,COMPort):
+        QObject.__init__(self)
         if type(COMPort)==str and 'COM' in COMPort:
             COMPort=int(COMPort.split('COM')[1])
-        self.itla=itla_pyvisa.PPCL550(COMPort)
+        try:
+            self.itla=itla_pyvisa.PPCL550(COMPort)
+        except Exception as e:
+            print(e)
+            self.S_print.emit('Error! Not connected')
+            pass
         print('connected to laser')        
         self.maximum_tuning=200.1 # in pm
         self.tuning=0
@@ -90,7 +98,7 @@ if __name__=='__main__':
     import os
     os.chdir('..')
     # from LaserLibs import itla_pyvisa
-    laser=Laser(26)
+    laser=Laser(8)
     laser.setOn()
     laser.setMode('whisper')
     laser.setOff()

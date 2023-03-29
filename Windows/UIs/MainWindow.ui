@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1515</width>
-    <height>780</height>
+    <height>772</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -56,7 +56,7 @@
          <x>0</x>
          <y>0</y>
          <width>1495</width>
-         <height>613</height>
+         <height>605</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -92,7 +92,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>460</height>
+             <height>452</height>
             </rect>
            </property>
            <attribute name="label">
@@ -435,6 +435,26 @@
                 <bool>true</bool>
                </property>
               </widget>
+              <widget class="QComboBox" name="comboBox_laser_protocol_type">
+               <property name="geometry">
+                <rect>
+                 <x>210</x>
+                 <y>80</y>
+                 <width>61</width>
+                 <height>20</height>
+                </rect>
+               </property>
+               <item>
+                <property name="text">
+                 <string>serial</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>pyvisa</string>
+                </property>
+               </item>
+              </widget>
               <zorder>groupBox_features</zorder>
               <zorder>pushButton_StagesConnect</zorder>
               <zorder>pushButton_scope_connect</zorder>
@@ -445,6 +465,7 @@
               <zorder>pushButton_zeroing_stages</zorder>
               <zorder>pushButton_powermeter_connect</zorder>
               <zorder>pushButton_powermeter_graph</zorder>
+              <zorder>comboBox_laser_protocol_type</zorder>
              </widget>
             </item>
            </layout>
@@ -1771,7 +1792,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>460</height>
+             <height>452</height>
             </rect>
            </property>
            <attribute name="label">

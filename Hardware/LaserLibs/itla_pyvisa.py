@@ -170,7 +170,7 @@ class PPCL550(ITLA):
         
            
 if __name__ == '__main__':
-    kek = PPCL550(12)
+    kek = PPCL550(8)
     kek.off()
     kek.on()
     kek.mode('no dither')
