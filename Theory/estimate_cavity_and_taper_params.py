@@ -16,10 +16,10 @@ import pickle
 import matplotlib.pyplot as plt
 from  scipy.optimize import curve_fit
 
-delete_unreliable_data=False
+delete_unreliable_data=True
 use_ReD_joint_approximation=False
 
-max_allowed_error=0.2 #  omit data with higher relative error
+max_allowed_error=0.3 #  omit data with higher relative error
 file=r"F:\!Projects\!SNAP system\Q -factors, Dependence on taper waist, etc\2022.12 from crown - good potential for losses evaluation\Processed_spectrogram good potential_resaved_q=0_mode_parameters.pkl"
 
 c=3e8 #m/s

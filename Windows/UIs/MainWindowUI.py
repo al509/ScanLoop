@@ -138,6 +138,7 @@ class Ui_MainWindow(object):
         self.pushButton_powermeter_graph.setObjectName("pushButton_powermeter_graph")
         self.comboBox_laser_protocol_type = QtWidgets.QComboBox(self.groupBox_3)
         self.comboBox_laser_protocol_type.setGeometry(QtCore.QRect(210, 80, 61, 20))
+        self.comboBox_laser_protocol_type.setFocusPolicy(QtCore.Qt.NoFocus)
         self.comboBox_laser_protocol_type.setObjectName("comboBox_laser_protocol_type")
         self.comboBox_laser_protocol_type.addItem("")
         self.comboBox_laser_protocol_type.addItem("")

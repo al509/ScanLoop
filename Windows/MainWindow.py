@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.6.13'
-__date__='2023.03.29'
+__version__='20.6.14'
+__date__='2023.04.05'
 
 import os
 if __name__=='__main__':
@@ -1265,7 +1265,8 @@ class MainWindow(ThreadedMainWindow):
     def delete_slice_from_spectrogram(self):
         msg=QMessageBox(2, 'Warning', 'Do you want to delete slice at {}?'.format(float(self.ui.lineEdit_slice_position.text())))
         msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-        if msg.exec_():  
+        returnValue = msg.exec()
+        if returnValue == QMessageBox.Ok:  
             self.analyzer.delete_slice(float(self.ui.lineEdit_slice_position.text()))
             msg=QMessageBox(2, 'Warning', 'Spectogram without slice is resaved')
             msg.setStandardButtons(QMessageBox.Ok)
@@ -1276,7 +1277,8 @@ class MainWindow(ThreadedMainWindow):
         msg=QMessageBox(2, 'Warning', 'Do you want to delete all raw data?')
 
         msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-        if msg.exec_():
+        returnValue = msg.exec()
+        if returnValue == QMessageBox.Ok:  
             dirs=['\\SpectralData\\','\\SpectralBinData\\']
             for directory in dirs:
                 l=os.listdir(self.path_to_main+directory)

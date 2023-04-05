@@ -444,6 +444,9 @@
                  <height>20</height>
                 </rect>
                </property>
+               <property name="focusPolicy">
+                <enum>Qt::NoFocus</enum>
+               </property>
                <item>
                 <property name="text">
                  <string>serial</string>
