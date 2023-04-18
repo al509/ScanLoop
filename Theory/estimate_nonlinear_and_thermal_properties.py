@@ -17,8 +17,8 @@ eq(23)
 Estimations given following М. Л. Городецкий, Оптические Микрорезонаторы с Гигантской Добротностью (2012).
 """
 
-__version__='3.1'
-__date__='2022.03.16'
+__version__='3.2'
+__date__='2022.04.18'
 
 import numpy as np
 from scipy import special
@@ -92,16 +92,28 @@ def E(x,R,pol='TE'): #phase not considered
 
 def get_cross_section(R):
     '''
-    integral e(r,\phi)**2 d2r with max(e(r,\phi)**2)=1
+    
+
+    Parameters
+    ----------
+    R : cavity radius in microns
+
+    Returns
+    -------
+    integral e(r,\phi)**2 d2r with max(e(r,\phi)**2)=1 in m*2
+
+    '''
+    '''
+
     '''
        
-    step=R_0*0.001 # Number of points
-    r_min=R_0*0.8
-    r_max=R_0*1.1
+    step=R*0.001 # Number of points
+    r_min=R*0.8
+    r_max=R*1.1
     
     F = np.vectorize(E)
     Rarray=np.arange(r_min,r_max,step)
-    Intenisty_TM_Array=abs(F(Rarray,pol='TM', R=R_0))**2
+    Intenisty_TM_Array=abs(F(Rarray,pol='TM', R=R))**2
     # Intenisty_TE_Array=abs(F(Rarray,pol='TE',R=R_0))**2
     Integral=sum(Intenisty_TM_Array*Rarray*2*np.pi)*step
     return Integral/max(Intenisty_TM_Array)*1e-12 # in m**2 , here we consider distributions normilized as max(I(r))=1
@@ -113,9 +125,9 @@ def get_cross_section_2(R):
 
         
     
-    step=R_0*0.001 # Number of points
-    r_min=R_0*0.8
-    r_max=R_0*1.1
+    step=R*0.001 # Number of points
+    r_min=R*0.8
+    r_max=R*1.1
     
     F = np.vectorize(E)
     Rarray=np.arange(r_min,r_max,step)
@@ -191,10 +203,11 @@ def get_min_threshold(R,wave,potential_center,potential_width,C2,ImD,Gamma):
 if __name__=='__main__':
     delta=(delta_0+delta_c)*2
     
+    print(get_cross_section(62.5)*1e12)
     threshold=Kerr_threshold(lambda_0,delta_c,delta_0,length,R_0)
     heat_effect,temperature_shift=get_heat_effect(delta_c,delta_0,length,R_0)
     min_threshold, position=get_min_threshold(R_0,omega,a,w,C_2,Im_D,Gamma)
-    print(get_cross_section(62.5)*1e12)
+    
     print('Threshold for Kerr nonlinearity={} W'.format(threshold))
     print('Minimal Threshold at optimized point={} W'.format(min_threshold))
     print('Q_factor={:.2e}, V={} m^3={} micron^3'.format(omega/delta,volume(length,R_0),volume(length,R_0)*1e18))
