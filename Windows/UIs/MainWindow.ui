@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1495</width>
-         <height>605</height>
+         <width>1491</width>
+         <height>590</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -84,7 +84,7 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="currentIndex">
-           <number>4</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
@@ -92,7 +92,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>452</height>
+             <height>413</height>
             </rect>
            </property>
            <attribute name="label">
@@ -458,6 +458,26 @@
                 </property>
                </item>
               </widget>
+              <widget class="QComboBox" name="comboBox_type_of_scope">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>53</y>
+                 <width>91</width>
+                 <height>20</height>
+                </rect>
+               </property>
+               <item>
+                <property name="text">
+                 <string>Rigol</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Keysight 4GHz</string>
+                </property>
+               </item>
+              </widget>
               <zorder>groupBox_features</zorder>
               <zorder>pushButton_StagesConnect</zorder>
               <zorder>pushButton_scope_connect</zorder>
@@ -469,6 +489,7 @@
               <zorder>pushButton_powermeter_connect</zorder>
               <zorder>pushButton_powermeter_graph</zorder>
               <zorder>comboBox_laser_protocol_type</zorder>
+              <zorder>comboBox_type_of_scope</zorder>
              </widget>
             </item>
            </layout>
@@ -478,7 +499,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>700</height>
             </rect>
            </property>
@@ -1049,8 +1070,8 @@
               <rect>
                <x>130</x>
                <y>110</y>
-               <width>32</width>
-               <height>20</height>
+               <width>37</width>
+               <height>22</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1264,7 +1285,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>500</height>
             </rect>
            </property>
@@ -1795,7 +1816,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>452</height>
+             <height>413</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1965,7 +1986,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>600</height>
             </rect>
            </property>
@@ -2652,7 +2673,7 @@
      <x>0</x>
      <y>0</y>
      <width>1515</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuTools">

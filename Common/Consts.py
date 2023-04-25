@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__=2
-__date__='2023.01.19'
+__version__='3'
+__date__='2023.04.25'
 
 from platform import system
 from enum import Enum
@@ -47,6 +47,10 @@ class Consts:
         # HOST = '10.2.60.27'
         HOST = '10.2.60.176'
         NAME = 'WINDOWS-E76DLEM'
+    
+    class Scope_Rigol: 
+        HOST = '192.168.0.47'
+        NAME = 'RIGOL_DS8A2'
         
     class Powermeter:
         SERIAL_NUMBER='P0015055'

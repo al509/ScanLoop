@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.6.14'
-__date__='2023.04.05'
+__version__='20.6.15'
+__date__='2023.04.25'
 
 import os
 if __name__=='__main__':
@@ -348,8 +348,12 @@ class MainWindow(ThreadedMainWindow):
         interface='new'
         try:
             if interface=='new':
-                from Hardware.scope import Scope
-                self.scope = Scope(Consts.Scope.HOST, protocol = 'inst0') # or Consts.Scope.NAME
+                if self.ui.comboBox_type_of_scope.currentText()=='Keysight 4GHz':
+                    from Hardware.scope import Scope
+                    self.scope = Scope(Consts.Scope.HOST, protocol = 'inst0') # or Consts.Scope.NAME
+                elif self.ui.comboBox_type_of_scope.currentText()=='Rigol':
+                    from Hardware.scope_rigol import Scope
+                    self.scope=Scope(Consts.Scope_Rigol.HOST)
             elif interface=='old':
                 from Hardware.KeysightOscilloscope import Scope
                 self.scope=Scope(Consts.Scope.HOST)
@@ -1377,7 +1381,8 @@ def set_widget_values(window,d:dict)->None:
          
 if __name__=='__main__':
     m=MainWindow()
-    m.on_pushButton_set_spectral_processor_parameters()
+    m.connect_scope()
+    # m.on_pushButton_set_spectral_processor_parameters()
     # m.connect_laser()
     # from Hardware.PurePhotonicsLaser_pyvisa import Laser
     # l=Laser('COM12')
