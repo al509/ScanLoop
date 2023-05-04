@@ -41,8 +41,8 @@ P_in=0.05 # W
 '''
 C_2=1.5e4 # micron/microsec
 Im_D=5.1e4 # micron/microsec
-Gamma=13 # 1/microsec
-w=22 # micron, gussian distribution
+Gamma=10 # 1/microsec
+w=32 # micron, gussian distribution
 a=433 # micron, maximum position
 '''
 

@@ -491,7 +491,7 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
 
     
     initial_guess=[transmission,phase,peak_wavelength,delta_0_init,delta_c_init]
-    bounds=((0,-1,peak_wavelength_lower_bound,0,0),(1,1,peak_wavelength_higher_bound,10000,10000))
+    bounds=((0,-1,peak_wavelength_lower_bound,0,0),(1,1,peak_wavelength_higher_bound,100000,100000))
     
     try:
         if fitting_in_linear_scale:
@@ -577,7 +577,7 @@ def Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c,scale='log'):
 @njit
 def linear_Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c):
     '''
-    return log of Fano shape
+    return Fano shape
 
     Modified formula (9.19), p.253 by Gorodetsky
     w is wavelength

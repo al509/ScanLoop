@@ -564,7 +564,7 @@ class Analyzer(QObject):
                 self.S_print_error.emit('Error. Signal is NAN only')
                 return
             dw=(waves[-1]-waves[0])/len(waves)
-            peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),prominence=self.min_peak_level , distance=int(self.min_peak_distance/dw))
+            peakind2,_=find_peaks(abs(signal-np.nanmean(signal)),prominence=self.min_peak_level , distance=int(self.min_peak_distance/dw)+1)
             if len(peakind2)>0:
                 axes.plot(waves[peakind2], signal[peakind2], '.')
                 
