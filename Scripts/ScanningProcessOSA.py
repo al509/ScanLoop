@@ -113,6 +113,7 @@ class ScanningProcess(QObject):
 
         
         self.IsHighRes=self.OSA.IsHighRes
+        
         if self.IsHighRes and self.is_low_res_for_seeking_contact:
             self.OSA.SetWavelengthResolution('Low')
         time.sleep(0.05)

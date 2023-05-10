@@ -239,7 +239,8 @@ class Ui_Dialog(object):
         self.label_18.setWordWrap(True)
         self.label_18.setObjectName("label_18")
         self.lineEdit_lambda_0_for_ERV = QtWidgets.QLineEdit(self.groupBox_3)
-        self.lineEdit_lambda_0_for_ERV.setGeometry(QtCore.QRect(60, 30, 41, 20))
+        self.lineEdit_lambda_0_for_ERV.setGeometry(QtCore.QRect(60, 26, 71, 20))
+        self.lineEdit_lambda_0_for_ERV.setToolTip("")
         self.lineEdit_lambda_0_for_ERV.setObjectName("lineEdit_lambda_0_for_ERV")
         self.checkBox_derive_taper_cavity_params = QtWidgets.QCheckBox(self.groupBox_3)
         self.checkBox_derive_taper_cavity_params.setGeometry(QtCore.QRect(10, 110, 121, 20))
@@ -312,7 +313,7 @@ class Ui_Dialog(object):
         self.comboBox_iterating_cost_function_type.setItemText(1, _translate("Dialog", "net error"))
         self.label_39.setText(_translate("Dialog", "<html><head/><body><p>minimize</p></body></html>"))
         self.label_18.setText(_translate("Dialog", "<html><head/><body><p>λ<span style=\" vertical-align:sub;\">0</span>, nm</p></body></html>"))
-        self.lineEdit_lambda_0_for_ERV.setText(_translate("Dialog", "1590"))
+        self.lineEdit_lambda_0_for_ERV.setText(_translate("Dialog", "0"))
         self.checkBox_derive_taper_cavity_params.setText(_translate("Dialog", "derive C,D,Gamma"))
 
 

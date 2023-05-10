@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1491</width>
-         <height>590</height>
+         <width>1495</width>
+         <height>605</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -84,7 +84,7 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>4</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
@@ -92,7 +92,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>413</height>
+             <height>452</height>
             </rect>
            </property>
            <attribute name="label">
@@ -499,7 +499,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>279</width>
+             <width>98</width>
              <height>700</height>
             </rect>
            </property>
@@ -1070,8 +1070,8 @@
               <rect>
                <x>130</x>
                <y>110</y>
-               <width>37</width>
-               <height>22</height>
+               <width>32</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1285,7 +1285,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>279</width>
+             <width>98</width>
              <height>500</height>
             </rect>
            </property>
@@ -1815,8 +1815,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>413</height>
+             <width>98</width>
+             <height>28</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1986,7 +1986,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>279</width>
+             <width>283</width>
              <height>600</height>
             </rect>
            </property>
@@ -2673,7 +2673,7 @@
      <x>0</x>
      <y>0</y>
      <width>1515</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuTools">

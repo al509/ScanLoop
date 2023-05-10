@@ -854,16 +854,13 @@ p, li { white-space: pre-wrap; }
      <property name="geometry">
       <rect>
        <x>60</x>
-       <y>26</y>
-       <width>71</width>
+       <y>30</y>
+       <width>41</width>
        <height>20</height>
       </rect>
      </property>
-     <property name="toolTip">
-      <string comment="Set 0 if need auto" extracomment="Set 0 if need auto"/>
-     </property>
      <property name="text">
-      <string>0</string>
+      <string>1590</string>
      </property>
     </widget>
     <widget class="QCheckBox" name="checkBox_derive_taper_cavity_params">

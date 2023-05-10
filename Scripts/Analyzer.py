@@ -4,8 +4,8 @@
 
 
 """
-__version__='2.6.7'
-__date__='2023.03.17'
+__version__='2.6.8'
+__date__='2023.05.10'
 
 import os
 import sys
@@ -388,7 +388,11 @@ class Analyzer(QObject):
             except AttributeError as E:
                 print(E)
             
-            w_0=np.mean(self.SNAP.wavelengths)
+            if self.lambda_0_for_ERV==0:
+                lambda_0=self.SNAP.lambda_0
+            else:
+                lambda_0=self.lambda_0_for_ERV
+                
             x=self.SNAP.positions[:,self.SNAP.axes_dict[self.SNAP.axis_key]]-p['shift_x_axis']
             if p['shift_x_axis']!=0:
                 self.S_print_error.emit('!!! Note that X axis in spectrogram are shifted on {} um according to plotting_parameters.txt'.format(p['shift_x_axis']))
@@ -399,15 +403,16 @@ class Analyzer(QObject):
                 """
                 y1, y2 = ax_Wavelengths.get_ylim()
                 print(y1,y2)
-                nY1=(y1-self.SNAP.lambda_0)/self.SNAP.lambda_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
-                nY2=(y2-self.SNAP.lambda_0)/self.SNAP.lambda_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
+                
+                nY1=(y1-lambda_0)/lambda_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
+                nY2=(y2-lambda_0)/lambda_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
                 ax_Radius.set_ylim(nY1, nY2)
                 
             def _forward(x):
-                return (x-self.SNAP.lambda_0)/self.SNAP.lambda_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
+                return (x-lambda_0)/lambda_0*self.SNAP.R_0*self.SNAP.refractive_index*1e3
     
             def _backward(x):
-                return self.SNAP.lambda_0 + self.SNAP.lambda_0*x/self.SNAP.R_0/self.SNAP.refractive_index/1e3
+                return lambda_0 + lambda_0*x/self.SNAP.R_0/self.SNAP.refractive_index/1e3
         
         
             
