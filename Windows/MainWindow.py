@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.6.15'
-__date__='2023.04.25'
+__version__='20.6.16'
+__date__='2023.05.15'
 
 import os
 if __name__=='__main__':
@@ -299,7 +299,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
         self.ui.pushButton_analyzer_get_modes_params.clicked.connect(lambda: self.analyzer.get_modes_parameters())
         self.ui.pushButton_analyzer_quantum_numbers_fitter.clicked.connect(lambda: self.analyzer.run_quantum_numbers_fitter())
-        self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(self.analyzer.apply_FFT_to_spectrogram)
+        self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(lambda: self.analyzer.apply_FFT_to_spectrogram())
         
         self.ui.pushButton_analyzer_choose_single_spectrum.clicked.connect(
             self.choose_single_spectrum_file_for_analyzer)

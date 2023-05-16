@@ -323,7 +323,7 @@ class Fitter():
         if FFT_filter:
             self.signal=FFTFilter(self.signal)
         dw=(wavelengths[-1]-wavelengths[0])/len(wavelengths)
-        self.resonances_indexes,_=find_peaks(abs(self.signal-np.nanmean(self.signal)),prominence=peak_depth,distance=peak_distance/dw)
+        self.resonances_indexes,_=find_peaks(abs(self.signal-np.nanmean(self.signal)),prominence=peak_depth,distance=int(peak_distance/dw)+1)
         self.exp_resonances=self.wavelengths[self.resonances_indexes]
         self.polarizations=polarization
         self.material_dispersion=dispersion
