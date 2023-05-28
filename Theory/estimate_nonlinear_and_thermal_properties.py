@@ -74,7 +74,7 @@ hi_3=4*n2/3*epsilon_0*c*n**2
 omega=c/(lambda_0*1e-9)*2*np.pi # 1/sec
 
 
-def E(x,R,pol='TE'): #phase not considered
+def E(x,R,pol='TE',p=1): #phase not considered
     T_mp=special.jn_zeros(m,p)[p-1]
     if pol=='TE':
         P=1
@@ -214,4 +214,22 @@ if __name__=='__main__':
     print('Mode amplitude squared={:.3e} (V/m)**2'.format(get_field_intensity(delta_c,length,R_0)))
     print('Thermal shift {} K '.format(temperature_shift))
     print('Averaged temperature response is {} degrees per Watt of pump'.format(heat_effect))
+    
+    #%%
+    R=62.5
+    step=R*0.0005 # Number of points
+    r_min=R*0.8
+    r_max=R*1.1
+    
+    Rarray=np.arange(r_min,r_max,step)
+    Intenisty_TM_Array=abs(F(Rarray,pol='TE', R=R,p=1))**2
+    plt.plot(Rarray,Intenisty_TM_Array)
+    
+    
+    Intenisty_TM_Array=abs(F(Rarray,pol='TE', R=R,p=2))**2
+    plt.plot(Rarray,Intenisty_TM_Array)
+    
+    
+    Intenisty_TM_Array=abs(F(Rarray,pol='TE', R=R,p=5))**2
+    plt.plot(Rarray,Intenisty_TM_Array)
     

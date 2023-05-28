@@ -8,8 +8,8 @@ matplotlib 3.4.2 is needed!
 
 
 
-__version__='11.8.4'
-__date__='2023.03.17'
+__version__='11.8.6'
+__date__='2023.05.18'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -247,6 +247,7 @@ class SNAP():
         
             
         for Zind, Z in enumerate(range(0,Number_of_positions)):
+            print('index={},Z={}'.format(Zind,Z))
             peakind,_=scipy.signal.find_peaks(abs(self.signal[:,Zind]-np.nanmean(self.signal[:,Zind])),prominence=min_peak_level,distance=int(min_peak_distance/dw)+1)
             NewPeakind=np.extract((WavelengthArray[peakind]>min_wave) & (WavelengthArray[peakind]<max_wave),peakind)
             NewPeakind=NewPeakind[np.argsort(-WavelengthArray[NewPeakind])] ##sort in wavelength decreasing
@@ -276,7 +277,7 @@ class SNAP():
     def get_modes_parameters(self, min_peak_level,
                 min_peak_distance, 
                 bandwidth_for_fitting,
-                iterate_different_bandwidths:bool, max_bandwidth_for_fitting:int, iterating_cost_function_type:str):
+                iterate_different_bandwidths:bool, max_bandwidth_for_fitting:int, iterating_cost_function_type:str,scale_for_fitting='log'):
         
         mode_wavelengths=self.find_modes(min_peak_level,min_peak_distance)
         print('rough mode estimations:',mode_wavelengths)
@@ -311,7 +312,7 @@ class SNAP():
             for jj,_ in enumerate(x_array):
                 try:
                     peakind,_=scipy.signal.find_peaks(abs(signal[:,jj]-np.nanmean(signal[:,jj])),prominence=min_peak_level , distance=int(min_peak_distance/dw)+1)
-                    [non_res_transmission,Fano_phase, res_wavelength,delta_c,delta_0,best_bandwidth_for_fitting,perr]=find_width(waves,signal[:,jj],waves[peakind[0]],bandwidth_for_fitting,iterate_different_bandwidths,max_bandwidth_for_fitting,iterating_cost_function_type)
+                    [non_res_transmission,Fano_phase, res_wavelength,delta_c,delta_0,best_bandwidth_for_fitting,perr]=find_width(waves,signal[:,jj],waves[peakind[0]],bandwidth_for_fitting,iterate_different_bandwidths,max_bandwidth_for_fitting,iterating_cost_function_type,scale_for_fitting)
                     '''
                     print(x_array[jj])
                     plt.figure
@@ -385,7 +386,8 @@ def extract_taper_jones_matrixes(jones_matrixes,out_of_contact_jones_matrixes):
 
 
 # @njit
-def find_width(waves,signal,peak_wavelength,bandwidth_for_fitting=0,iterate_different_bandwidths=False,max_bandwidth_for_fitting=100,iterating_cost_function_type='linewidth'):
+def find_width(waves,signal,peak_wavelength,bandwidth_for_fitting=0,iterate_different_bandwidths=False,
+               max_bandwidth_for_fitting=100,iterating_cost_function_type='linewidth',scale_for_fitting='log'):
     if peak_wavelength is not None:    
         index=np.argmin(np.abs(waves-peak_wavelength))
     else:
@@ -396,11 +398,11 @@ def find_width(waves,signal,peak_wavelength,bandwidth_for_fitting=0,iterate_diff
     max_ind_ind_bandwidth_for_fitting=int(max_bandwidth_for_fitting/dw)
     if not iterate_different_bandwidths:
         if ind_bandwidth_for_fitting==0:
-            fitting_parameters,perr,_,_=get_Fano_fit(waves, signal,peak_wavelength)
+            fitting_parameters,perr,_,_=get_Fano_fit(waves, signal,peak_wavelength,scale_for_fitting)
         else:
             i_min=0 if index-ind_bandwidth_for_fitting<0 else index-ind_bandwidth_for_fitting
             i_max=number_of_spectral_points-1 if index+ind_bandwidth_for_fitting>number_of_spectral_points-1 else index+ind_bandwidth_for_fitting
-            fitting_parameters,perr,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
+            fitting_parameters,perr,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength,scale_for_fitting)
     else:
         ind_bandwidth_for_fitting=10
         minimal_linewidth=np.max(waves)-np.min(waves)
@@ -409,7 +411,7 @@ def find_width(waves,signal,peak_wavelength,bandwidth_for_fitting=0,iterate_diff
         for N_points in np.arange(10,max_ind_ind_bandwidth_for_fitting,2):
              i_min=0 if index-N_points<0 else index-N_points
              i_max=number_of_spectral_points-1 if index+N_points>number_of_spectral_points-1 else index+N_points
-             fitting_parameters,perr,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength)
+             fitting_parameters,perr,_,_=get_Fano_fit(waves[i_min:i_max], signal[i_min:i_max],peak_wavelength,scale_for_fitting)
              [transmission,phase,peak_wavelength,delta_0,delta_c]=fitting_parameters
              linewidth=(delta_0+delta_c)*2/lambda_to_omega
              
@@ -428,7 +430,7 @@ def find_width(waves,signal,peak_wavelength,bandwidth_for_fitting=0,iterate_diff
              else:
                  print('wrong cost function')
                  return
-             if (N_points%10==0): print('N_points={},linewidth={},error={}'.format(N_points,linewidth,error))
+             if (N_points%50==0): print('N_points={},linewidth={},error={}'.format(N_points,linewidth,error))
              
 
                  
@@ -441,7 +443,7 @@ def find_width(waves,signal,peak_wavelength,bandwidth_for_fitting=0,iterate_diff
     return [non_res_transmission,Fano_phase, res_wavelength, delta_c,delta_0,ind_bandwidth_for_fitting*dw,perr]
 
 # @njit
-def get_Fano_fit(waves,signal,peak_wavelength=None):
+def get_Fano_fit(waves,signal,peak_wavelength=None,scale_for_fitting='log'):
     '''
     fit shape, given in log scale, with 
     Lorenzian 10*np.log10(abs(transmission*np.exp(1j*phase*np.pi) - transmission*1j*2*delta_c/(1j*(w0-w)+delta_0+delta_c))**2)  
@@ -455,7 +457,6 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
     '''
     method='trf'
     peak_wavelength_prominance=3e-3
-    fitting_in_linear_scale=False
     
     
     signal_lin=10**(signal/10)
@@ -494,15 +495,15 @@ def get_Fano_fit(waves,signal,peak_wavelength=None):
     bounds=((0,-1,peak_wavelength_lower_bound,0,0),(1,1,peak_wavelength_higher_bound,100000,100000))
     
     try:
-        if fitting_in_linear_scale:
+        if scale_for_fitting=='lin':
             popt, pcov=scipy.optimize.curve_fit(linear_Fano_lorenzian,waves,signal_lin,p0=initial_guess,bounds=bounds,method=method)
-        else:
+        elif scale_for_fitting=='log':
             popt, pcov=scipy.optimize.curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds,method=method)
         perr = np.sqrt(np.diag(pcov))
         return popt,perr, waves, Fano_lorenzian(waves,*popt)
     except RuntimeError as E:
         print(E)
-        return None
+        return initial_guess,None,None,None
     
 # @njit
 def get_complex_Fano_fit(waves,signal,peak_wavelength=None,height=None):

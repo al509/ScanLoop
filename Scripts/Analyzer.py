@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-__version__ = '2.6.8'
-__date__ = '2023.05.10'
+__version__ = '2.6.10'
+__date__ = '2023.05.28'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -51,12 +51,14 @@ class Analyzer(QObject):
         self.figure_spectrogram = None
 
         self.number_of_peaks_to_search = 1
-        self.min_peak_level = 0.8
-        self.min_peak_distance = 0.05
+        self.min_peak_level = 0.5 #dB
+        self.min_peak_distance = 0.0000001 #nm
+        self.max_peak_width=1 # nm
         self.min_wave = 1500
         self.max_wave = 1600
 
         self.lambda_0_for_ERV = 1500
+        self.fiber_radius=62.5
 
         self.slice_position = 0
 
@@ -69,6 +71,7 @@ class Analyzer(QObject):
         self.iterating_cost_function_type = 'linewidth'
         self.max_bandwidth_for_fitting = 0.05
         self.derive_taper_cavity_params = False
+        self.scale_for_fitting = 'log'
 
         self.FFTFilter_low_freq_edge = 0.00001
         self.FFTFilter_high_freq_edge = 0.01
@@ -76,6 +79,9 @@ class Analyzer(QObject):
         self.quantum_numbers_fitter_dispersion = False
         self.quantum_numbers_fitter_p_max = 3
         self.quantum_numbers_fitter_polarizations = 'both'
+        self.quantum_numbers_fitter_R_min=62000
+        self.quantum_numbers_fitter_R_max=64000
+        self.quantum_numbers_fitter_type_of_cavity='cylinder'
 
         self.temperature = 20
         self.quantum_numbers_fitter_vary_temperature = False
@@ -98,12 +104,14 @@ class Analyzer(QObject):
 
         self.type_of_SNAP_file = 'SNAP'
 
-    def set_parameters(self, dictionary):
-        for key in dictionary:
+    def set_parameters(self, d:dict):
+        for key in d:
             try:
-                self.__setattr__(key, dictionary[key])
+                
+                self.__setattr__(key, d[key])
             except:
                 pass
+        self.SNAP.R_0=d['fiber_radius']
 
     def get_parameters(self) -> dict:
         '''
@@ -112,10 +120,15 @@ class Analyzer(QObject):
         Seriazible attributes of the Analyzer object
         '''
         d = dict(vars(self)).copy()  # make a copy of the vars dictionary
+        try:
+            d['fiber_radius']=self.SNAP.R_0
+        except AttributeError:
+            d['fiber_radius']='-'
         del d['SNAP']
         del d['single_spectrum_figure']
         del d['figure_spectrogram']
         return d
+
 
     def load_data(self, file_path=None):
         if file_path is not None:
@@ -133,6 +146,7 @@ class Analyzer(QObject):
                     self.SNAP.type_of_signal = 'insertion losses'
                     self.SNAP.jones_matrix_used = False
                     self.SNAP.signal = self.SNAP.transmission
+                    
                 self.S_print.emit('File has been loaded to SNAP object')
             else:
                 self.S_print.emit(
@@ -141,6 +155,7 @@ class Analyzer(QObject):
                 SNAP_object.axis_key = loaded_object['axis']
                 Positions = np.array(loaded_object['Positions'])
                 wavelengths, exp_data = loaded_object['Wavelengths'], loaded_object['Signal']
+                
 
                 try:
                     scale = loaded_object['spatial_scale']
@@ -161,6 +176,7 @@ class Analyzer(QObject):
 
                 SNAP_object.lambda_0 = np.min(wavelengths)
                 SNAP_object.positions = Positions
+                
                 try:
                     SNAP_object.type_of_signal = loaded_object['type_of_signal']
                 except KeyError:
@@ -178,6 +194,7 @@ class Analyzer(QObject):
                     SNAP_object.refractive_index = 1.45
                 self.SNAP = SNAP_object
                 self.S_print.emit('File has been loaded to SNAP object')
+            
         else:
             self.S_print.emit('SNAP file not chosen')
 
@@ -374,6 +391,7 @@ class Analyzer(QObject):
             plt.xlabel('Wavelength, nm')
             plt.ylabel('Spectral power density, dBm')
             plt.tight_layout()
+        return self.single_spectrum_figure
 
     def plot_spectrogram(self):
         if self.SNAP is None:
@@ -590,8 +608,13 @@ class Analyzer(QObject):
             self.S_print_error.emit('Error. Signal is NAN only')
             return
         dw = (waves[-1]-waves[0])/len(waves)
-        peakind2, _ = find_peaks(abs(signal-np.nanmean(signal)),
-                                 prominence=self.min_peak_level, distance=int(self.min_peak_distance/dw)+1)
+        
+        # Temp=abs(signal)
+        peakind2, _ = find_peaks(abs(signal),
+                                 prominence=self.min_peak_level, distance=int(self.min_peak_distance/dw)+1,width=(0,int(self.max_peak_width/dw)+1))
+        # plt.figure()
+        # plt.plot(Temp)
+        # plt.plot(peakind2,Temp[peakind2],'o')
         if len(peakind2) > 0:
             axes.plot(waves[peakind2], signal[peakind2], '.')
 
@@ -605,7 +628,7 @@ class Analyzer(QObject):
             try:
                 [non_res_transmission, Fano_phase, resonance_position, delta_c, delta_0, bandwidth_for_fitting, perrors] = SNAP_experiment.find_width(waves, signal, wavelength_main_peak,
                                                                                                                                                       self.bandwidth_for_fitting, self.iterate_different_bandwidths,
-                                                                                                                                                      self.max_bandwidth_for_fitting, self.iterating_cost_function_type)
+                                                                                                                                                      self.max_bandwidth_for_fitting, self.iterating_cost_function_type,self.scale_for_fitting)
                 # parameters, waves_fitted,signal_fitted=SNAP_experiment.get_Fano_fit(waves,signal,wavelength_main_peak)
 
             except Exception as e:
@@ -735,7 +758,8 @@ class Analyzer(QObject):
                                                           self.bandwidth_for_fitting,
                                                           self.iterate_different_bandwidths,
                                                           self.max_bandwidth_for_fitting,
-                                                          self.iterating_cost_function_type)
+                                                          self.iterating_cost_function_type,
+                                                          self.scale_for_fitting)
 
         fig1, axes1 = plt.subplots(2, 1, sharex=True)
         fig2, axes2 = plt.subplots(2, 1, sharex=True)
@@ -883,20 +907,22 @@ class Analyzer(QObject):
 
         if find_widths:
             plt.figure()
-            plt.title('Depth and Linewidth $\Delta \lambda$')
-            for i in range(0, number_of_peaks_to_search):
-                plt.plot(positions, depth[:, i], color='blue')
+            # plt.title('Depth and Linewidth $\Delta \lambda$')
+            # plt.title('Linewidth $\Delta \lambda$')
+            # for i in range(0, number_of_peaks_to_search):
+                # plt.plot(positions, depth[:, i], color='blue')
             plt.xlabel('Distance, $\mu$m')
-            plt.ylabel('Depth ', color='blue')
-            plt.gca().tick_params(axis='y', colors='blue')
-            plt.gca().twinx()
+            # plt.ylabel('Depth ', color='blue')
+            # plt.gca().tick_params(axis='y', colors='blue')
+            # plt.gca().twinx()
             # plt.figure()
             for i in range(0, number_of_peaks_to_search):
                 plt.plot(positions, linewidth[:, i], color='red')
-            plt.ylabel('Linewidth $\Delta \lambda$, nm', color='red')
-            plt.gca().tick_params(axis='y', colors='red')
+            plt.ylabel('Linewidth $\Delta \lambda$, nm')#, color='red')
+            # plt.gca().tick_params(axis='y', colors='red')
+            plt.gca().set_yscale('log')
             plt.tight_layout()
-
+       
             plt.figure()
             plt.title('Nonresonanse transmission $|S_0|$ and its phase')
             for i in range(0, number_of_peaks_to_search):
@@ -961,7 +987,9 @@ class Analyzer(QObject):
                                                 dispersion=self.quantum_numbers_fitter_dispersion,
                                                 polarization=self.quantum_numbers_fitter_polarizations,
                                                 type_of_optimizer=self.quantum_numbers_fitter_type_of_optimizer,
-                                                temperature=self.temperature, vary_temperature=self.quantum_numbers_fitter_vary_temperature)
+                                                temperature=self.temperature, vary_temperature=self.quantum_numbers_fitter_vary_temperature,
+                                                R_min=self.quantum_numbers_fitter_R_min,R_max=self.quantum_numbers_fitter_R_max,
+                                                type_of_cavity=self.quantum_numbers_fitter_type_of_cavity)
         axes.plot(fitter.exp_resonances,
                   fitter.signal[fitter.resonances_indexes], '.')
         self.single_spectrum_figure.canvas.draw()
@@ -1024,12 +1052,13 @@ if __name__ == "__main__":
 
     a.plotting_parameters_file_path = os.getcwd()+'\\plotting_parameters.txt'
     # f=r"C:\!WorkFolder\!Experiments\!SNAP system\2022.12 playing with parameters\potential 6\central.SNAP"
-    f = r'F:\!Projects\!SNAP system\Modifications\Annealing by CO2\2023.03.16 annealed 6 times at 16%\4полный спектр для 7 нм\Sp_initial 1 _X=-190.0_Y=0.0_Z=1500.0_.pkl'
+    f =r"F:\!Projects\!SNAP system\Modifications\Deposition\2023.05 deposition\Sp_full spectrum_deposition X=500.0_Y=-10000.0_Z=0.0_.pkl"
     a.single_spectrum_path = f
-    a.plot_single_spectrum()
-    a.FFTFilter_high_freq_edge = 2
-    a.FFTFilter_low_freq_edge = 0.001
-    a.apply_FFT_to_spectrum(a.single_spectrum_figure)
+    fig=a.plot_single_spectrum()
+    # a.FFTFilter_high_freq_edge = 2
+    # a.FFTFilter_low_freq_edge = 0.001
+    # a.apply_FFT_to_spectrum(a.single_spectrum_figure)
+    a.analyze_spectrum(fig)
     # import json
     # f=open('Parameters.txt')
     # Dicts=json.load(f)
