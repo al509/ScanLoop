@@ -2,8 +2,8 @@
 '''
 Making single SNAP object (or complex matrix Jones-based SNAP object) from the bunch of the files 
 '''
-__version__='2.6'
-__date__='2023.01.19'
+__version__='2.7'
+__date__='2023.07.04'
 
 import os,sys
 import numpy as np
@@ -153,7 +153,7 @@ class Spectral_processor(QObject):
         ## if Files are named with X position then Using new
             while FileList:
                 Name=FileList[0]
-                s=axis+'='+self.find_between(Name,axis+'=','_')
+                s=axis+'='+self.find_between(Name,axis+'=','_')+'_'
                 # s=axis+'='+str(self.get_position_from_file_name(Name,axis=axis))+'_'
                  #s=s[2] # take signature of the position,  etc
                 Temp=[T for T in FileList if s in T]  # take all 'signature' + 'i' instances

@@ -8,8 +8,8 @@ matplotlib 3.4.2 is needed!
 
 
 
-__version__='11.8.6'
-__date__='2023.05.18'
+__version__='11.9.0'
+__date__='2023.08.16'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -24,7 +24,7 @@ from scipy.fftpack import rfft, irfft, fftfreq
 import scipy.optimize
 import scipy.linalg as la
 
-from numba import njit
+# from numba import njit
 # from mpl_toolkits.mplot3d import Axes3D
 
 lambda_to_nu=125e3 #MHz/nm at 1550 nm
@@ -520,19 +520,22 @@ def get_complex_Fano_fit(waves,signal,peak_wavelength=None,height=None):
     
     if peak_wavelength is None:
         indexes=scipy.signal.find_peaks(signal_abs-transmission,prominence=height)
-        print(indexes)
         peak_wavelength=waves[indexes[0][0]]
 
-    peak_wavelength_lower_bound=peak_wavelength-5e-3
-    peak_wavelength_higher_bound=peak_wavelength+5e-3
+
+        
     
-    delta_0=300 # MHz
-    delta_c=50 # MHz
+    peak_wavelength_lower_bound=peak_wavelength-100e-3
+    peak_wavelength_higher_bound=peak_wavelength+100e-3
+    
+    delta_0=1000 # 1e6 1/s
+    delta_c=1000 # 1e6 1/s
     total_phase=0
     fano_phase=0.0
+    # transmission=0.9
     
     initial_guess=[transmission,total_phase,fano_phase,peak_wavelength,delta_0,delta_c]
-    bounds=((0,-1,-1,peak_wavelength_lower_bound,0,0),(1,1,1,peak_wavelength_higher_bound,np.inf,np.inf))
+    bounds=((0,-1,-1,peak_wavelength_lower_bound,-10000,-10000),(2,1,1,peak_wavelength_higher_bound,10000,10000))
     
     re_im_signal=np.hstack([np.real(signal),np.imag(signal)])
     
@@ -562,7 +565,7 @@ def complex_Fano_lorenzian(w,transmission,total_phase,fano_phase,w0,delta_0,delt
     return np.exp(1j*total_phase*np.pi)*(transmission*np.exp(1j*fano_phase*np.pi) - transmission*2*delta_c/(-1j*(w0-w)*lambda_to_omega+(delta_0+delta_c)))
      
     
-@njit
+# @njit
 def Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c,scale='log'):
     '''
     return log of Fano shape
@@ -575,7 +578,7 @@ def Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c,scale='log'):
     return 10*np.log10(np.abs(transmission*np.exp(1j*phase*np.pi) - transmission*2*delta_c/(1j*(w0-w)*lambda_to_omega+(delta_0+delta_c)))**2) 
 
     
-@njit
+# @njit
 def linear_Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c):
     '''
     return Fano shape
@@ -587,6 +590,46 @@ def linear_Fano_lorenzian(w,transmission,phase,w0,delta_0,delta_c):
     
     return np.abs(transmission*np.exp(1j*phase*np.pi) - transmission*2*delta_c/(1j*(w0-w)*lambda_to_omega+(delta_0+delta_c)))**2
 
+def get_resonance_parameters_from_complex_spectrum(file_bin_in_contact, file_bin_out_of_contact, peak_wavelength=None):
+    from ScanLoop.Scripts import OVA_signals
+    d_in=OVA_signals.load_OVA_spectrum(file_bin_in_contact)
+    d_out=OVA_signals.load_OVA_spectrum(file_bin_out_of_contact)
+    waves=d_in.fetch_xaxis(0)[0]
+
+    pol1,pol2=OVA_signals.complex_IL_remove_out_of_contact(d_in,d_out)
+    plt.figure()
+    plt.plot(waves,np.real(pol1))
+    plt.plot(waves,np.imag(pol1))
+    popt,perr, waves, complex_Fano_lorenzian=get_complex_Fano_fit(waves,pol1,peak_wavelength=peak_wavelength)
+    
+    # plt.figure(1)
+    # plt.plot(waves,np.abs(complex_Fano_lorenzian))
+    plt.plot(waves,np.real(complex_Fano_lorenzian))
+    plt.plot(waves,np.imag(complex_Fano_lorenzian))
+    
+    [non_res_transmission,total_phase,Fano_phase,resonance_position,delta_0,delta_c]=popt
+    depth = 4*delta_0*delta_c/(delta_0+delta_c)**2
+    linewidth = (delta_0+delta_c)*2/lambda_to_omega
+    delta_0_err= perr[4]
+    delta_c_err= perr[5]
+    results_text1 = '$|S_0|$={:.2f} \n arg(S)={:.2f} $\pi$  \n $\lambda_0$={:.5f}  nm \n $\Delta \lambda={:.3f}$ pm \n Depth={:.3e} \n'.format(
+        non_res_transmission, Fano_phase, resonance_position, linewidth*1e3, depth)
+
+
+    Q_factor = resonance_position/linewidth
+    results_text2 = '\n $\delta_c$=({:.2f} $\pm$ {:.2f}) '.format(
+        delta_c, delta_c_err)+'$\mu s^{-1}$'
+    results_text3 = '\n $\delta_0$=({:.2f} $\pm$ {:.2f}) '.format(
+        delta_0, delta_0_err)+'$\mu s^{-1}$'
+    results_text4 = '\n Q-factor={:.2e}'.format(Q_factor)
+    results_text = results_text1+results_text2+results_text3+results_text4
+
+    
+    # results_text='$\phi_{fano}=$'+'{:.2f}, $\delta_0$={:.2f} 1e6/s, $\delta_c=${:.2f} 1e6/s'.format(popt[2],popt[4],popt[5])
+    plt.gca().text(0.4, 0.5,results_text,
+            horizontalalignment='center',
+            verticalalignment='center',
+            transform = plt.gca().transAxes)
 
 if __name__ == "__main__":
     '''

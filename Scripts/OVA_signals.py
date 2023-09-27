@@ -1,5 +1,5 @@
-__version__='0.3'
-__date__='22.08.2022'
+__version__='0.4'
+__date__='2023.08.16'
 
 
 
@@ -154,7 +154,7 @@ def array_to_list_of_matrixes(array):
         l.append(np.array([row[0],row[1]],[row[2],row[3]]))
     return l
 
-@njit    
+# @njit    
 def complex_IL_remove_out_of_contact(T_in:OVA_spectrum,T_out:OVA_spectrum)->complex:
     '''
     linear Complex losses in two principal polarizations
@@ -172,6 +172,7 @@ def complex_IL_remove_out_of_contact(T_in:OVA_spectrum,T_out:OVA_spectrum)->comp
     pol_1=np.zeros(T_in.meas_num,dtype='complex_')
     pol_2=np.zeros(T_in.meas_num,dtype='complex_')
     for i,m_in in enumerate(T_in.jones_matrixes):
+        # print(i)
         m_out=T_out.jones_matrixes[i]
         [pol_1[i],pol_2[i]]=la.eigvals(np.dot(la.inv(m_out),m_in))
     
