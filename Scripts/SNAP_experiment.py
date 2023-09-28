@@ -517,13 +517,10 @@ def get_complex_Fano_fit(waves,signal,peak_wavelength=None,height=None):
     '''
     signal_abs=np.abs(signal)
     transmission=np.mean(signal_abs)
-    
     if peak_wavelength is None:
         indexes=scipy.signal.find_peaks(signal_abs-transmission,prominence=height)
         peak_wavelength=waves[indexes[0][0]]
 
-
-        
     
     peak_wavelength_lower_bound=peak_wavelength-100e-3
     peak_wavelength_higher_bound=peak_wavelength+100e-3
@@ -536,6 +533,7 @@ def get_complex_Fano_fit(waves,signal,peak_wavelength=None,height=None):
     
     initial_guess=[transmission,total_phase,fano_phase,peak_wavelength,delta_0,delta_c]
     bounds=((0,-1,-1,peak_wavelength_lower_bound,-10000,-10000),(2,1,1,peak_wavelength_higher_bound,10000,10000))
+
     
     re_im_signal=np.hstack([np.real(signal),np.imag(signal)])
     
