@@ -154,7 +154,7 @@ def array_to_list_of_matrixes(array):
         l.append(np.array([row[0],row[1]],[row[2],row[3]]))
     return l
 
-@njit    
+# @njit    
 def complex_IL_remove_out_of_contact(T_in:OVA_spectrum,T_out:OVA_spectrum)->complex:
     '''
     linear Complex losses in two principal polarizations

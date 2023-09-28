@@ -10,12 +10,14 @@ if __name__=='__main__':
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import json
 
 from PyQt5.QtCore import pyqtSignal, QThread
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog,QLineEdit,QComboBox,QCheckBox,QMessageBox
 
 from Common.Consts import Consts
 from Hardware.Config import Config
+from Hardware.PiezoStageE53D_serial import PiezoStage
 
 '''
 from Hardware.Interrogator import Interrogator
@@ -54,7 +56,7 @@ class ThreadedMainWindow(QMainWindow):
         self.threads = []
         self.destroyed.connect(self.kill_threads)
 
-
+    
     def add_thread(self, objects):
         """
         Creates thread, adds it into to-destroy list and moves objects to it.
@@ -138,6 +140,8 @@ class MainWindow(ThreadedMainWindow):
         self.init_scanning_interface()
         self.init_scope_interface()
         self.init_stages_interface()
+        self.init_piezo_stage_interface()
+        self.piezo_stage_connected = 0
         self.init_menu_bar()
         
         self.load_parameters_from_file()
@@ -161,7 +165,15 @@ class MainWindow(ThreadedMainWindow):
     def init_stages_interface(self):
         self.ui.pushButton_StagesConnect.pressed.connect(self.connect_stages)
         self.X_0,self.Y_0,self.Z_0=[0,0,0]
-
+    
+# =============================================================================
+#         Piezo Stage interface
+# =============================================================================
+    def init_piezo_stage_interface(self):
+        self.ui.pushButton_PiezoStageConnect.clicked.connect(self.connect_PiezoStages)
+        self.ui.pushButton_SetZero.clicked.connect(self.SetZeroPosToPiezoStage)
+        self.ui.pushButton_IncreaseX.clicked.connect(lambda: self.MovePiezoStage(direction=1))
+        self.ui.pushButton_DecreaseX.clicked.connect(lambda: self.MovePiezoStage(direction=-1))
 # =============================================================================
 #         # OSA interface
 # =============================================================================
@@ -538,8 +550,68 @@ class MainWindow(ThreadedMainWindow):
         '''
         self.stages.move_home()
         
-        
-        
+    
+    def connect_PiezoStages(self):
+        if self.piezo_stage_connected == 0:
+            try:
+                self.piezo_stage = PiezoStage('COM5', 9600)
+                self.piezo_stage_connected = 1
+                self.ui.label_abs_position.setText(f'Abs:{round(self.piezo_stage.abs_position, 3)} μm')
+                self.logText('Connected to piezo stage')
+                self.add_thread([self.piezo_stage])
+                self.ui.label_PiezoStage_status.setStyleSheet("QLabel {\n"
+                "    \n"
+                "    background-color: rgb(0, 255, 0);\n"
+                "}")
+                self.piezo_stage.A18_SetChannelOpenOrClose(False)
+                self.ui.label_rel_position.setText(f'Rel: {round(self.piezo_stage.rel_position, 3)} μm')
+            except Exception as e:
+                print(e)
+                self.logWarningText('Connection to Piezo stages failed')
+                self.ui.label_PiezoStage_status.setStyleSheet("QLabel {\n"
+                "    \n"
+                "    background-color: rgb(255, 15, 15);\n"
+                "}")
+        else:
+            try:
+                with open('PiezoStageStartPosition.json', 'w', encoding='utf-8') as file:
+                    json.dump({"X":self.piezo_stage.abs_position}, file)
+                del self.piezo_stage
+                self.ui.label_PiezoStage_status.setStyleSheet("QLabel {\n	\n	background-color: rgb(255, 15, 15);\n}")
+                self.piezo_stage_connected = 0
+            except Exception as e:
+                print(e)
+    
+    
+    def SetZeroPosToPiezoStage(self):
+        if self.piezo_stage_connected == 1:
+            _, move = self.piezo_stage.A06_ReadDataMove()
+            _, move = self.piezo_stage.A06_ReadDataMove()
+            self.piezo_stage.A01_SendMove(0.0001)
+            self.piezo_stage.abs_position -= move
+            _, self.piezo_stage.rel_position = self.piezo_stage.A06_ReadDataMove()
+            _, self.piezo_stage.rel_position = self.piezo_stage.A06_ReadDataMove()
+            self.ui.label_abs_position.setText(f'Abs:{round(self.piezo_stage.abs_position, 3)} μm')
+            self.ui.label_rel_position.setText(f'Rel:{round(self.piezo_stage.rel_position, 3)} μm')
+        else:
+            self.logWarningText('Piezo stage is not connected')
+            
+    
+    def MovePiezoStage(self, direction=1):
+        if self.piezo_stage_connected == 1:
+            to_move = float(self.ui.lineEdit_Step.text())*direction
+            if 0 <= self.piezo_stage.rel_position + to_move <= 202:
+                self.piezo_stage.abs_position += to_move
+                self.piezo_stage.rel_position += to_move
+                self.piezo_stage.A01_SendMove(self.piezo_stage.rel_position)
+            _, self.piezo_stage.rel_position = self.piezo_stage.A06_ReadDataMove()
+            _, self.piezo_stage.rel_position = self.piezo_stage.A06_ReadDataMove()
+            self.ui.label_abs_position.setText(f'Abs:{round(self.piezo_stage.abs_position, 3)} μm')
+            self.ui.label_rel_position.setText(f'Rel:{round(self.piezo_stage.rel_position, 3)} μm')
+        else:
+            self.logWarningText('Piezo stage is not connected')
+    
+    
     def connect_powermeter(self):
         '''
         set connection to powermeter Thorlabs
@@ -1323,6 +1395,11 @@ class MainWindow(ThreadedMainWindow):
         except:
             pass
         del self.spectral_processor
+        try:
+            del self.piezo_stage
+            print('Piezo stage is deleted')
+        except:
+            pass
         print('Processing is deleted')
         super(QMainWindow, self).closeEvent(event)
         
