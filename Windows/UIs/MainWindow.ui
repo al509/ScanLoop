@@ -844,7 +844,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-103</y>
+             <y>0</y>
              <width>283</width>
              <height>700</height>
             </rect>
@@ -2935,15 +2935,32 @@
     </property>
     <addaction name="action_delete_all_measured_spectral_data"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="action_save_parameters"/>
+    <addaction name="action_delete_all_figures"/>
+    <addaction name="action_load_parameters"/>
+   </widget>
    <addaction name="menuData"/>
+   <addaction name="menuTools"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_save_parameters">
    <property name="text">
-    <string>&amp;Save parameters</string>
+    <string>&amp;Save Parameters</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="action_delete_all_figures">
+   <property name="text">
+    <string>&amp;Delete all figues</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
   <action name="action_load_parameters">
@@ -2954,20 +2971,15 @@
     <string>Ctrl+L</string>
    </property>
   </action>
-  <action name="action_delete_all_figures">
-   <property name="text">
-    <string>Delete all figures</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+D</string>
-   </property>
-  </action>
   <action name="action_delete_all_measured_spectral_data">
    <property name="text">
     <string>Delete all measured spectral data</string>
    </property>
    <property name="toolTip">
     <string>Delete all measured spectral data in SpetralData and SpectralBinData folders</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+.</string>
    </property>
   </action>
  </widget>
