@@ -111,7 +111,12 @@ class Analyzer(QObject):
                 self.__setattr__(key, d[key])
             except:
                 pass
-        # self.SNAP.R_0=d['fiber_radius']
+
+        try:
+            self.SNAP.R_0=d['fiber_radius']
+        except:
+            pass
+
 
     def get_parameters(self) -> dict:
         '''

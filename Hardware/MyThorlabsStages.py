@@ -50,6 +50,8 @@ class ThorlabsStages(QObject):
     
     def __init__(self):
         super().__init__()
+        
+        
         self._short_pause=0.11
         self._serial_no_x = c_char_p(bytes("27254353", "utf-8"))
         self.milliseconds = c_int(100)
